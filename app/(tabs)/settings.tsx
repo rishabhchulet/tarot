@@ -31,11 +31,32 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleProfile = () => {
+    console.log('📱 Navigating to profile...');
+    router.push('/profile');
+  };
+
   const handleSubscription = () => {
-    router.push('/paywall');
+    console.log('📱 Navigating to subscription...');
+    // For now, just show an alert since paywall isn't implemented
+    Alert.alert(
+      'Subscription',
+      'Subscription management coming soon!',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleHelpSupport = () => {
+    console.log('📱 Help & Support pressed');
+    Alert.alert(
+      'Help & Support',
+      'For support, please contact us at support@dailytarot.com',
+      [{ text: 'OK' }]
+    );
   };
 
   const handleSignOut = () => {
+    console.log('🚪 Sign out pressed');
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -45,8 +66,15 @@ export default function SettingsScreen() {
           text: 'Sign Out', 
           style: 'destructive',
           onPress: async () => {
-            await signOut();
-            router.replace('/auth');
+            console.log('🚪 Confirming sign out...');
+            try {
+              await signOut();
+              console.log('✅ Sign out successful, navigating to auth...');
+              router.replace('/auth');
+            } catch (error) {
+              console.error('❌ Sign out error:', error);
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
           }
         }
       ]
@@ -128,17 +156,17 @@ export default function SettingsScreen() {
             icon={User}
             title="Profile"
             subtitle="Manage your personal information"
-            onPress={() => router.push('/onboarding/name')}
+            onPress={handleProfile}
           />
           <SettingItem
             icon={HelpCircle}
             title="Help & Support"
             subtitle="Get answers to common questions"
+            onPress={handleHelpSupport}
           />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
           <SettingItem
             icon={LogOut}
             title="Sign Out"

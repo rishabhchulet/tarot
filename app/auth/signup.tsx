@@ -75,8 +75,9 @@ export default function SignUpScreen() {
           // User is immediately signed in (no email confirmation required)
           setSuccess(true);
           setTimeout(() => {
-            console.log('📱 Navigating to main app...');
-            router.replace('/(tabs)');
+            console.log('📱 Navigating to onboarding...');
+            // Navigate to onboarding instead of main app
+            router.replace('/onboarding/quiz');
           }, 1500);
         } else {
           // User needs to confirm email
@@ -108,7 +109,7 @@ export default function SignUpScreen() {
           <CheckCircle size={64} color="#10B981" />
           <Text style={styles.successTitle}>Account Created!</Text>
           <Text style={styles.successMessage}>
-            Welcome to Daily Tarot Reflection! You're all set to begin your spiritual journey.
+            Welcome to Daily Tarot Reflection! Let's set up your spiritual journey.
           </Text>
         </View>
       </LinearGradient>

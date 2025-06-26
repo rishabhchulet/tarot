@@ -105,24 +105,32 @@ export const getSubscriptionStatus = async () => {
     const { data, error } = await supabase
       .from('subscriptions')
       .select('*')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
 
-    if (error || !data) {
+    if (error) {
+      console.error('Error fetching subscription:', error);
       return null;
     }
 
+    // Check if no subscription record exists (new user)
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    // Get the first (and should be only) subscription record
+    const subscription = data[0];
+    
     const now = new Date();
-    const trialEndDate = new Date(data.trial_end_date);
+    const trialEndDate = new Date(subscription.trial_end_date);
     
     const trialExpired = now > trialEndDate;
     const trialDaysLeft = Math.max(0, Math.ceil((trialEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
 
     return {
-      ...data,
+      ...subscription,
       trialExpired,
       trialDaysLeft,
-      isInTrial: !trialExpired && !data.has_active_subscription,
+      isInTrial: !trialExpired && !subscription.has_active_subscription,
     };
   } catch (error) {
     console.error('Error getting subscription status:', error);

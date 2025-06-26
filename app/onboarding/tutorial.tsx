@@ -32,8 +32,11 @@ const TUTORIAL_STEPS = [
 
 export default function TutorialScreen() {
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const handleNext = () => {
+    console.log('📱 Tutorial next button pressed, current step:', currentStep);
+    
     if (currentStep < TUTORIAL_STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -42,13 +45,24 @@ export default function TutorialScreen() {
   };
 
   const handleComplete = async () => {
+    console.log('🎉 Tutorial complete, starting free trial...');
+    setLoading(true);
+    
     try {
+      console.log('💾 Starting free trial...');
       await startFreeTrial();
+      console.log('✅ Free trial started successfully');
     } catch (error) {
-      console.error('Error starting free trial:', error);
+      console.error('❌ Error starting free trial:', error);
     }
     
+    console.log('📱 Navigating to main app...');
     router.replace('/(tabs)');
+  };
+
+  const handleSkip = () => {
+    console.log('⏭️ Tutorial skipped');
+    handleComplete();
   };
 
   const currentTutorial = TUTORIAL_STEPS[currentStep];
@@ -81,19 +95,23 @@ export default function TutorialScreen() {
       </View>
 
       <View style={styles.buttonContainer}>
-        <Pressable style={styles.button} onPress={handleNext}>
+        <Pressable 
+          style={[styles.button, loading && styles.buttonDisabled]} 
+          onPress={handleNext}
+          disabled={loading}
+        >
           <LinearGradient
-            colors={['#F59E0B', '#D97706']}
+            colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
             style={styles.buttonGradient}
           >
             <Text style={styles.buttonText}>
-              {currentStep === TUTORIAL_STEPS.length - 1 ? 'Start My Journey' : 'Next'}
+              {loading ? 'Setting up...' : currentStep === TUTORIAL_STEPS.length - 1 ? 'Start My Journey' : 'Next'}
             </Text>
           </LinearGradient>
         </Pressable>
         
-        {currentStep < TUTORIAL_STEPS.length - 1 && (
-          <Pressable style={styles.skipButton} onPress={handleComplete}>
+        {currentStep < TUTORIAL_STEPS.length - 1 && !loading && (
+          <Pressable style={styles.skipButton} onPress={handleSkip}>
             <Text style={styles.skipButtonText}>Skip Tutorial</Text>
           </Pressable>
         )}
@@ -154,6 +172,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     width: '100%',
     marginBottom: 16,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonGradient: {
     paddingVertical: 16,

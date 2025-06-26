@@ -22,6 +22,10 @@ export const signUp = async (email: string, password: string, name: string) => {
       throw new Error('Password must be at least 6 characters long');
     }
 
+    if (name.trim().length === 0) {
+      throw new Error('Name cannot be empty');
+    }
+
     console.log('📧 Attempting to create user account...');
     
     const { data, error } = await supabase.auth.signUp({
@@ -57,6 +61,10 @@ export const signUp = async (email: string, password: string, name: string) => {
       if (error.message.includes('Password')) {
         throw new Error('Password must be at least 6 characters long.');
       }
+
+      if (error.message.includes('Database error')) {
+        throw new Error('There was an issue creating your account. Please try again.');
+      }
       
       throw new Error(error.message);
     }
@@ -64,25 +72,39 @@ export const signUp = async (email: string, password: string, name: string) => {
     if (data.user) {
       console.log('✅ User created successfully:', data.user.id);
       
-      // Only create profile if we have a session (user is confirmed)
+      // If we have a session, the user profile should have been created by the trigger
       if (data.session) {
-        console.log('👤 Creating user profile...');
-        const { error: profileError } = await supabase
-          .from('users')
-          .upsert({
-            id: data.user.id,
-            email: data.user.email!,
-            name: name.trim(),
-          }, {
-            onConflict: 'id'
-          });
+        console.log('✅ User signed in immediately with session');
+        
+        // Verify the profile was created
+        try {
+          const { data: profile, error: profileError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
 
-        if (profileError) {
-          console.error('⚠️ Error creating user profile:', profileError);
-          // Don't throw here as the auth user was created successfully
-          console.log('User can still sign in, profile will be created on first login');
-        } else {
-          console.log('✅ User profile created successfully');
+          if (profileError || !profile) {
+            console.warn('⚠️ Profile not found, creating manually...');
+            // Create profile manually if trigger failed
+            const { error: manualProfileError } = await supabase
+              .from('users')
+              .insert({
+                id: data.user.id,
+                email: data.user.email!,
+                name: name.trim(),
+              });
+
+            if (manualProfileError) {
+              console.error('❌ Manual profile creation failed:', manualProfileError);
+            } else {
+              console.log('✅ Manual profile creation successful');
+            }
+          } else {
+            console.log('✅ User profile verified');
+          }
+        } catch (verifyError) {
+          console.error('❌ Error verifying profile:', verifyError);
         }
       } else {
         console.log('ℹ️ User created but needs email confirmation');

@@ -147,6 +147,9 @@ export default function SignUpScreen() {
               placeholderTextColor="#9CA3AF"
               autoCapitalize="words"
               autoCorrect={false}
+              accessible={true}
+              accessibilityLabel="Full name input"
+              accessibilityHint="Enter your full name"
             />
           </View>
 
@@ -161,6 +164,9 @@ export default function SignUpScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
+              accessible={true}
+              accessibilityLabel="Email input"
+              accessibilityHint="Enter your email address"
             />
           </View>
 
@@ -176,10 +182,16 @@ export default function SignUpScreen() {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
+                accessible={true}
+                accessibilityLabel="Password input"
+                accessibilityHint="Enter your password"
               />
               <Pressable
                 style={styles.eyeButton}
                 onPress={() => setShowPassword(!showPassword)}
+                accessible={true}
+                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+                accessibilityRole="button"
               >
                 {showPassword ? (
                   <EyeOff size={20} color="#9CA3AF" />
@@ -202,10 +214,16 @@ export default function SignUpScreen() {
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
+                accessible={true}
+                accessibilityLabel="Confirm password input"
+                accessibilityHint="Re-enter your password"
               />
               <Pressable
                 style={styles.eyeButton}
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                accessible={true}
+                accessibilityLabel={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                accessibilityRole="button"
               >
                 {showConfirmPassword ? (
                   <EyeOff size={20} color="#9CA3AF" />
@@ -220,6 +238,9 @@ export default function SignUpScreen() {
             style={[styles.signUpButton, loading && styles.buttonDisabled]}
             onPress={handleSignUp}
             disabled={loading}
+            accessible={true}
+            accessibilityLabel={loading ? "Creating account" : "Create account"}
+            accessibilityRole="button"
           >
             <LinearGradient
               colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
@@ -231,7 +252,13 @@ export default function SignUpScreen() {
             </LinearGradient>
           </Pressable>
 
-          <Pressable style={styles.signInLink} onPress={() => router.push('/auth/signin')}>
+          <Pressable 
+            style={styles.signInLink} 
+            onPress={() => router.push('/auth/signin')}
+            accessible={true}
+            accessibilityLabel="Go to sign in"
+            accessibilityRole="button"
+          >
             <Text style={styles.signInLinkText}>
               Already have an account? <Text style={styles.linkHighlight}>Sign In</Text>
             </Text>

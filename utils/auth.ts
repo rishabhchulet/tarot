@@ -1,4 +1,4 @@
-import { supabase, testSupabaseConnection } from './supabase';
+import { supabase } from './supabase';
 import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 
@@ -13,12 +13,6 @@ export const signUp = async (email: string, password: string, name: string) => {
   try {
     console.log('🚀 Starting sign up process for:', email);
     
-    // Test Supabase connection first
-    const connectionOk = await testSupabaseConnection();
-    if (!connectionOk) {
-      throw new Error('Unable to connect to Supabase. Please check your configuration.');
-    }
-
     // Validate inputs
     if (!email || !password || !name) {
       throw new Error('All fields are required');
@@ -106,12 +100,6 @@ export const signIn = async (email: string, password: string) => {
   try {
     console.log('🔐 Starting sign in process for:', email);
     
-    // Test Supabase connection first
-    const connectionOk = await testSupabaseConnection();
-    if (!connectionOk) {
-      throw new Error('Unable to connect to Supabase. Please check your configuration.');
-    }
-
     // Validate inputs
     if (!email || !password) {
       throw new Error('Email and password are required');

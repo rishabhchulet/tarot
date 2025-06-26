@@ -59,49 +59,6 @@ export const supabase = createClient(
   }
 );
 
-// Test connection function with better error handling
-export const testSupabaseConnection = async () => {
-  try {
-    console.log('🔍 Testing Supabase connection...');
-    
-    // First check if we have valid configuration
-    if (!supabaseUrl || !supabaseAnonKey) {
-      console.error('❌ Missing Supabase configuration');
-      return false;
-    }
-    
-    // Test with a simple query that doesn't require authentication
-    const { data, error } = await supabase
-      .from('users')
-      .select('count')
-      .limit(1);
-    
-    if (error) {
-      console.error('❌ Supabase connection failed:', error.message);
-      console.error('Error details:', error);
-      
-      // Check for common error types
-      if (error.message.includes('Invalid API key')) {
-        console.error('🔑 Invalid API key - check your EXPO_PUBLIC_SUPABASE_ANON_KEY');
-      } else if (error.message.includes('not found')) {
-        console.error('🌐 Invalid URL - check your EXPO_PUBLIC_SUPABASE_URL');
-      } else if (error.message.includes('CORS')) {
-        console.error('🚫 CORS error - check your Supabase project settings');
-      }
-      
-      return false;
-    }
-    
-    console.log('✅ Supabase connection successful');
-    return true;
-  } catch (error: any) {
-    console.error('❌ Supabase connection error:', error);
-    console.error('Error type:', typeof error);
-    console.error('Error message:', error?.message);
-    return false;
-  }
-};
-
 // Database types
 export interface Database {
   public: {

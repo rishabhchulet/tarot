@@ -35,15 +35,21 @@ export default function IndexScreen() {
       });
 
       if (session && user) {
-        // Check if user has completed onboarding (has focus area)
-        if (!user.focusArea) {
+        // Check if user has completed onboarding
+        // A user has completed onboarding if they have a focus area set
+        const hasCompletedOnboarding = user.focusArea && user.focusArea.trim() !== '';
+        
+        console.log('🎯 Onboarding check:', { 
+          focusArea: user.focusArea, 
+          hasCompletedOnboarding 
+        });
+        
+        if (!hasCompletedOnboarding) {
           console.log('📚 User needs onboarding, redirecting to quiz...');
-          // Add a small delay to ensure the user data is fully loaded
-          setTimeout(() => {
-            router.replace('/onboarding/quiz');
-          }, 100);
+          // Use replace to prevent going back to this screen
+          router.replace('/onboarding/quiz');
         } else {
-          console.log('✅ User is fully onboarded, going to main app...');
+          console.log('✅ User has completed onboarding, going to main app...');
           router.replace('/(tabs)');
         }
       } else {

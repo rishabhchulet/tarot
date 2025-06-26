@@ -20,10 +20,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
+      console.log('🔄 Refreshing user data...');
       const currentUser = await getCurrentUser();
+      console.log('👤 Refreshed user:', { 
+        id: currentUser?.id, 
+        name: currentUser?.name, 
+        focusArea: currentUser?.focusArea 
+      });
       setUser(currentUser);
     } catch (error) {
-      console.error('Error refreshing user:', error);
+      console.error('❌ Error refreshing user:', error);
       setUser(null);
     }
   };
@@ -39,8 +45,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    console.log('🚀 AuthContext initializing...');
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('📱 Initial session check:', { hasSession: !!session });
       setSession(session);
       if (session) {
         refreshUser();
@@ -51,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔔 Auth state changed:', { event, hasSession: !!session });
         setSession(session);
         
         if (session) {

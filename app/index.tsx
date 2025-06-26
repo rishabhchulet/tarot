@@ -26,17 +26,24 @@ export default function IndexScreen() {
 
   useEffect(() => {
     if (!loading) {
+      console.log('🔍 Routing check:', { 
+        hasSession: !!session, 
+        hasUser: !!user, 
+        userFocusArea: user?.focusArea,
+        userName: user?.name 
+      });
+
       if (session && user) {
-        // Check if user has completed onboarding
+        // Check if user has completed onboarding (has focus area)
         if (!user.focusArea) {
-          // User is authenticated but hasn't completed onboarding
+          console.log('📚 User needs onboarding, redirecting to quiz...');
           router.replace('/onboarding/quiz');
         } else {
-          // User is fully onboarded, go to main app
+          console.log('✅ User is fully onboarded, going to main app...');
           router.replace('/(tabs)');
         }
       } else {
-        // No session, go to auth
+        console.log('🔐 No session, redirecting to auth...');
         router.replace('/auth');
       }
     }

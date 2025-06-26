@@ -6,10 +6,15 @@ import * as SecureStore from 'expo-secure-store';
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
+console.log('Supabase Configuration Check:');
+console.log('URL:', supabaseUrl ? 'Set' : 'Missing');
+console.log('Anon Key:', supabaseAnonKey ? 'Set' : 'Missing');
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-  console.log('EXPO_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
-  console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
+  console.error('❌ Missing Supabase environment variables');
+  console.log('Please ensure these are set in your .env file:');
+  console.log('EXPO_PUBLIC_SUPABASE_URL=your_supabase_url');
+  console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
 }
 
 // Custom storage adapter for Expo SecureStore
@@ -48,6 +53,25 @@ export const supabase = createClient(
     },
   }
 );
+
+// Test connection function
+export const testSupabaseConnection = async () => {
+  try {
+    console.log('🔍 Testing Supabase connection...');
+    const { data, error } = await supabase.from('users').select('count').limit(1);
+    
+    if (error) {
+      console.error('❌ Supabase connection failed:', error.message);
+      return false;
+    }
+    
+    console.log('✅ Supabase connection successful');
+    return true;
+  } catch (error) {
+    console.error('❌ Supabase connection error:', error);
+    return false;
+  }
+};
 
 // Database types
 export interface Database {

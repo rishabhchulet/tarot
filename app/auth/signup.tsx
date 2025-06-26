@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react-native';
 import { signUp } from '@/utils/auth';
 
 export default function SignUpScreen() {
@@ -13,6 +13,7 @@ export default function SignUpScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,52 +21,53 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
-    console.log('Sign up button pressed');
+    console.log('🎯 Sign up button pressed');
+    setError(null);
     
     // Validation
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter your full name');
+      setError('Please enter your full name');
       return;
     }
 
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+      setError('Please enter your email address');
       return;
     }
 
     if (!validateEmail(email.trim())) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      setError('Please enter a valid email address');
       return;
     }
 
     if (!password.trim()) {
-      Alert.alert('Error', 'Please enter a password');
+      setError('Please enter a password');
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      setError('Password must be at least 6 characters long');
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setError('Passwords do not match');
       return;
     }
 
     setLoading(true);
-    console.log('Starting sign up process...');
+    console.log('🚀 Starting sign up process...');
 
     try {
       const { user, error } = await signUp(email.trim(), password, name.trim());
 
-      console.log('Sign up result:', { user: !!user, error });
+      console.log('📝 Sign up result:', { user: !!user, error });
 
       if (error) {
-        console.error('Sign up failed:', error);
-        Alert.alert('Sign Up Failed', error);
+        console.error('❌ Sign up failed:', error);
+        setError(error);
       } else if (user) {
-        console.log('Sign up successful');
+        console.log('✅ Sign up successful');
         Alert.alert(
           'Account Created!',
           'Your account has been created successfully. You can now sign in.',
@@ -73,19 +75,19 @@ export default function SignUpScreen() {
             {
               text: 'OK',
               onPress: () => {
-                console.log('Navigating to sign in...');
+                console.log('📱 Navigating to sign in...');
                 router.replace('/auth/signin');
               },
             },
           ]
         );
       } else {
-        console.error('Unexpected sign up result: no user and no error');
-        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+        console.error('❓ Unexpected sign up result: no user and no error');
+        setError('An unexpected error occurred. Please try again.');
       }
     } catch (error) {
-      console.error('Unexpected error during sign up:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error('💥 Unexpected error during sign up:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -106,6 +108,13 @@ export default function SignUpScreen() {
         </View>
 
         <View style={styles.form}>
+          {error && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={20} color="#EF4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Full Name</Text>
             <TextInput
@@ -244,6 +253,23 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
     paddingBottom: 40,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#EF4444',
+    marginLeft: 8,
+    flex: 1,
   },
   inputContainer: {
     marginBottom: 24,

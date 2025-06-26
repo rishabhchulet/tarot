@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, AlertCircle } from 'lucide-react-native';
 import { signIn } from '@/utils/auth';
 
 export default function SignInScreen() {
@@ -10,6 +10,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -17,46 +18,47 @@ export default function SignInScreen() {
   };
 
   const handleSignIn = async () => {
-    console.log('Sign in button pressed');
+    console.log('🎯 Sign in button pressed');
+    setError(null);
     
     // Validation
     if (!email.trim()) {
-      Alert.alert('Error', 'Please enter your email address');
+      setError('Please enter your email address');
       return;
     }
 
     if (!validateEmail(email.trim())) {
-      Alert.alert('Error', 'Please enter a valid email address');
+      setError('Please enter a valid email address');
       return;
     }
 
     if (!password.trim()) {
-      Alert.alert('Error', 'Please enter your password');
+      setError('Please enter your password');
       return;
     }
 
     setLoading(true);
-    console.log('Starting sign in process...');
+    console.log('🚀 Starting sign in process...');
 
     try {
       const { user, error } = await signIn(email.trim(), password);
 
-      console.log('Sign in result:', { user: !!user, error });
+      console.log('📝 Sign in result:', { user: !!user, error });
 
       if (error) {
-        console.error('Sign in failed:', error);
-        Alert.alert('Sign In Failed', error);
+        console.error('❌ Sign in failed:', error);
+        setError(error);
       } else if (user) {
-        console.log('Sign in successful, navigating to main app...');
+        console.log('✅ Sign in successful, navigating to main app...');
         // Navigation will be handled by the auth context
         router.replace('/(tabs)');
       } else {
-        console.error('Unexpected sign in result: no user and no error');
-        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+        console.error('❓ Unexpected sign in result: no user and no error');
+        setError('An unexpected error occurred. Please try again.');
       }
     } catch (error) {
-      console.error('Unexpected error during sign in:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      console.error('💥 Unexpected error during sign in:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -77,6 +79,13 @@ export default function SignInScreen() {
         </View>
 
         <View style={styles.form}>
+          {error && (
+            <View style={styles.errorContainer}>
+              <AlertCircle size={20} color="#EF4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
@@ -183,6 +192,23 @@ const styles = StyleSheet.create({
   form: {
     flex: 1,
     paddingBottom: 40,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#EF4444',
+    marginLeft: 8,
+    flex: 1,
   },
   inputContainer: {
     marginBottom: 24,

@@ -11,6 +11,7 @@ export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     loadSubscriptionStatus();
@@ -67,13 +68,21 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             console.log('🚪 Confirming sign out...');
+            setIsSigningOut(true);
+            
             try {
+              console.log('🔄 Calling signOut function...');
               await signOut();
               console.log('✅ Sign out successful, navigating to auth...');
+              
+              // Force navigation to auth screen
+              router.dismissAll();
               router.replace('/auth');
             } catch (error) {
               console.error('❌ Sign out error:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
+            } finally {
+              setIsSigningOut(false);
             }
           }
         }
@@ -86,20 +95,30 @@ export default function SettingsScreen() {
     title, 
     subtitle, 
     onPress, 
-    rightElement 
+    rightElement,
+    disabled = false
   }: {
     icon: any;
     title: string;
     subtitle?: string;
     onPress?: () => void;
     rightElement?: React.ReactNode;
+    disabled?: boolean;
   }) => (
-    <Pressable style={styles.settingItem} onPress={onPress}>
+    <Pressable 
+      style={[styles.settingItem, disabled && styles.settingItemDisabled]} 
+      onPress={onPress}
+      disabled={disabled}
+      accessible={true}
+      accessibilityLabel={title}
+      accessibilityHint={subtitle}
+      accessibilityRole="button"
+    >
       <View style={styles.settingLeft}>
-        <Icon size={24} color="#9CA3AF" strokeWidth={2} />
+        <Icon size={24} color={disabled ? "#6B7280" : "#9CA3AF"} strokeWidth={2} />
         <View style={styles.settingText}>
-          <Text style={styles.settingTitle}>{title}</Text>
-          {subtitle && <Text style={styles.settingSubtitle}>{subtitle}</Text>}
+          <Text style={[styles.settingTitle, disabled && styles.settingTitleDisabled]}>{title}</Text>
+          {subtitle && <Text style={[styles.settingSubtitle, disabled && styles.settingSubtitleDisabled]}>{subtitle}</Text>}
         </View>
       </View>
       {rightElement}
@@ -169,9 +188,10 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <SettingItem
             icon={LogOut}
-            title="Sign Out"
+            title={isSigningOut ? "Signing Out..." : "Sign Out"}
             subtitle="Sign out of your account"
             onPress={handleSignOut}
+            disabled={isSigningOut}
           />
         </View>
 
@@ -229,6 +249,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
+  settingItemDisabled: {
+    opacity: 0.6,
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+  },
   settingLeft: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -244,10 +268,16 @@ const styles = StyleSheet.create({
     color: '#F3F4F6',
     marginBottom: 2,
   },
+  settingTitleDisabled: {
+    color: '#6B7280',
+  },
   settingSubtitle: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
+  },
+  settingSubtitleDisabled: {
+    color: '#6B7280',
   },
   footer: {
     alignItems: 'center',

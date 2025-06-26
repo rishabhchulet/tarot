@@ -36,28 +36,40 @@ export default function IndexScreen() {
 
       if (session && user) {
         // Check if user has completed onboarding
-        // A user has completed onboarding if they have a focus area set
-        const hasCompletedOnboarding = user.focusArea && user.focusArea.trim() !== '';
+        // A user has completed onboarding if they have a focus area set and it's not empty
+        const focusArea = user.focusArea;
+        const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
         
-        console.log('🎯 Onboarding check:', { 
-          focusArea: user.focusArea, 
-          hasCompletedOnboarding 
+        console.log('🎯 Onboarding check details:', { 
+          focusArea: focusArea,
+          focusAreaType: typeof focusArea,
+          focusAreaLength: focusArea ? focusArea.length : 0,
+          hasCompletedOnboarding: hasCompletedOnboarding
         });
         
         if (!hasCompletedOnboarding) {
-          console.log('📚 User needs onboarding, redirecting to quiz...');
+          console.log('📚 User needs onboarding - redirecting to quiz...');
           // Use replace to prevent going back to this screen
           router.replace('/onboarding/quiz');
+          return;
         } else {
-          console.log('✅ User has completed onboarding, going to main app...');
+          console.log('✅ User has completed onboarding - going to main app...');
           router.replace('/(tabs)');
+          return;
         }
+      } else if (session && !user) {
+        console.log('⚠️ Session exists but no user data - waiting for user refresh...');
+        // Don't navigate yet, wait for user data to load
+        return;
       } else {
-        console.log('🔐 No session, redirecting to auth...');
+        console.log('🔐 No session - redirecting to auth...');
         router.replace('/auth');
+        return;
       }
+    } else {
+      console.log('⏳ Still loading auth state...');
     }
-  }, [loading, session, user, user?.focusArea]);
+  }, [loading, session, user]);
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
     return {

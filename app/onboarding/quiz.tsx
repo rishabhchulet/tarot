@@ -35,7 +35,7 @@ const QUIZ_OPTIONS = [
 
 export default function QuizScreen() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const { refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
 
   const handleContinue = async () => {
     if (!selectedOption) return;
@@ -62,6 +62,9 @@ export default function QuizScreen() {
       style={styles.container}
     >
       <View style={styles.content}>
+        <Text style={styles.greeting}>
+          Welcome, {user?.name || 'friend'}! 
+        </Text>
         <Text style={styles.title}>What matters most to you right now?</Text>
         <Text style={styles.subtitle}>
           Your answer will help me provide more personalized guidance.
@@ -126,6 +129,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  greeting: {
+    fontSize: 20,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F59E0B',
+    textAlign: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 28,

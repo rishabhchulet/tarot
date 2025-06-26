@@ -27,8 +27,14 @@ export default function IndexScreen() {
   useEffect(() => {
     if (!loading) {
       if (session && user) {
-        // User is authenticated, go to main app
-        router.replace('/(tabs)');
+        // Check if user has completed onboarding
+        if (!user.focusArea) {
+          // User is authenticated but hasn't completed onboarding
+          router.replace('/onboarding/quiz');
+        } else {
+          // User is fully onboarded, go to main app
+          router.replace('/(tabs)');
+        }
       } else {
         // No session, go to auth
         router.replace('/auth');

@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "start": "expo start",
-    "dev": "EXPO_NO_TELEMETRY=1 expo start",
-    "build:web": "expo export --platform web",
-    "lint": "expo lint"
+    "start": "npx expo start",
+    "dev": "EXPO_NO_TELEMETRY=1 npx expo start",
+    "build:web": "npx expo export --platform web",
+    "lint": "npx expo lint"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -51,6 +51,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.0.10",
-    "typescript": "~5.8.3"
+    "typescript": "~5.8.3",
+    "@expo/cli": "^0.22.0"
   }
 }

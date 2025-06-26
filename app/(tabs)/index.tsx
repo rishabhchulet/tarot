@@ -45,6 +45,34 @@ export default function TodayScreen() {
     setHasDrawnToday(true);
   };
 
+  // Show different layouts based on state
+  if (isDrawing) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <MagicalCardDraw onComplete={handleDrawComplete} />
+      </LinearGradient>
+    );
+  }
+
+  if (hasDrawnToday) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.cardFlowContainer}>
+            <TarotCardFlow />
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    );
+  }
+
+  // Default state - show header and card pull interface
   return (
     <LinearGradient
       colors={['#1F2937', '#374151', '#6B46C1']}
@@ -67,34 +95,26 @@ export default function TodayScreen() {
           </Text>
         </View>
 
-        {isDrawing ? (
-          <MagicalCardDraw onComplete={handleDrawComplete} />
-        ) : !hasDrawnToday ? (
-          <View style={styles.pullContainer}>
-            <View style={styles.intentionBox}>
-              <Sparkles size={24} color="#F59E0B" />
-              <Text style={styles.intentionText}>
-                Take a breath and ask your heart:
-              </Text>
-              <Text style={styles.intentionQuestion}>
-                "Show me the message I most need today to connect with my True Self"
-              </Text>
-            </View>
+        <View style={styles.pullContainer}>
+          <View style={styles.intentionBox}>
+            <Sparkles size={24} color="#F59E0B" />
+            <Text style={styles.intentionText}>
+              Take a breath and ask your heart:
+            </Text>
+            <Text style={styles.intentionQuestion}>
+              "Show me the message I most need today to connect with my True Self"
+            </Text>
+          </View>
 
-            <Pressable style={styles.pullButton} onPress={handleCardPull}>
-              <LinearGradient
-                colors={['#F59E0B', '#D97706']}
-                style={styles.pullButtonGradient}
-              >
-                <Text style={styles.pullButtonText}>Draw Your Card</Text>
-              </LinearGradient>
-            </Pressable>
-          </View>
-        ) : (
-          <View style={styles.cardContainer}>
-            <TarotCardFlow />
-          </View>
-        )}
+          <Pressable style={styles.pullButton} onPress={handleCardPull}>
+            <LinearGradient
+              colors={['#F59E0B', '#D97706']}
+              style={styles.pullButtonGradient}
+            >
+              <Text style={styles.pullButtonText}>Draw Your Card</Text>
+            </LinearGradient>
+          </Pressable>
+        </View>
       </ScrollView>
     </LinearGradient>
   );
@@ -168,7 +188,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },
-  cardContainer: {
+  cardFlowContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 40,
     paddingBottom: 100,
   },
 });

@@ -67,19 +67,21 @@ export function TarotCardFlow() {
   });
 
   const renderCardBack = () => (
-    <Pressable style={styles.cardContainer} onPress={handleRevealCard}>
-      <Animated.View style={[styles.card, frontAnimatedStyle]}>
-        <LinearGradient
-          colors={['#6B46C1', '#8B5CF6']}
-          style={styles.cardBack}
-        >
-          <View style={styles.cardPattern}>
-            <Text style={styles.cardBackText}>✦</Text>
-          </View>
-          <Text style={styles.tapHint}>Tap to reveal</Text>
-        </LinearGradient>
-      </Animated.View>
-    </Pressable>
+    <View style={styles.centeredContainer}>
+      <Pressable style={styles.cardContainer} onPress={handleRevealCard}>
+        <Animated.View style={[styles.card, frontAnimatedStyle]}>
+          <LinearGradient
+            colors={['#6B46C1', '#8B5CF6']}
+            style={styles.cardBack}
+          >
+            <View style={styles.cardPattern}>
+              <Text style={styles.cardBackText}>✦</Text>
+            </View>
+            <Text style={styles.tapHint}>Tap to reveal</Text>
+          </LinearGradient>
+        </Animated.View>
+      </Pressable>
+    </View>
   );
 
   const renderCardRevealed = () => (
@@ -237,9 +239,16 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
+  centeredContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 500,
+  },
   fullContainer: {
     alignItems: 'center',
     paddingVertical: 20,
+    width: '100%',
   },
   cardContainer: {
     width: 250,

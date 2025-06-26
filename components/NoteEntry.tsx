@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Calendar, Heart } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Calendar, Heart, Play, Pause } from 'lucide-react-native';
+import { playAudio } from '@/utils/audio';
 
 interface NoteEntryProps {
   entry: any;
@@ -8,6 +9,8 @@ interface NoteEntryProps {
 }
 
 export function NoteEntry({ entry }: NoteEntryProps) {
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -16,6 +19,18 @@ export function NoteEntry({ entry }: NoteEntryProps) {
       month: 'long',
       day: 'numeric'
     });
+  };
+
+  const handlePlayVoiceMemo = async () => {
+    if (!entry.voice_memo_path || isPlayingAudio) return;
+
+    setIsPlayingAudio(true);
+    const success = await playAudio(entry.voice_memo_path);
+    
+    // Simulate playback duration (in a real app, you'd get the actual duration)
+    setTimeout(() => {
+      setIsPlayingAudio(false);
+    }, 5000); // 5 seconds placeholder
   };
 
   return (
@@ -52,6 +67,26 @@ export function NoteEntry({ entry }: NoteEntryProps) {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Meaning</Text>
             <Text style={styles.reflectionText}>{entry.personal_meaning}</Text>
+          </View>
+        )}
+
+        {entry.voice_memo_path && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Voice Memo</Text>
+            <Pressable
+              style={[styles.voiceButton, isPlayingAudio && styles.voiceButtonActive]}
+              onPress={handlePlayVoiceMemo}
+              disabled={isPlayingAudio}
+            >
+              {isPlayingAudio ? (
+                <Pause size={20} color="#FFFFFF" />
+              ) : (
+                <Play size={20} color="#F59E0B" />
+              )}
+              <Text style={[styles.voiceButtonText, isPlayingAudio && styles.voiceButtonTextActive]}>
+                {isPlayingAudio ? 'Playing...' : 'Play Voice Memo'}
+              </Text>
+            </Pressable>
           </View>
         )}
       </View>
@@ -125,5 +160,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#F3F4F6',
     lineHeight: 24,
+  },
+  voiceButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    gap: 8,
+    alignSelf: 'flex-start',
+  },
+  voiceButtonActive: {
+    backgroundColor: '#F59E0B',
+  },
+  voiceButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+  },
+  voiceButtonTextActive: {
+    color: '#FFFFFF',
   },
 });

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Mic, Save } from 'lucide-react-native';
+import { Save } from 'lucide-react-native';
 import { saveJournalEntry } from '@/utils/database';
+import { saveAudioToDocuments, AudioRecording } from '@/utils/audio';
+import { VoiceRecorder } from './VoiceRecorder';
 
 interface ReflectionPromptProps {
   card: any;
@@ -13,39 +15,81 @@ interface ReflectionPromptProps {
 export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromptProps) {
   const [firstImpressions, setFirstImpressions] = useState('');
   const [personalMeaning, setPersonalMeaning] = useState('');
-  const [isRecording, setIsRecording] = useState(false);
+  const [voiceRecording, setVoiceRecording] = useState<AudioRecording | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const handleVoiceRecording = async (recording: AudioRecording) => {
+    try {
+      // Save the audio file with a unique name
+      const timestamp = new Date().getTime();
+      const filename = `voice_memo_${timestamp}.m4a`;
+      const savedUri = await saveAudioToDocuments(recording.uri, filename);
+      
+      if (savedUri) {
+        setVoiceRecording({
+          ...recording,
+          uri: savedUri,
+        });
+        console.log('Voice recording saved:', savedUri);
+      }
+    } catch (error) {
+      console.error('Error saving voice recording:', error);
+      Alert.alert('Error', 'Failed to save voice recording');
+    }
+  };
+
   const handleSave = async () => {
-    if (!firstImpressions.trim() && !personalMeaning.trim()) {
+    // Check if user has provided any input
+    const hasTextInput = firstImpressions.trim() || personalMeaning.trim();
+    const hasVoiceInput = voiceRecording !== null;
+
+    if (!hasTextInput && !hasVoiceInput) {
+      Alert.alert(
+        'No Reflection Added', 
+        'Please add some thoughts or record a voice memo before saving.'
+      );
       return;
     }
 
     setSaving(true);
 
-    const entry = {
-      date: new Date().toISOString(),
-      card_name: card.name,
-      card_keywords: card.keywords,
-      first_impressions: firstImpressions.trim(),
-      personal_meaning: personalMeaning.trim(),
-      reflection: `${firstImpressions.trim()} ${personalMeaning.trim()}`.trim(),
-    };
+    try {
+      const entry = {
+        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        card_name: card.name,
+        card_keywords: card.keywords,
+        first_impressions: firstImpressions.trim(),
+        personal_meaning: personalMeaning.trim(),
+        reflection: `${firstImpressions.trim()} ${personalMeaning.trim()}`.trim(),
+        voice_memo_path: voiceRecording?.uri || null,
+      };
 
-    const { error } = await saveJournalEntry(entry);
-    
-    if (error) {
-      console.error('Error saving journal entry:', error);
+      console.log('Saving journal entry:', entry);
+
+      const { error } = await saveJournalEntry(entry);
+      
+      if (error) {
+        console.error('Error saving journal entry:', error);
+        Alert.alert('Error', 'Failed to save your reflection. Please try again.');
+      } else {
+        console.log('Journal entry saved successfully');
+        Alert.alert(
+          'Reflection Saved!', 
+          'Your daily reflection has been saved to your journal.',
+          [
+            {
+              text: 'OK',
+              onPress: onComplete,
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Unexpected error saving journal entry:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+    } finally {
+      setSaving(false);
     }
-    
-    setSaving(false);
-    onComplete();
-  };
-
-  const handleVoiceRecording = () => {
-    // Voice recording functionality would be implemented here
-    // Using expo-av for audio recording
-    setIsRecording(!isRecording);
   };
 
   return (
@@ -101,17 +145,15 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         />
       </View>
 
-      <View style={styles.actionContainer}>
-        <Pressable 
-          style={[styles.voiceButton, isRecording && styles.voiceButtonActive]}
-          onPress={handleVoiceRecording}
-        >
-          <Mic size={24} color={isRecording ? '#FFFFFF' : '#F59E0B'} />
-          <Text style={[styles.voiceButtonText, isRecording && styles.voiceButtonTextActive]}>
-            {isRecording ? 'Stop Recording' : 'Voice Memo'}
-          </Text>
-        </Pressable>
+      <View style={styles.voiceContainer}>
+        <Text style={styles.promptLabel}>Or record a voice memo</Text>
+        <VoiceRecorder 
+          onRecordingComplete={handleVoiceRecording}
+          disabled={saving}
+        />
+      </View>
 
+      <View style={styles.actionContainer}>
         <Pressable 
           style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
           onPress={handleSave}
@@ -220,37 +262,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
     minHeight: 100,
   },
+  voiceContainer: {
+    marginBottom: 32,
+    alignItems: 'center',
+  },
   actionContainer: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 24,
   },
-  voiceButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#F59E0B',
-    gap: 8,
-  },
-  voiceButtonActive: {
-    backgroundColor: '#F59E0B',
-  },
-  voiceButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-  },
-  voiceButtonTextActive: {
-    color: '#FFFFFF',
-  },
   saveButton: {
-    flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
   },
@@ -261,12 +280,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     gap: 8,
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },

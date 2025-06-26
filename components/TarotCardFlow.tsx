@@ -11,7 +11,7 @@ import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
 
-type FlowStep = 'card-back' | 'card-revealed' | 'with-iching' | 'with-keywords' | 'reflection';
+type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-and-reflection' | 'reflection-questions';
 
 export function TarotCardFlow() {
   const [currentStep, setCurrentStep] = useState<FlowStep>('card-back');
@@ -29,20 +29,16 @@ export function TarotCardFlow() {
   const handleRevealCard = () => {
     flipAnimation.value = withTiming(1, { duration: 800 });
     setTimeout(() => {
-      setCurrentStep('card-revealed');
+      setCurrentStep('card-and-iching');
     }, 400);
   };
 
-  const handleShowIching = () => {
-    setCurrentStep('with-iching');
-  };
-
-  const handleShowKeywords = () => {
-    setCurrentStep('with-keywords');
-  };
-
   const handleShowReflection = () => {
-    setCurrentStep('reflection');
+    setCurrentStep('keywords-and-reflection');
+  };
+
+  const handleShowQuestions = () => {
+    setCurrentStep('reflection-questions');
   };
 
   const handleReflectionComplete = () => {
@@ -66,6 +62,34 @@ export function TarotCardFlow() {
     };
   });
 
+  // Get a simple one-word essence of the I Ching hexagram
+  const getIChingEssence = (hexagram: any) => {
+    const essenceMap: { [key: string]: string } = {
+      'The Creative': 'Creation',
+      'The Receptive': 'Receptivity',
+      'Difficulty at the Beginning': 'Challenge',
+      'Youthful Folly': 'Learning',
+      'Waiting': 'Patience',
+      'Conflict': 'Resolution',
+      'The Army': 'Leadership',
+      'Holding Together': 'Unity',
+      'Small Taming': 'Restraint',
+      'Treading': 'Caution',
+      'Peace': 'Harmony',
+      'Standstill': 'Stillness',
+      'Fellowship': 'Community',
+      'Great Possession': 'Abundance',
+      'Modesty': 'Humility',
+      'Enthusiasm': 'Inspiration',
+      'Following': 'Adaptation',
+      'Work on the Decayed': 'Healing',
+      'Approach': 'Progress',
+      'Contemplation': 'Reflection'
+    };
+    
+    return essenceMap[hexagram.name] || 'Wisdom';
+  };
+
   const renderCardBack = () => (
     <View style={styles.centeredContainer}>
       <Pressable style={styles.cardContainer} onPress={handleRevealCard}>
@@ -84,7 +108,7 @@ export function TarotCardFlow() {
     </View>
   );
 
-  const renderCardRevealed = () => (
+  const renderCardAndIching = () => (
     <View style={styles.fullContainer}>
       <View style={styles.cardContainer}>
         <Animated.View style={[styles.card, styles.cardFront, backAnimatedStyle]}>
@@ -97,36 +121,6 @@ export function TarotCardFlow() {
             <Text style={styles.cardName}>{selectedCard.name}</Text>
           </View>
         </Animated.View>
-      </View>
-
-      <View style={styles.description}>
-        <Text style={styles.descriptionText}>{selectedCard.description}</Text>
-      </View>
-
-      <Pressable style={styles.continueButton} onPress={handleShowIching}>
-        <LinearGradient
-          colors={['#3B82F6', '#1D4ED8']}
-          style={styles.continueButtonGradient}
-        >
-          <Text style={styles.continueButtonText}>Continue</Text>
-        </LinearGradient>
-      </Pressable>
-    </View>
-  );
-
-  const renderWithIching = () => (
-    <View style={styles.fullContainer}>
-      <View style={styles.cardContainer}>
-        <View style={[styles.card, styles.cardFront]}>
-          <Image
-            source={{ uri: selectedCard.imageUrl }}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardName}>{selectedCard.name}</Text>
-          </View>
-        </View>
       </View>
 
       <View style={styles.ichingContainer}>
@@ -145,21 +139,22 @@ export function TarotCardFlow() {
               />
             ))}
           </View>
+          <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
         </View>
       </View>
 
-      <Pressable style={styles.continueButton} onPress={handleShowKeywords}>
+      <Pressable style={styles.continueButton} onPress={handleShowReflection}>
         <LinearGradient
           colors={['#3B82F6', '#1D4ED8']}
           style={styles.continueButtonGradient}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>Show Reflection</Text>
         </LinearGradient>
       </Pressable>
     </View>
   );
 
-  const renderWithKeywords = () => (
+  const renderKeywordsAndReflection = () => (
     <View style={styles.fullContainer}>
       <View style={styles.cardContainer}>
         <View style={[styles.card, styles.cardFront]}>
@@ -197,22 +192,33 @@ export function TarotCardFlow() {
               />
             ))}
           </View>
-          <Text style={styles.ichingMeaning}>{selectedHexagram.meaning}</Text>
+          <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
         </View>
       </View>
 
-      <Pressable style={styles.continueButton} onPress={handleShowReflection}>
+      <View style={styles.reflectionContainer}>
+        <Text style={styles.reflectionTitle}>Your Spiritual Message</Text>
+        <Text style={styles.reflectionText}>
+          The {selectedCard.name} card combined with the {selectedHexagram.name} hexagram brings you a message of {getIChingEssence(selectedHexagram).toLowerCase()}. 
+          This powerful combination suggests that {selectedCard.keywords[0].toLowerCase()} and {getIChingEssence(selectedHexagram).toLowerCase()} are key themes for your spiritual journey today.
+        </Text>
+        <Text style={styles.reflectionText}>
+          {selectedCard.description}
+        </Text>
+      </View>
+
+      <Pressable style={styles.continueButton} onPress={handleShowQuestions}>
         <LinearGradient
           colors={['#10B981', '#059669']}
           style={styles.continueButtonGradient}
         >
-          <Text style={styles.continueButtonText}>Begin Reflection</Text>
+          <Text style={styles.continueButtonText}>Continue</Text>
         </LinearGradient>
       </Pressable>
     </View>
   );
 
-  const renderReflection = () => (
+  const renderReflectionQuestions = () => (
     <View style={styles.fullContainer}>
       <ReflectionPrompt
         card={selectedCard}
@@ -225,14 +231,12 @@ export function TarotCardFlow() {
   switch (currentStep) {
     case 'card-back':
       return renderCardBack();
-    case 'card-revealed':
-      return renderCardRevealed();
-    case 'with-iching':
-      return renderWithIching();
-    case 'with-keywords':
-      return renderWithKeywords();
-    case 'reflection':
-      return renderReflection();
+    case 'card-and-iching':
+      return renderCardAndIching();
+    case 'keywords-and-reflection':
+      return renderKeywordsAndReflection();
+    case 'reflection-questions':
+      return renderReflectionQuestions();
     default:
       return renderCardBack();
   }
@@ -330,22 +334,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },
-  description: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    marginHorizontal: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  descriptionText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
-    lineHeight: 24,
-    textAlign: 'center',
-  },
   ichingContainer: {
     width: '100%',
     paddingHorizontal: 24,
@@ -398,12 +386,36 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderStyle: 'dashed',
   },
-  ichingMeaning: {
+  ichingEssence: {
+    fontSize: 18,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F59E0B',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  reflectionContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 24,
+    marginHorizontal: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  reflectionTitle: {
+    fontSize: 20,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F59E0B',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  reflectionText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#D1D5DB',
-    textAlign: 'center',
     lineHeight: 24,
+    textAlign: 'center',
+    marginBottom: 16,
   },
   continueButton: {
     borderRadius: 25,

@@ -30,14 +30,18 @@ export default function IndexScreen() {
         hasSession: !!session, 
         hasUser: !!user, 
         userFocusArea: user?.focusArea,
-        userName: user?.name 
+        userName: user?.name,
+        loading 
       });
 
       if (session && user) {
         // Check if user has completed onboarding (has focus area)
         if (!user.focusArea) {
           console.log('📚 User needs onboarding, redirecting to quiz...');
-          router.replace('/onboarding/quiz');
+          // Add a small delay to ensure the user data is fully loaded
+          setTimeout(() => {
+            router.replace('/onboarding/quiz');
+          }, 100);
         } else {
           console.log('✅ User is fully onboarded, going to main app...');
           router.replace('/(tabs)');
@@ -47,7 +51,7 @@ export default function IndexScreen() {
         router.replace('/auth');
       }
     }
-  }, [loading, session, user]);
+  }, [loading, session, user, user?.focusArea]);
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
     return {

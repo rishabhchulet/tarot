@@ -15,7 +15,6 @@ export default function BreathScreen() {
   const [phase, setPhase] = useState<'prepare' | 'breathing' | 'complete'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
   const circleScale = useSharedValue(0.8);
-  const textOpacity = useSharedValue(1);
 
   useEffect(() => {
     if (phase === 'breathing') {
@@ -44,8 +43,14 @@ export default function BreathScreen() {
   }, [phase]);
 
   const startBreathing = () => {
+    console.log('🫁 Starting breathing exercise...');
     setPhase('breathing');
     setBreathCount(0);
+  };
+
+  const handleContinue = () => {
+    console.log('📱 Breathing complete, navigating to tutorial...');
+    router.push('/onboarding/tutorial');
   };
 
   const animatedCircleStyle = useAnimatedStyle(() => {
@@ -118,7 +123,7 @@ export default function BreathScreen() {
       </View>
       
       {phase === 'complete' && (
-        <Pressable style={styles.button} onPress={() => router.push('/onboarding/tutorial')}>
+        <Pressable style={styles.button} onPress={handleContinue}>
           <LinearGradient
             colors={['#F59E0B', '#D97706']}
             style={styles.buttonGradient}

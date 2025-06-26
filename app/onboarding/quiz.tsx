@@ -35,24 +35,36 @@ const QUIZ_OPTIONS = [
 
 export default function QuizScreen() {
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const { user, refreshUser } = useAuth();
 
   const handleContinue = async () => {
     if (!selectedOption) return;
     
+    console.log('🎯 Quiz continue button pressed with option:', selectedOption);
+    setLoading(true);
+    
     try {
+      console.log('💾 Updating user profile with focus area...');
       const { error } = await updateUserProfile({ focusArea: selectedOption });
       
       if (error) {
-        console.error('Error updating focus area:', error);
+        console.error('❌ Error updating focus area:', error);
+      } else {
+        console.log('✅ Focus area updated successfully');
       }
 
+      console.log('🔄 Refreshing user data...');
       await refreshUser();
+      
+      console.log('📱 Navigating to breathing exercise...');
       router.push('/onboarding/breath');
     } catch (error) {
-      console.error('Error in quiz continue:', error);
+      console.error('💥 Error in quiz continue:', error);
       // Continue anyway to not block the user
       router.push('/onboarding/breath');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,7 +91,10 @@ export default function QuizScreen() {
               <Pressable
                 key={option.id}
                 style={[styles.option, isSelected && styles.optionSelected]}
-                onPress={() => setSelectedOption(option.id)}
+                onPress={() => {
+                  console.log('🎯 Option selected:', option.id);
+                  setSelectedOption(option.id);
+                }}
               >
                 <View style={styles.optionContent}>
                   <View style={[styles.iconContainer, isSelected && styles.iconContainerSelected]}>
@@ -105,15 +120,17 @@ export default function QuizScreen() {
       </View>
       
       <Pressable 
-        style={[styles.button, !selectedOption && styles.buttonDisabled]} 
+        style={[styles.button, (!selectedOption || loading) && styles.buttonDisabled]} 
         onPress={handleContinue}
-        disabled={!selectedOption}
+        disabled={!selectedOption || loading}
       >
         <LinearGradient
-          colors={selectedOption ? ['#F59E0B', '#D97706'] : ['#6B7280', '#4B5563']}
+          colors={(selectedOption && !loading) ? ['#F59E0B', '#D97706'] : ['#6B7280', '#4B5563']}
           style={styles.buttonGradient}
         >
-          <Text style={styles.buttonText}>Continue</Text>
+          <Text style={styles.buttonText}>
+            {loading ? 'Saving...' : 'Continue'}
+          </Text>
         </LinearGradient>
       </Pressable>
     </LinearGradient>

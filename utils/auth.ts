@@ -36,7 +36,9 @@ export const signUp = async (email: string, password: string, name: string) => {
       options: {
         data: {
           name: name.trim(),
-        }
+        },
+        // Disable email confirmation for immediate signup
+        emailRedirectTo: undefined,
       }
     });
 
@@ -68,29 +70,35 @@ export const signUp = async (email: string, password: string, name: string) => {
     if (data.user) {
       console.log('✅ User created successfully:', data.user.id);
       
-      // Create user profile in our users table
-      console.log('👤 Creating user profile...');
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          email: data.user.email!,
-          name: name.trim(),
-        });
+      // Only create profile if we have a session (user is confirmed)
+      if (data.session) {
+        console.log('👤 Creating user profile...');
+        const { error: profileError } = await supabase
+          .from('users')
+          .upsert({
+            id: data.user.id,
+            email: data.user.email!,
+            name: name.trim(),
+          }, {
+            onConflict: 'id'
+          });
 
-      if (profileError) {
-        console.error('⚠️ Error creating user profile:', profileError);
-        // Don't throw here as the auth user was created successfully
-        console.log('User can still sign in, profile will be created on first login');
+        if (profileError) {
+          console.error('⚠️ Error creating user profile:', profileError);
+          // Don't throw here as the auth user was created successfully
+          console.log('User can still sign in, profile will be created on first login');
+        } else {
+          console.log('✅ User profile created successfully');
+        }
       } else {
-        console.log('✅ User profile created successfully');
+        console.log('ℹ️ User created but needs email confirmation');
       }
     }
 
-    return { user: data.user, error: null };
+    return { user: data.user, session: data.session, error: null };
   } catch (error: any) {
     console.error('❌ Sign up error:', error);
-    return { user: null, error: error.message || 'An unexpected error occurred during sign up' };
+    return { user: null, session: null, error: error.message || 'An unexpected error occurred during sign up' };
   }
 };
 
@@ -137,14 +145,47 @@ export const signIn = async (email: string, password: string) => {
       throw new Error(error.message);
     }
 
-    if (data.user) {
+    if (data.user && data.session) {
       console.log('✅ Sign in successful for user:', data.user.id);
+      
+      // Ensure user profile exists
+      await ensureUserProfile(data.user);
     }
 
     return { user: data.user, error: null };
   } catch (error: any) {
     console.error('❌ Sign in error:', error);
     return { user: null, error: error.message || 'An unexpected error occurred during sign in' };
+  }
+};
+
+// Helper function to ensure user profile exists
+const ensureUserProfile = async (user: any) => {
+  try {
+    const { data: existingProfile } = await supabase
+      .from('users')
+      .select('id')
+      .eq('id', user.id)
+      .single();
+
+    if (!existingProfile) {
+      console.log('👤 Creating missing user profile...');
+      const { error } = await supabase
+        .from('users')
+        .insert({
+          id: user.id,
+          email: user.email,
+          name: user.user_metadata?.name || 'User',
+        });
+
+      if (error) {
+        console.error('❌ Error creating user profile:', error);
+      } else {
+        console.log('✅ User profile created');
+      }
+    }
+  } catch (error) {
+    console.error('❌ Error ensuring user profile:', error);
   }
 };
 
@@ -179,6 +220,9 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
+    // Ensure profile exists
+    await ensureUserProfile(user);
+
     // Get user profile from our users table
     const { data: profile, error } = await supabase
       .from('users')
@@ -197,22 +241,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     }
 
     if (!profile) {
-      console.log('👤 No user profile found, creating one...');
-      // Create profile if it doesn't exist
-      const { error: createError } = await supabase
-        .from('users')
-        .insert({
-          id: user.id,
-          email: user.email!,
-          name: user.user_metadata?.name || 'User',
-        });
-
-      if (createError) {
-        console.error('❌ Error creating user profile:', createError);
-      } else {
-        console.log('✅ User profile created');
-      }
-
+      console.log('👤 No user profile found after creation attempt');
       return {
         id: user.id,
         email: user.email || '',

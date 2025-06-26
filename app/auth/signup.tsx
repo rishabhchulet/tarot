@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle, CheckCircle } from 'lucide-react-native';
 import { signUp } from '@/utils/auth';
 
 export default function SignUpScreen() {
@@ -14,6 +14,7 @@ export default function SignUpScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,6 +24,7 @@ export default function SignUpScreen() {
   const handleSignUp = async () => {
     console.log('🎯 Sign up button pressed');
     setError(null);
+    setSuccess(false);
     
     // Validation
     if (!name.trim()) {
@@ -59,28 +61,31 @@ export default function SignUpScreen() {
     console.log('🚀 Starting sign up process...');
 
     try {
-      const { user, error } = await signUp(email.trim(), password, name.trim());
+      const { user, session, error } = await signUp(email.trim(), password, name.trim());
 
-      console.log('📝 Sign up result:', { user: !!user, error });
+      console.log('📝 Sign up result:', { user: !!user, session: !!session, error });
 
       if (error) {
         console.error('❌ Sign up failed:', error);
         setError(error);
       } else if (user) {
         console.log('✅ Sign up successful');
-        Alert.alert(
-          'Account Created!',
-          'Your account has been created successfully. You can now sign in.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                console.log('📱 Navigating to sign in...');
-                router.replace('/auth/signin');
-              },
-            },
-          ]
-        );
+        
+        if (session) {
+          // User is immediately signed in (no email confirmation required)
+          setSuccess(true);
+          setTimeout(() => {
+            console.log('📱 Navigating to main app...');
+            router.replace('/(tabs)');
+          }, 1500);
+        } else {
+          // User needs to confirm email
+          setSuccess(true);
+          setTimeout(() => {
+            console.log('📱 Navigating to sign in...');
+            router.replace('/auth/signin');
+          }, 2000);
+        }
       } else {
         console.error('❓ Unexpected sign up result: no user and no error');
         setError('An unexpected error occurred. Please try again.');
@@ -92,6 +97,23 @@ export default function SignUpScreen() {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <View style={styles.successContainer}>
+          <CheckCircle size={64} color="#10B981" />
+          <Text style={styles.successTitle}>Account Created!</Text>
+          <Text style={styles.successMessage}>
+            Welcome to Daily Tarot Reflection! You're all set to begin your spiritual journey.
+          </Text>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient
@@ -270,6 +292,28 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginLeft: 8,
     flex: 1,
+  },
+  successContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  successTitle: {
+    fontSize: 28,
+    fontFamily: 'CormorantGaramond-Bold',
+    color: '#F3F4F6',
+    marginTop: 24,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  successMessage: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#D1D5DB',
+    textAlign: 'center',
+    lineHeight: 24,
+    maxWidth: 320,
   },
   inputContainer: {
     marginBottom: 24,

@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { TarotCard } from '@/components/TarotCard';
-import { IChing } from '@/components/IChing';
+import { TarotCardFlow } from '@/components/TarotCardFlow';
 import { TrialBanner } from '@/components/TrialBanner';
 import { MagicalCardDraw } from '@/components/MagicalCardDraw';
 import { Sparkles } from 'lucide-react-native';
@@ -93,8 +92,7 @@ export default function TodayScreen() {
           </View>
         ) : (
           <View style={styles.cardContainer}>
-            <TarotCard onReflectionComplete={() => {}} />
-            <IChing />
+            <TarotCardFlow />
           </View>
         )}
       </ScrollView>

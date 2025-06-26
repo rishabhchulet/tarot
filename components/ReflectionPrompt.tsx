@@ -6,18 +6,22 @@ import { saveJournalEntry } from '@/utils/database';
 
 interface ReflectionPromptProps {
   card: any;
+  hexagram: any;
   onComplete: () => void;
 }
 
-export function ReflectionPrompt({ card, onComplete }: ReflectionPromptProps) {
+export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromptProps) {
   const [firstImpressions, setFirstImpressions] = useState('');
   const [personalMeaning, setPersonalMeaning] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     if (!firstImpressions.trim() && !personalMeaning.trim()) {
       return;
     }
+
+    setSaving(true);
 
     const entry = {
       date: new Date().toISOString(),
@@ -34,6 +38,7 @@ export function ReflectionPrompt({ card, onComplete }: ReflectionPromptProps) {
       console.error('Error saving journal entry:', error);
     }
     
+    setSaving(false);
     onComplete();
   };
 
@@ -46,6 +51,27 @@ export function ReflectionPrompt({ card, onComplete }: ReflectionPromptProps) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reflect on Your Draw</Text>
+      
+      <View style={styles.guidanceContainer}>
+        <Text style={styles.guidanceTitle}>Your Spiritual Messages</Text>
+        <View style={styles.messageRow}>
+          <View style={styles.messageCard}>
+            <Text style={styles.messageLabel}>Tarot Card</Text>
+            <Text style={styles.messageName}>{card.name}</Text>
+            <View style={styles.messageKeywords}>
+              {card.keywords.slice(0, 2).map((keyword: string, index: number) => (
+                <Text key={index} style={styles.messageKeyword}>{keyword}</Text>
+              ))}
+            </View>
+          </View>
+          
+          <View style={styles.messageCard}>
+            <Text style={styles.messageLabel}>I Ching</Text>
+            <Text style={styles.messageName}>{hexagram.name}</Text>
+            <Text style={styles.messageKeyword}>#{hexagram.number}</Text>
+          </View>
+        </View>
+      </View>
       
       <View style={styles.promptContainer}>
         <Text style={styles.promptLabel}>What are your first impressions with this pull?</Text>
@@ -86,13 +112,19 @@ export function ReflectionPrompt({ card, onComplete }: ReflectionPromptProps) {
           </Text>
         </Pressable>
 
-        <Pressable style={styles.saveButton} onPress={handleSave}>
+        <Pressable 
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+          onPress={handleSave}
+          disabled={saving}
+        >
           <LinearGradient
-            colors={['#10B981', '#059669']}
+            colors={saving ? ['#6B7280', '#4B5563'] : ['#10B981', '#059669']}
             style={styles.saveButtonGradient}
           >
             <Save size={20} color="#FFFFFF" />
-            <Text style={styles.saveButtonText}>Save Reflection</Text>
+            <Text style={styles.saveButtonText}>
+              {saving ? 'Saving...' : 'Save Reflection'}
+            </Text>
           </LinearGradient>
         </Pressable>
       </View>
@@ -102,7 +134,7 @@ export function ReflectionPrompt({ card, onComplete }: ReflectionPromptProps) {
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 32,
+    width: '100%',
     paddingHorizontal: 24,
   },
   title: {
@@ -111,6 +143,62 @@ const styles = StyleSheet.create({
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 24,
+  },
+  guidanceContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  guidanceTitle: {
+    fontSize: 18,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F59E0B',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  messageCard: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  messageLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginBottom: 8,
+  },
+  messageName: {
+    fontSize: 16,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F3F4F6',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  messageKeywords: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 4,
+  },
+  messageKeyword: {
+    fontSize: 10,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
   },
   promptContainer: {
     marginBottom: 24,
@@ -165,6 +253,9 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  saveButtonDisabled: {
+    opacity: 0.6,
   },
   saveButtonGradient: {
     flexDirection: 'row',

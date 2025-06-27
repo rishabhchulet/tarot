@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   },
   cardFrontImage: {
     width: '100%',
-    height: '75%',
+    height: '85%', // INCREASED: Show more of the card image (was 75%)
   },
   
   // Light effects - adjusted positions for larger card
@@ -525,23 +525,23 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   
-  // FIXED: Tap hint overlay that doesn't block touch events
+  // REDUCED: Tap hint overlay with smaller black area
   tapHintOverlay: {
     position: 'absolute',
-    bottom: 24, // Slightly adjusted for larger card
+    bottom: 12, // REDUCED: Moved up from 24 to reduce black space
     left: 18, // Slightly adjusted
     right: 18, // Slightly adjusted
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    paddingVertical: 14, // Slightly increased
-    paddingHorizontal: 18, // Slightly increased
-    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)', // REDUCED: Less opaque background
+    paddingVertical: 8, // REDUCED: Less padding (was 14)
+    paddingHorizontal: 16, // REDUCED: Less padding (was 18)
+    borderRadius: 16, // Slightly smaller radius
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.4)',
     zIndex: 3, // Lower than touch area
   },
   tapHint: {
-    fontSize: 16,
+    fontSize: 14, // REDUCED: Smaller font (was 16)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
@@ -557,15 +557,16 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   
-  // Card info - adjusted for larger card
+  // REDUCED: Card info with smaller black area
   cardInfo: {
-    padding: 20, // Increased from 16
+    padding: 12, // REDUCED: Less padding (was 20)
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)', // REDUCED: Less opaque background
+    minHeight: 60, // REDUCED: Minimum height to contain text
   },
   cardName: {
-    fontSize: 26, // Increased from 24
+    fontSize: 22, // REDUCED: Slightly smaller (was 26)
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F59E0B',
     textAlign: 'center',

@@ -166,7 +166,7 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.container}>
       {/* Background Effects */}
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
@@ -175,7 +175,7 @@ export function TarotCardFlow() {
       {/* Animated Border Ring */}
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
-      {/* Card Container - Absolutely Centered */}
+      {/* Card Container - Centered */}
       <View style={styles.cardCenterContainer}>
         <Pressable style={styles.cardTouchArea} onPress={handleRevealCard}>
           <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
@@ -209,7 +209,7 @@ export function TarotCardFlow() {
   );
 
   const renderCardAndIching = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.container}>
       <View style={styles.cardCenterContainer}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
@@ -264,7 +264,7 @@ export function TarotCardFlow() {
   );
 
   const renderKeywordsOnly = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.container}>
       <View style={styles.keywordsMainContainer}>
         <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
         <Text style={styles.keywordsSubtitle}>
@@ -320,7 +320,7 @@ export function TarotCardFlow() {
   );
 
   const renderReflectionQuestions = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.container}>
       <ReflectionPrompt
         card={selectedCard}
         hexagram={selectedHexagram}
@@ -344,29 +344,21 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // CRITICAL FIX: Absolute full screen that completely ignores ALL parent containers
-  absoluteFullScreen: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
-    backgroundColor: '#000000',
-    zIndex: 999999, // Extremely high z-index
+  // FIXED: Use normal container that works within the existing layout
+  container: {
+    flex: 1,
+    backgroundColor: 'transparent', // Remove black background
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   
-  // CRITICAL FIX: Perfect center container using absolute positioning
+  // FIXED: Center container using flexbox instead of absolute positioning
   cardCenterContainer: {
-    position: 'absolute',
-    top: screenHeight / 2,
-    left: screenWidth / 2,
-    transform: [
-      { translateX: -175 }, // Half of max card width (350/2)
-      { translateY: -275 }   // Half of max card height (550/2)
-    ],
-    zIndex: 1000000,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 30,
   },
   
   // Card touch area for better interaction
@@ -375,57 +367,55 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Main card container - Properly sized and positioned
+  // Main card container - Properly sized
   cardContainer: {
-    width: Math.min(screenWidth * 0.85, 350), // 85% of screen width, max 350px
-    height: Math.min(screenHeight * 0.65, 550), // 65% of screen height, max 550px
+    width: Math.min(screenWidth * 0.8, 320), // 80% of screen width, max 320px
+    height: Math.min(screenHeight * 0.55, 480), // 55% of screen height, max 480px
     borderRadius: 24,
     backfaceVisibility: 'hidden',
   },
   
-  // Glow effects positioned absolutely within the full container
+  // Glow effects positioned relative to container
   glowEffect1: {
-    position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(245, 158, 11, 0.12)',
-    top: screenHeight * 0.1,
-    left: screenWidth * 0.05,
-    zIndex: 1,
-  },
-  glowEffect2: {
-    position: 'absolute',
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(139, 92, 246, 0.08)',
-    bottom: screenHeight * 0.15,
-    right: screenWidth * 0.08,
-    zIndex: 1,
-  },
-  glowEffect3: {
     position: 'absolute',
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(59, 130, 246, 0.06)',
-    top: screenHeight * 0.6,
-    left: screenWidth * 0.1,
+    backgroundColor: 'rgba(245, 158, 11, 0.08)',
+    top: '10%',
+    left: '5%',
+    zIndex: 1,
+  },
+  glowEffect2: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(139, 92, 246, 0.06)',
+    bottom: '15%',
+    right: '8%',
+    zIndex: 1,
+  },
+  glowEffect3: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(59, 130, 246, 0.04)',
+    top: '60%',
+    left: '10%',
     zIndex: 1,
   },
   
-  // Border ring effect - Properly centered around the card using absolute positioning
+  // Border ring effect - Positioned around the card
   borderRing: {
     position: 'absolute',
-    width: Math.min(screenWidth * 0.95, 400),
-    height: Math.min(screenWidth * 0.95, 400),
-    borderRadius: Math.min(screenWidth * 0.475, 200),
+    width: Math.min(screenWidth * 0.9, 360),
+    height: Math.min(screenWidth * 0.9, 360),
+    borderRadius: Math.min(screenWidth * 0.45, 180),
     borderWidth: 2,
-    borderColor: 'rgba(245, 158, 11, 0.25)',
+    borderColor: 'rgba(245, 158, 11, 0.2)',
     borderStyle: 'dashed',
-    top: screenHeight / 2 - Math.min(screenWidth * 0.475, 200),
-    left: screenWidth / 2 - Math.min(screenWidth * 0.475, 200),
     zIndex: 2,
   },
   
@@ -563,13 +553,10 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   
-  // I Ching container - Positioned at bottom
+  // I Ching container - Positioned normally in layout
   ichingContainer: {
-    position: 'absolute',
-    bottom: 100,
-    left: 20,
-    right: 20,
-    zIndex: 1000001,
+    width: '100%',
+    marginBottom: 20,
   },
   ichingTitle: {
     fontSize: 18,
@@ -628,12 +615,9 @@ const styles = StyleSheet.create({
   
   // Keywords screen
   keywordsMainContainer: {
-    position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
-    bottom: 100,
-    zIndex: 1000001,
+    flex: 1,
+    width: '100%',
+    paddingVertical: 20,
   },
   keywordsTitle: {
     fontSize: 26,
@@ -715,15 +699,13 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // Continue button - Fixed at bottom with absolute positioning
+  // Continue button - Normal layout positioning
   continueButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: screenWidth / 2 - 90, // Center horizontally
     borderRadius: 22,
     overflow: 'hidden',
     minWidth: 180,
-    zIndex: 1000002,
+    alignSelf: 'center',
+    marginTop: 20,
   },
   continueButtonGradient: {
     paddingVertical: 14,

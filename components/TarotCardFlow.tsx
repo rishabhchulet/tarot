@@ -378,53 +378,53 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   
-  // FIXED: Card container with proper dimensions and positioning
+  // INCREASED: Card container with larger dimensions
   cardContainer: {
-    width: Math.min(screenWidth * 0.75, 300), // Slightly smaller for better fit
-    height: Math.min(screenHeight * 0.5, 450), // Adjusted height
+    width: Math.min(screenWidth * 0.85, 360), // Increased from 0.75 to 0.85 and max from 300 to 360
+    height: Math.min(screenHeight * 0.6, 540), // Increased from 0.5 to 0.6 and max from 450 to 540
     borderRadius: 24,
     backfaceVisibility: 'hidden',
     position: 'relative',
   },
   
-  // Glow effects positioned relative to container
+  // Glow effects positioned relative to container - adjusted for larger card
   glowEffect1: {
     position: 'absolute',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
+    width: 240, // Increased from 200
+    height: 240, // Increased from 200
+    borderRadius: 120, // Increased from 100
     backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    top: '10%',
-    left: '5%',
+    top: '8%', // Adjusted positioning
+    left: '3%', // Adjusted positioning
     zIndex: 1,
   },
   glowEffect2: {
     position: 'absolute',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 180, // Increased from 150
+    height: 180, // Increased from 150
+    borderRadius: 90, // Increased from 75
     backgroundColor: 'rgba(139, 92, 246, 0.06)',
-    bottom: '15%',
-    right: '8%',
+    bottom: '12%', // Adjusted positioning
+    right: '5%', // Adjusted positioning
     zIndex: 1,
   },
   glowEffect3: {
     position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 150, // Increased from 120
+    height: 150, // Increased from 120
+    borderRadius: 75, // Increased from 60
     backgroundColor: 'rgba(59, 130, 246, 0.04)',
-    top: '60%',
-    left: '10%',
+    top: '55%', // Adjusted positioning
+    left: '8%', // Adjusted positioning
     zIndex: 1,
   },
   
-  // Border ring effect
+  // Border ring effect - adjusted for larger card
   borderRing: {
     position: 'absolute',
-    width: Math.min(screenWidth * 0.85, 340),
-    height: Math.min(screenWidth * 0.85, 340),
-    borderRadius: Math.min(screenWidth * 0.425, 170),
+    width: Math.min(screenWidth * 0.95, 400), // Increased from 0.85 to 0.95 and max from 340 to 400
+    height: Math.min(screenWidth * 0.95, 400), // Increased from 0.85 to 0.95 and max from 340 to 400
+    borderRadius: Math.min(screenWidth * 0.475, 200), // Adjusted accordingly
     borderWidth: 2,
     borderColor: 'rgba(245, 158, 11, 0.2)',
     borderStyle: 'dashed',
@@ -467,11 +467,11 @@ const styles = StyleSheet.create({
     height: '75%',
   },
   
-  // Light effects
+  // Light effects - adjusted positions for larger card
   lightEffect1: {
     position: 'absolute',
-    top: 15,
-    left: 15,
+    top: 18, // Slightly adjusted
+    left: 18, // Slightly adjusted
     width: 6,
     height: 6,
     borderRadius: 3,
@@ -484,8 +484,8 @@ const styles = StyleSheet.create({
   },
   lightEffect2: {
     position: 'absolute',
-    top: 35,
-    right: 25,
+    top: 42, // Slightly adjusted
+    right: 30, // Slightly adjusted
     width: 4,
     height: 4,
     borderRadius: 2,
@@ -498,8 +498,8 @@ const styles = StyleSheet.create({
   },
   lightEffect3: {
     position: 'absolute',
-    bottom: 70, // Moved up to avoid overlapping with tap hint
-    left: 30,
+    bottom: 85, // Adjusted for larger card
+    left: 36, // Slightly adjusted
     width: 8,
     height: 8,
     borderRadius: 4,
@@ -512,8 +512,8 @@ const styles = StyleSheet.create({
   },
   lightEffect4: {
     position: 'absolute',
-    bottom: 70, // Moved up to avoid overlapping with tap hint
-    right: 15,
+    bottom: 85, // Adjusted for larger card
+    right: 18, // Slightly adjusted
     width: 5,
     height: 5,
     borderRadius: 2.5,
@@ -528,13 +528,13 @@ const styles = StyleSheet.create({
   // FIXED: Tap hint overlay that doesn't block touch events
   tapHintOverlay: {
     position: 'absolute',
-    bottom: 20,
-    left: 15,
-    right: 15,
+    bottom: 24, // Slightly adjusted for larger card
+    left: 18, // Slightly adjusted
+    right: 18, // Slightly adjusted
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 14, // Slightly increased
+    paddingHorizontal: 18, // Slightly increased
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.4)',
@@ -557,15 +557,15 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   
-  // Card info
+  // Card info - adjusted for larger card
   cardInfo: {
-    padding: 16,
+    padding: 20, // Increased from 16
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
   cardName: {
-    fontSize: 24,
+    fontSize: 26, // Increased from 24
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F59E0B',
     textAlign: 'center',

@@ -5,6 +5,7 @@ import { Save } from 'lucide-react-native';
 import { saveJournalEntry } from '@/utils/database';
 import { saveAudioToDocuments, AudioRecording } from '@/utils/audio';
 import { VoiceRecorder } from './VoiceRecorder';
+import { AIReflectionPrompts } from './AIReflectionPrompts';
 
 interface ReflectionPromptProps {
   card: any;
@@ -17,6 +18,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   const [personalMeaning, setPersonalMeaning] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<AudioRecording | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showAIPrompts, setShowAIPrompts] = useState(true);
 
   const handleVoiceRecording = async (recording: AudioRecording) => {
     try {
@@ -36,6 +38,16 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       console.error('Error saving voice recording:', error);
       Alert.alert('Error', 'Failed to save voice recording');
     }
+  };
+
+  const handleAIPromptSelect = (prompt: string) => {
+    // If first impressions is empty, use it there, otherwise use personal meaning
+    if (!firstImpressions.trim()) {
+      setFirstImpressions(prompt);
+    } else {
+      setPersonalMeaning(prompt);
+    }
+    setShowAIPrompts(false);
   };
 
   const handleSave = async () => {
@@ -116,6 +128,23 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
           </View>
         </View>
       </View>
+
+      {showAIPrompts && (
+        <AIReflectionPrompts
+          card={card}
+          hexagram={hexagram}
+          onPromptSelect={handleAIPromptSelect}
+        />
+      )}
+
+      {!showAIPrompts && (
+        <Pressable 
+          style={styles.showPromptsButton}
+          onPress={() => setShowAIPrompts(true)}
+        >
+          <Text style={styles.showPromptsText}>Show AI Prompts Again</Text>
+        </Pressable>
+      )}
       
       <View style={styles.promptContainer}>
         <Text style={styles.promptLabel}>What are your first impressions with this pull?</Text>
@@ -190,7 +219,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 16,
     padding: 20,
-    marginBottom: 32,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
@@ -241,6 +270,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
+  },
+  showPromptsButton: {
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  showPromptsText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#3B82F6',
   },
   promptContainer: {
     marginBottom: 24,

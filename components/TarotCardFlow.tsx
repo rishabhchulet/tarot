@@ -10,8 +10,9 @@ import Animated, {
 import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
+import { AIInterpretation } from './AIInterpretation';
 
-type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-and-reflection' | 'reflection-questions';
+type FlowStep = 'card-back' | 'card-and-iching' | 'ai-interpretation' | 'keywords-and-reflection' | 'reflection-questions';
 
 export function TarotCardFlow() {
   const [currentStep, setCurrentStep] = useState<FlowStep>('card-back');
@@ -31,6 +32,10 @@ export function TarotCardFlow() {
     setTimeout(() => {
       setCurrentStep('card-and-iching');
     }, 400);
+  };
+
+  const handleShowAIInterpretation = () => {
+    setCurrentStep('ai-interpretation');
   };
 
   const handleShowReflection = () => {
@@ -143,12 +148,63 @@ export function TarotCardFlow() {
         </View>
       </View>
 
+      <Pressable style={styles.continueButton} onPress={handleShowAIInterpretation}>
+        <LinearGradient
+          colors={['#F59E0B', '#D97706']}
+          style={styles.continueButtonGradient}
+        >
+          <Text style={styles.continueButtonText}>Get AI Interpretation</Text>
+        </LinearGradient>
+      </Pressable>
+    </View>
+  );
+
+  const renderAIInterpretation = () => (
+    <View style={styles.fullContainer}>
+      <View style={styles.cardContainer}>
+        <View style={[styles.card, styles.cardFront]}>
+          <Image
+            source={{ uri: selectedCard.imageUrl }}
+            style={styles.cardImage}
+            resizeMode="cover"
+          />
+          <View style={styles.cardInfo}>
+            <Text style={styles.cardName}>{selectedCard.name}</Text>
+          </View>
+        </View>
+      </View>
+
+      <View style={styles.ichingContainer}>
+        <Text style={styles.ichingTitle}>Your I Ching Guidance</Text>
+        <View style={styles.ichingCard}>
+          <Text style={styles.ichingNumber}>#{selectedHexagram.number}</Text>
+          <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
+          <View style={styles.hexagramSymbol}>
+            {selectedHexagram.lines.map((line: boolean, index: number) => (
+              <View
+                key={index}
+                style={[
+                  styles.line,
+                  line ? styles.solidLine : styles.brokenLine
+                ]}
+              />
+            ))}
+          </View>
+          <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+        </View>
+      </View>
+
+      <AIInterpretation
+        card={selectedCard}
+        hexagram={selectedHexagram}
+      />
+
       <Pressable style={styles.continueButton} onPress={handleShowReflection}>
         <LinearGradient
           colors={['#3B82F6', '#1D4ED8']}
           style={styles.continueButtonGradient}
         >
-          <Text style={styles.continueButtonText}>Show Reflection</Text>
+          <Text style={styles.continueButtonText}>Continue to Reflection</Text>
         </LinearGradient>
       </Pressable>
     </View>
@@ -212,7 +268,7 @@ export function TarotCardFlow() {
           colors={['#10B981', '#059669']}
           style={styles.continueButtonGradient}
         >
-          <Text style={styles.continueButtonText}>Continue</Text>
+          <Text style={styles.continueButtonText}>Start Reflection</Text>
         </LinearGradient>
       </Pressable>
     </View>
@@ -233,6 +289,8 @@ export function TarotCardFlow() {
       return renderCardBack();
     case 'card-and-iching':
       return renderCardAndIching();
+    case 'ai-interpretation':
+      return renderAIInterpretation();
     case 'keywords-and-reflection':
       return renderKeywordsAndReflection();
     case 'reflection-questions':

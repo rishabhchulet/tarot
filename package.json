@@ -36,6 +36,7 @@
     "@expo-google-fonts/cormorant-garamond": "^0.2.3",
     "@expo-google-fonts/inter": "^0.2.3",
     "lucide-react-native": "^0.475.0",
+    "openai": "^4.67.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.1",

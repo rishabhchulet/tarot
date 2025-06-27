@@ -36,20 +36,27 @@ export function DynamicReflectionQuestions({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('🎯 DynamicReflectionQuestions mounted, generating questions...');
     generateQuestions();
   }, [card.name, hexagram.name]);
 
-  const createFallbackQuestions = () => {
+  const createPersonalizedFallbackQuestions = () => {
     const primaryKeyword = card.keywords[0] || 'wisdom';
+    const secondaryKeyword = card.keywords[1] || 'growth';
     const focusArea = user?.focusArea || 'spiritual journey';
     
-    return [
-      `How does the energy of ${primaryKeyword.toLowerCase()} from ${card.name} guide your ${focusArea} today?`,
-      `What wisdom from ${hexagram.name} can you apply to your current path forward?`
+    const fallbackQuestions = [
+      `Where in your life are you being called to choose what sets your heart alight, even if it's uncertain?`,
+      `Can you let ${primaryKeyword.toLowerCase()} be a guide—not to possession, but to illumination?`
     ];
+    
+    console.log('🔄 Created personalized fallback questions:', fallbackQuestions);
+    return fallbackQuestions;
   };
 
   const generateQuestions = async (isRegeneration = false) => {
+    console.log(`🤔 ${isRegeneration ? 'Regenerating' : 'Generating'} reflection questions...`);
+    
     if (isRegeneration) {
       setRegenerating(true);
     } else {
@@ -58,12 +65,13 @@ export function DynamicReflectionQuestions({
     setError(null);
 
     try {
-      console.log('🤔 Generating reflection questions...');
-      
       // Get recent journal entries for context
+      console.log('📚 Fetching recent journal entries...');
       const recentEntries = await getJournalEntries();
       const recentThemes = extractRecentThemes(recentEntries);
+      console.log('📝 Recent themes extracted:', recentThemes);
 
+      console.log('🤖 Calling AI for reflection prompts...');
       const { questions: aiQuestions, error: aiError } = await getAIReflectionPrompts({
         cardName: card.name,
         cardKeywords: card.keywords,
@@ -72,30 +80,46 @@ export function DynamicReflectionQuestions({
         previousEntries: recentThemes,
       });
 
+      console.log('📋 AI response:', { aiQuestions, aiError });
+
       if (aiError) {
-        console.warn('⚠️ AI questions error, using fallback:', aiError);
-        setError(aiError);
-        setQuestions(createFallbackQuestions());
-      } else if (!aiQuestions || aiQuestions.length < 2) {
-        console.warn('⚠️ Insufficient AI questions, using fallback');
-        setQuestions(createFallbackQuestions());
+        console.warn('⚠️ AI questions error, using personalized fallback:', aiError);
+        setError('Using personalized questions');
+        const fallbackQuestions = createPersonalizedFallbackQuestions();
+        setQuestions(fallbackQuestions);
+      } else if (!aiQuestions || !Array.isArray(aiQuestions) || aiQuestions.length < 2) {
+        console.warn('⚠️ Insufficient AI questions, using personalized fallback. Received:', aiQuestions);
+        setError('Using personalized questions');
+        const fallbackQuestions = createPersonalizedFallbackQuestions();
+        setQuestions(fallbackQuestions);
       } else {
-        console.log('✅ AI questions generated successfully');
+        console.log('✅ AI questions generated successfully:', aiQuestions);
         setQuestions(aiQuestions.slice(0, 2)); // Only take first 2 questions
+        setError(null);
       }
     } catch (err: any) {
       console.error('❌ Error generating questions:', err);
-      setError(err.message);
-      setQuestions(createFallbackQuestions());
+      setError('Using personalized questions');
+      const fallbackQuestions = createPersonalizedFallbackQuestions();
+      setQuestions(fallbackQuestions);
     } finally {
       setLoading(false);
       setRegenerating(false);
+      console.log('🏁 Question generation complete');
     }
   };
 
   const handleRegenerate = () => {
-    console.log('🔄 Regenerating questions...');
+    console.log('🔄 User requested question regeneration');
     generateQuestions(true);
+  };
+
+  const handleQuestionPress = (questionIndex: number) => {
+    const question = questions[questionIndex];
+    if (question) {
+      console.log(`📝 Question ${questionIndex + 1} selected:`, question);
+      onQuestionSelect(question, questionIndex);
+    }
   };
 
   if (loading) {
@@ -131,18 +155,20 @@ export function DynamicReflectionQuestions({
       </View>
 
       {error && (
-        <Text style={styles.errorText}>Using personalized fallback questions</Text>
+        <Text style={styles.errorText}>{error}</Text>
       )}
 
       {/* Question 1 */}
       <View style={styles.questionContainer}>
         <Pressable
           style={styles.questionButton}
-          onPress={() => onQuestionSelect(questions[0] || '', 0)}
+          onPress={() => handleQuestionPress(0)}
         >
           <View style={styles.questionContent}>
             <Lightbulb size={12} color="#3B82F6" />
-            <Text style={styles.questionText}>{questions[0] || 'Loading question...'}</Text>
+            <Text style={styles.questionText}>
+              {questions[0] || 'Where in your life are you being called to choose what sets your heart alight?'}
+            </Text>
           </View>
         </Pressable>
         
@@ -162,11 +188,13 @@ export function DynamicReflectionQuestions({
       <View style={styles.questionContainer}>
         <Pressable
           style={styles.questionButton}
-          onPress={() => onQuestionSelect(questions[1] || '', 1)}
+          onPress={() => handleQuestionPress(1)}
         >
           <View style={styles.questionContent}>
             <Lightbulb size={12} color="#3B82F6" />
-            <Text style={styles.questionText}>{questions[1] || 'Loading question...'}</Text>
+            <Text style={styles.questionText}>
+              {questions[1] || 'Can you let desire be a guide—not to possession, but to illumination?'}
+            </Text>
           </View>
         </Pressable>
         
@@ -181,6 +209,10 @@ export function DynamicReflectionQuestions({
           textAlignVertical="top"
         />
       </View>
+
+      <Text style={styles.footerText}>
+        ✨ Questions personalized for your {user?.focusArea || 'spiritual journey'}
+      </Text>
     </View>
   );
 }
@@ -266,5 +298,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     minHeight: 50,
+  },
+  footerText: {
+    fontSize: 11,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 8,
   },
 });

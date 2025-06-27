@@ -41,47 +41,68 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
       });
 
       if (aiError) {
+        console.warn('⚠️ AI interpretation error, using fallback:', aiError);
         setError(aiError);
+        setInterpretation(createFallbackInsight());
       } else {
-        // Smart truncation that preserves sentence completion
-        const smartTruncate = (text: string, maxWords: number = 45): string => {
+        // Enhanced smart truncation that preserves complete meaning
+        const enhancedTruncate = (text: string, maxWords: number = 50): string => {
           const words = text.split(' ');
           if (words.length <= maxWords) return text;
           
-          // Find the last complete sentence within the word limit
+          // Find natural break points (sentences, clauses)
           let truncated = words.slice(0, maxWords).join(' ');
-          const lastSentenceEnd = Math.max(
-            truncated.lastIndexOf('.'),
-            truncated.lastIndexOf('!'),
-            truncated.lastIndexOf('?')
-          );
           
-          if (lastSentenceEnd > truncated.length * 0.6) {
-            // If we have a sentence ending in the last 40% of text, use it
-            return truncated.substring(0, lastSentenceEnd + 1);
-          } else {
-            // Otherwise, add ellipsis to the word-truncated version
-            return truncated + '...';
+          // Look for sentence endings in the last 40% of the text
+          const sentenceEndings = ['.', '!', '?'];
+          let bestEndIndex = -1;
+          
+          for (let i = Math.floor(truncated.length * 0.6); i < truncated.length; i++) {
+            if (sentenceEndings.includes(truncated[i])) {
+              bestEndIndex = i;
+            }
           }
+          
+          if (bestEndIndex > 0) {
+            return truncated.substring(0, bestEndIndex + 1);
+          }
+          
+          // Look for clause endings (commas, semicolons) in the last 30%
+          const clauseEndings = [',', ';', ':'];
+          for (let i = Math.floor(truncated.length * 0.7); i < truncated.length; i++) {
+            if (clauseEndings.includes(truncated[i])) {
+              bestEndIndex = i;
+            }
+          }
+          
+          if (bestEndIndex > 0) {
+            return truncated.substring(0, bestEndIndex + 1);
+          }
+          
+          // If no natural break, ensure we end with complete meaning
+          return truncated.trim() + '.';
         };
 
-        const shortInterpretation = smartTruncate(aiInterpretation || '');
-        setInterpretation(shortInterpretation);
+        const processedInterpretation = enhancedTruncate(aiInterpretation || '');
+        setInterpretation(processedInterpretation);
       }
     } catch (err: any) {
+      console.error('❌ Error generating interpretation:', err);
       setError('Unable to generate interpretation at this time');
+      setInterpretation(createFallbackInsight());
     } finally {
       setLoading(false);
     }
   };
 
-  // Create a fallback insight using the keywords - ensuring it mentions them and completes meaning
+  // Enhanced fallback insight that mentions keywords naturally and completes meaning
   const createFallbackInsight = () => {
-    const primaryKeyword = card.keywords[0]?.toLowerCase() || 'wisdom';
-    const secondaryKeyword = card.keywords[1]?.toLowerCase() || 'growth';
-    const thirdKeyword = card.keywords[2]?.toLowerCase() || 'insight';
+    const primaryKeyword = card.keywords[0] || 'wisdom';
+    const secondaryKeyword = card.keywords[1] || 'growth';
+    const thirdKeyword = card.keywords[2] || 'insight';
+    const focusArea = user?.focusArea || 'spiritual journey';
     
-    return `Today's combination of ${card.name} and ${hexagram.name} brings ${primaryKeyword}, ${secondaryKeyword}, and ${thirdKeyword} into focus. This powerful pairing invites you to embrace transformation and trust your inner guidance as you navigate your spiritual journey with clarity and purpose.`;
+    return `${card.name} speaks to ${primaryKeyword.toLowerCase()}, ${secondaryKeyword.toLowerCase()}, and ${thirdKeyword.toLowerCase()}—inviting deep reflection on your ${focusArea}. ${hexagram.name} converges with this energy, encouraging you to trust your inner guidance as you navigate this transformative moment with clarity and purpose.`;
   };
 
   if (loading) {
@@ -99,25 +120,18 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     );
   }
 
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Sparkles size={16} color="#F59E0B" />
-          <Text style={styles.title}>Spiritual Insight</Text>
-        </View>
-        <Text style={styles.interpretation}>{createFallbackInsight()}</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Sparkles size={16} color="#F59E0B" />
         <Text style={styles.title}>Spiritual Insight</Text>
       </View>
-      <Text style={styles.interpretation}>{interpretation || createFallbackInsight()}</Text>
+      <Text style={styles.interpretation}>
+        {interpretation || createFallbackInsight()}
+      </Text>
+      {error && (
+        <Text style={styles.fallbackNote}>✨ Personalized for your spiritual journey</Text>
+      )}
     </View>
   );
 }
@@ -159,5 +173,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#F3F4F6',
     lineHeight: 18,
+  },
+  fallbackNote: {
+    fontSize: 11,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
 });

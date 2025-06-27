@@ -179,7 +179,12 @@ export function TarotCardFlow() {
         <Pressable style={styles.fullPageCardContainer} onPress={handleRevealCard}>
           <Animated.View style={[styles.fullPageCard, frontAnimatedStyle]}>
             {/* Mystical Border */}
-            <View style={styles.mysticalBorder}>
+            <LinearGradient
+              colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.mysticalBorder}
+            >
               <View style={styles.innerBorder}>
                 <Image
                   source={require('@/assets/images/back of the deck.jpeg')}
@@ -192,7 +197,7 @@ export function TarotCardFlow() {
                 <View style={styles.lightEffect3} />
                 <View style={styles.lightEffect4} />
               </View>
-            </View>
+            </LinearGradient>
             <View style={styles.tapHintOverlay}>
               <Text style={styles.tapHint}>✨ Tap to reveal your destiny ✨</Text>
             </View>
@@ -206,7 +211,12 @@ export function TarotCardFlow() {
     <View style={styles.fullContainer}>
       <View style={styles.fullPageCardContainer}>
         <Animated.View style={[styles.fullPageCard, styles.cardFront, backAnimatedStyle]}>
-          <View style={styles.mysticalBorder}>
+          <LinearGradient
+            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.mysticalBorder}
+          >
             <View style={styles.innerBorder}>
               <Image
                 source={{ uri: selectedCard.imageUrl }}
@@ -217,7 +227,7 @@ export function TarotCardFlow() {
                 <Text style={styles.cardName}>{selectedCard.name}</Text>
               </View>
             </View>
-          </View>
+          </LinearGradient>
         </Animated.View>
       </View>
 
@@ -408,7 +418,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 4,
     borderRadius: 24,
-    background: 'linear-gradient(45deg, #F59E0B, #8B5CF6, #3B82F6, #F59E0B)',
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,

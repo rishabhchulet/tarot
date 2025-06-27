@@ -61,8 +61,8 @@ export function DynamicReflectionQuestions({
       if (aiError || !aiQuestions || aiQuestions.length < 2) {
         // Fallback questions
         setQuestions([
-          `How does the energy of ${card.name} guide your ${user?.focusArea || 'spiritual journey'} today?`,
-          `What wisdom from ${hexagram.name} can you apply to your current challenges?`
+          `How does ${card.name} guide your ${user?.focusArea || 'journey'} today?`,
+          `What wisdom from ${hexagram.name} can you apply right now?`
         ]);
       } else {
         setQuestions(aiQuestions.slice(0, 2)); // Only take first 2 questions
@@ -87,12 +87,12 @@ export function DynamicReflectionQuestions({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <MessageCircle size={18} color="#3B82F6" />
+          <MessageCircle size={16} color="#3B82F6" />
           <Text style={styles.title}>Reflection Questions</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#3B82F6" />
-          <Text style={styles.loadingText}>Crafting your questions...</Text>
+          <Text style={styles.loadingText}>Crafting questions...</Text>
         </View>
       </View>
     );
@@ -101,7 +101,7 @@ export function DynamicReflectionQuestions({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <MessageCircle size={18} color="#3B82F6" />
+        <MessageCircle size={16} color="#3B82F6" />
         <Text style={styles.title}>Reflection Questions</Text>
         <Pressable
           style={[styles.regenerateButton, regenerating && styles.regenerateButtonDisabled]}
@@ -109,7 +109,7 @@ export function DynamicReflectionQuestions({
           disabled={regenerating}
         >
           <RefreshCw 
-            size={14} 
+            size={12} 
             color={regenerating ? "#6B7280" : "#9CA3AF"} 
           />
         </Pressable>
@@ -122,7 +122,7 @@ export function DynamicReflectionQuestions({
           onPress={() => onQuestionSelect(questions[0], 0)}
         >
           <View style={styles.questionContent}>
-            <Lightbulb size={14} color="#3B82F6" />
+            <Lightbulb size={12} color="#3B82F6" />
             <Text style={styles.questionText}>{questions[0]}</Text>
           </View>
         </Pressable>
@@ -134,7 +134,7 @@ export function DynamicReflectionQuestions({
           placeholder="Share your thoughts..."
           placeholderTextColor="#6B7280"
           multiline
-          numberOfLines={3}
+          numberOfLines={2}
           textAlignVertical="top"
         />
       </View>
@@ -146,7 +146,7 @@ export function DynamicReflectionQuestions({
           onPress={() => onQuestionSelect(questions[1], 1)}
         >
           <View style={styles.questionContent}>
-            <Lightbulb size={14} color="#3B82F6" />
+            <Lightbulb size={12} color="#3B82F6" />
             <Text style={styles.questionText}>{questions[1]}</Text>
           </View>
         </Pressable>
@@ -158,7 +158,7 @@ export function DynamicReflectionQuestions({
           placeholder="Share your thoughts..."
           placeholderTextColor="#6B7280"
           multiline
-          numberOfLines={3}
+          numberOfLines={2}
           textAlignVertical="top"
         />
       </View>
@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.3)',
   },
@@ -179,17 +179,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#3B82F6',
     flex: 1,
   },
   regenerateButton: {
-    padding: 6,
-    borderRadius: 6,
+    padding: 4,
+    borderRadius: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   regenerateButtonDisabled: {
@@ -198,47 +198,47 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 16,
+    gap: 8,
+    paddingVertical: 12,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
   questionContainer: {
-    marginBottom: 16,
+    marginBottom: 12,
   },
   questionButton: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
     borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+    padding: 8,
+    marginBottom: 6,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.2)',
   },
   questionContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
+    gap: 6,
   },
   questionText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#F3F4F6',
-    lineHeight: 18,
+    lineHeight: 16,
     flex: 1,
   },
   textInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 8,
-    padding: 12,
-    fontSize: 14,
+    padding: 8,
+    fontSize: 12,
     fontFamily: 'Inter-Regular',
     color: '#F3F4F6',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    minHeight: 70,
+    minHeight: 50,
   },
 });

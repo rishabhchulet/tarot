@@ -43,7 +43,10 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
       if (aiError) {
         setError(aiError);
       } else {
-        setInterpretation(aiInterpretation);
+        // Truncate interpretation to approximately 50 words
+        const words = aiInterpretation?.split(' ') || [];
+        const shortInterpretation = words.slice(0, 50).join(' ') + (words.length > 50 ? '...' : '');
+        setInterpretation(shortInterpretation);
       }
     } catch (err: any) {
       setError('Unable to generate interpretation at this time');
@@ -52,16 +55,24 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     }
   };
 
+  // Create a fallback insight using the keywords
+  const createFallbackInsight = () => {
+    const primaryKeyword = card.keywords[0]?.toLowerCase() || 'wisdom';
+    const secondaryKeyword = card.keywords[1]?.toLowerCase() || 'growth';
+    
+    return `Today's combination of ${card.name} and ${hexagram.name} brings ${primaryKeyword} and ${secondaryKeyword} into focus. This powerful pairing invites you to embrace transformation and trust your inner guidance as you navigate your spiritual journey.`;
+  };
+
   if (loading) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Brain size={18} color="#F59E0B" />
+          <Brain size={16} color="#F59E0B" />
           <Text style={styles.title}>Spiritual Insight</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#F59E0B" />
-          <Text style={styles.loadingText}>Channeling your guidance...</Text>
+          <Text style={styles.loadingText}>Channeling guidance...</Text>
         </View>
       </View>
     );
@@ -71,12 +82,10 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <AlertCircle size={18} color="#EF4444" />
+          <Sparkles size={16} color="#F59E0B" />
           <Text style={styles.title}>Spiritual Insight</Text>
         </View>
-        <Text style={styles.fallbackText}>
-          Trust your intuition as you reflect on the {card.name} and {hexagram.name} combination.
-        </Text>
+        <Text style={styles.interpretation}>{createFallbackInsight()}</Text>
       </View>
     );
   }
@@ -84,10 +93,10 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Sparkles size={18} color="#F59E0B" />
+        <Sparkles size={16} color="#F59E0B" />
         <Text style={styles.title}>Spiritual Insight</Text>
       </View>
-      <Text style={styles.interpretation}>{interpretation}</Text>
+      <Text style={styles.interpretation}>{interpretation || createFallbackInsight()}</Text>
     </View>
   );
 }
@@ -96,45 +105,38 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
+    padding: 14,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 8,
+    marginBottom: 8,
+    gap: 6,
   },
   title: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingVertical: 16,
+    gap: 8,
+    paddingVertical: 8,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
   interpretation: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'Inter-Regular',
     color: '#F3F4F6',
-    lineHeight: 20,
-  },
-  fallbackText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-    lineHeight: 20,
+    lineHeight: 18,
   },
 });

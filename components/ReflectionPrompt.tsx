@@ -146,7 +146,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
     <View style={styles.container}>
       <Text style={styles.title}>Reflect on Your Draw</Text>
       
-      {/* Spiritual Messages Header */}
+      {/* Compact Spiritual Messages Header */}
       <View style={styles.messagesHeader}>
         <View style={styles.messageCard}>
           <Text style={styles.messageLabel}>Tarot</Text>
@@ -159,13 +159,13 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         </View>
       </View>
 
-      {/* Spiritual Insight */}
+      {/* Compact Spiritual Insight */}
       <AIInterpretation
         card={card}
         hexagram={hexagram}
       />
 
-      {/* Dynamic Questions */}
+      {/* Compact Dynamic Questions */}
       <DynamicReflectionQuestions
         card={card}
         hexagram={hexagram}
@@ -176,13 +176,11 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         setReflection2={setReflection2}
       />
 
-      {/* Voice Recording Section */}
+      {/* Compact Voice Recording Section */}
       <View style={styles.voiceSection}>
-        <Text style={styles.voiceLabel}>Or record a voice memo</Text>
-        
         {voiceRecording ? (
           <View style={styles.recordingInfo}>
-            <Text style={styles.recordingLabel}>Voice memo recorded ({formatTime(Math.floor(voiceRecording.duration / 1000))})</Text>
+            <Text style={styles.recordingLabel}>Voice memo ({formatTime(Math.floor(voiceRecording.duration / 1000))})</Text>
             <View style={styles.playbackControls}>
               <Pressable
                 style={[styles.playButton, isPlayingAudio && styles.playButtonActive]}
@@ -190,9 +188,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
                 disabled={isPlayingAudio}
               >
                 {isPlayingAudio ? (
-                  <Pause size={16} color="#FFFFFF" />
+                  <Pause size={14} color="#FFFFFF" />
                 ) : (
-                  <Play size={16} color="#F59E0B" />
+                  <Play size={14} color="#F59E0B" />
                 )}
               </Pressable>
               
@@ -200,7 +198,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
                 style={styles.newRecordingButton}
                 onPress={() => setVoiceRecording(null)}
               >
-                <Text style={styles.newRecordingText}>Record New</Text>
+                <Text style={styles.newRecordingText}>New</Text>
               </Pressable>
             </View>
           </View>
@@ -208,11 +206,11 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
           <View style={styles.recordingContainer}>
             <View style={styles.recordingIndicator}>
               <View style={styles.recordingDot} />
-              <Text style={styles.recordingText}>Recording... {formatTime(recordingTime)}</Text>
+              <Text style={styles.recordingText}>Recording {formatTime(recordingTime)}</Text>
             </View>
             
             <Pressable style={styles.stopButton} onPress={handleStopRecording}>
-              <Square size={20} color="#FFFFFF" fill="#FFFFFF" />
+              <Square size={16} color="#FFFFFF" fill="#FFFFFF" />
             </Pressable>
           </View>
         ) : (
@@ -221,7 +219,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
             onPress={handleStartRecording}
             disabled={saving}
           >
-            <Mic size={20} color={saving ? '#6B7280' : '#F59E0B'} />
+            <Mic size={16} color={saving ? '#6B7280' : '#F59E0B'} />
             <Text style={[styles.recordButtonText, saving && styles.recordButtonTextDisabled]}>
               Voice Memo
             </Text>
@@ -239,7 +237,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
           colors={saving ? ['#6B7280', '#4B5563'] : ['#10B981', '#059669']}
           style={styles.saveButtonGradient}
         >
-          <Save size={18} color="#FFFFFF" />
+          <Save size={16} color="#FFFFFF" />
           <Text style={styles.saveButtonText}>
             {saving ? 'Saving...' : 'Save Reflection'}
           </Text>
@@ -255,72 +253,66 @@ const styles = StyleSheet.create({
     width: '100%',
     height: screenHeight - 140, // Account for tab bar
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   
-  // Compact Messages Header
+  // Ultra Compact Messages Header
   messagesHeader: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 12,
   },
   messageCard: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 8,
+    padding: 8,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   messageLabel: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
-    marginBottom: 4,
+    marginBottom: 2,
   },
   messageName: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F3F4F6',
     textAlign: 'center',
   },
   
-  // Voice Section
+  // Compact Voice Section
   voiceSection: {
     alignItems: 'center',
-    marginBottom: 16,
-  },
-  voiceLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
     marginBottom: 12,
   },
   recordButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: '#F59E0B',
-    gap: 8,
+    gap: 6,
   },
   recordButtonDisabled: {
     backgroundColor: 'rgba(107, 114, 128, 0.1)',
     borderColor: '#6B7280',
   },
   recordButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
   },
@@ -329,34 +321,34 @@ const styles = StyleSheet.create({
   },
   recordingContainer: {
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   recordingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: '#EF4444',
   },
   recordingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
     backgroundColor: '#EF4444',
   },
   recordingText: {
-    fontSize: 14,
+    fontSize: 12,
     fontFamily: 'Inter-SemiBold',
     color: '#EF4444',
   },
   stopButton: {
     backgroundColor: '#EF4444',
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 8,
+    padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -364,20 +356,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   recordingLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'Inter-Medium',
     color: '#10B981',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   playbackControls: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
   playButton: {
     backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 8,
+    padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -388,24 +380,24 @@ const styles = StyleSheet.create({
   },
   newRecordingButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   newRecordingText: {
-    fontSize: 12,
+    fontSize: 10,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
   },
   
-  // Save Button
+  // Compact Save Button
   saveButton: {
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 'auto',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   saveButtonDisabled: {
     opacity: 0.6,
@@ -414,12 +406,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    gap: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    gap: 6,
   },
   saveButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },

@@ -85,6 +85,7 @@ export default function TodayScreen() {
   const [hasDrawnToday, setHasDrawnToday] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Animation values
   const intentionBoxScale = useSharedValue(0.95);
@@ -96,6 +97,13 @@ export default function TodayScreen() {
   useEffect(() => {
     checkSubscription();
     startMagicalAnimations();
+    
+    // Update time every minute to ensure accurate icon display
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(timeInterval);
   }, []);
 
   const checkSubscription = async () => {
@@ -189,34 +197,29 @@ export default function TodayScreen() {
   }));
 
   const getTimeBasedGreeting = () => {
-    const hour = new Date().getHours();
+    const hour = currentTime.getHours();
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   };
 
   const getTimeBasedIcon = () => {
-    const hour = new Date().getHours();
-    console.log('Current hour:', hour); // Debug log
+    const hour = currentTime.getHours();
+    console.log('🕐 Current hour:', hour, 'Current time:', currentTime.toLocaleTimeString());
     
     // Show Sun during day (6 AM to 8 PM), Moon during night
-    if (hour >= 6 && hour < 20) {
-      console.log('Showing Sun icon'); // Debug log
-      return Sun;
-    } else {
-      console.log('Showing Moon icon'); // Debug log
-      return Moon;
-    }
+    const isDaytime = hour >= 6 && hour < 20;
+    console.log('☀️ Is daytime?', isDaytime, '- Should show:', isDaytime ? 'Sun' : 'Moon');
+    
+    return isDaytime ? Sun : Moon;
   };
 
   const getTimeBasedIconColor = () => {
-    const hour = new Date().getHours();
+    const hour = currentTime.getHours();
+    const isDaytime = hour >= 6 && hour < 20;
+    
     // Use golden color for sun, silver for moon
-    if (hour >= 6 && hour < 20) {
-      return '#F59E0B'; // Golden for sun
-    } else {
-      return '#E5E7EB'; // Silver for moon
-    }
+    return isDaytime ? '#F59E0B' : '#E5E7EB';
   };
 
   // Show different layouts based on state
@@ -246,10 +249,19 @@ export default function TodayScreen() {
     );
   }
 
+  // Get the correct icon and color based on current time
   const TimeIcon = getTimeBasedIcon();
   const iconColor = getTimeBasedIconColor();
+  const greeting = getTimeBasedGreeting();
 
-  // Default state - enhanced with magical animations
+  console.log('🎨 Rendering with:', { 
+    greeting, 
+    iconColor, 
+    hour: currentTime.getHours(),
+    iconType: TimeIcon === Sun ? 'Sun' : 'Moon'
+  });
+
+  // Default state - enhanced with magical animations and correct time-based icon
   return (
     <LinearGradient
       colors={['#1F2937', '#374151', '#6B46C1']}
@@ -294,16 +306,18 @@ export default function TodayScreen() {
         <TrialBanner subscriptionStatus={subscriptionStatus} />
         
         <View style={styles.header}>
-          {/* Time-based icon with gentle pulse animation and proper color */}
+          {/* Time-based icon with enhanced styling and proper color */}
           <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
-            <TimeIcon size={32} color={iconColor} />
+            <View style={[styles.iconGlow, { shadowColor: iconColor }]}>
+              <TimeIcon size={36} color={iconColor} strokeWidth={1.5} />
+            </View>
           </Animated.View>
 
           <Text style={styles.greeting}>
-            {getTimeBasedGreeting()}, {user?.name || 'friend'}
+            {greeting}, {user?.name || 'friend'}
           </Text>
           <Text style={styles.date}>
-            {new Date().toLocaleDateString('en-US', { 
+            {currentTime.toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
@@ -452,11 +466,17 @@ const styles = StyleSheet.create({
   },
   timeIconContainer: {
     marginBottom: 16,
-    shadowColor: '#F59E0B',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconGlow: {
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 12,
+    shadowOpacity: 0.8,
+    shadowRadius: 16,
+    elevation: 16,
+    borderRadius: 25,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   greeting: {
     fontSize: 28,

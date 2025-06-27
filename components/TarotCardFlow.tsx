@@ -35,6 +35,8 @@ export function TarotCardFlow() {
   const borderAnimation = useSharedValue(0);
 
   const handleRevealCard = () => {
+    console.log('🎴 Card reveal triggered!');
+    
     // Start the magical sequence
     glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
     borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
@@ -175,36 +177,42 @@ export function TarotCardFlow() {
       {/* Animated Border Ring */}
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
-      {/* Card Container - Centered */}
-      <View style={styles.cardCenterContainer}>
-        <Pressable style={styles.cardTouchArea} onPress={handleRevealCard}>
-          <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
-            {/* Mystical Border */}
-            <LinearGradient
-              colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.mysticalBorder}
-            >
-              <View style={styles.innerBorder}>
-                <Image
-                  source={require('@/assets/images/back of the deck.jpeg')}
-                  style={styles.cardBackImage}
-                  resizeMode="cover"
-                />
-                {/* Floating Light Effects */}
-                <View style={styles.lightEffect1} />
-                <View style={styles.lightEffect2} />
-                <View style={styles.lightEffect3} />
-                <View style={styles.lightEffect4} />
+      {/* FIXED: Make the entire card area clickable with proper z-index */}
+      <Pressable 
+        style={styles.cardTouchArea} 
+        onPress={handleRevealCard}
+        accessible={true}
+        accessibilityLabel="Tap to reveal your tarot card"
+        accessibilityRole="button"
+      >
+        <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
+          {/* Mystical Border */}
+          <LinearGradient
+            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.mysticalBorder}
+          >
+            <View style={styles.innerBorder}>
+              <Image
+                source={require('@/assets/images/back of the deck.jpeg')}
+                style={styles.cardBackImage}
+                resizeMode="cover"
+              />
+              {/* Floating Light Effects */}
+              <View style={styles.lightEffect1} />
+              <View style={styles.lightEffect2} />
+              <View style={styles.lightEffect3} />
+              <View style={styles.lightEffect4} />
+              
+              {/* FIXED: Tap hint positioned properly and not blocking touch */}
+              <View style={styles.tapHintOverlay}>
+                <Text style={styles.tapHint}>✨ Tap to reveal your destiny ✨</Text>
               </View>
-            </LinearGradient>
-            <View style={styles.tapHintOverlay}>
-              <Text style={styles.tapHint}>✨ Tap to reveal your destiny ✨</Text>
             </View>
-          </Animated.View>
-        </Pressable>
-      </View>
+          </LinearGradient>
+        </Animated.View>
+      </Pressable>
     </View>
   );
 
@@ -344,7 +352,7 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // FIXED: Remove problematic container styling - let parent handle layout
+  // FIXED: Proper container that works with parent layout
   stepContainer: {
     flex: 1,
     alignItems: 'center',
@@ -352,27 +360,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 20,
     width: '100%',
+    minHeight: screenHeight * 0.7, // Ensure minimum height
   },
   
-  // FIXED: Center container using flexbox instead of absolute positioning
+  // FIXED: Center container using flexbox
   cardCenterContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 30,
   },
   
-  // Card touch area for better interaction
+  // FIXED: Touch area that covers the entire card and is properly positioned
   cardTouchArea: {
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 10, // Ensure it's above other elements
+    position: 'relative',
   },
   
-  // Main card container - Properly sized
+  // FIXED: Card container with proper dimensions and positioning
   cardContainer: {
-    width: Math.min(screenWidth * 0.8, 320), // 80% of screen width, max 320px
-    height: Math.min(screenHeight * 0.55, 480), // 55% of screen height, max 480px
+    width: Math.min(screenWidth * 0.75, 300), // Slightly smaller for better fit
+    height: Math.min(screenHeight * 0.5, 450), // Adjusted height
     borderRadius: 24,
     backfaceVisibility: 'hidden',
+    position: 'relative',
   },
   
   // Glow effects positioned relative to container
@@ -407,12 +419,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   
-  // Border ring effect - Positioned around the card
+  // Border ring effect
   borderRing: {
     position: 'absolute',
-    width: Math.min(screenWidth * 0.9, 360),
-    height: Math.min(screenWidth * 0.9, 360),
-    borderRadius: Math.min(screenWidth * 0.45, 180),
+    width: Math.min(screenWidth * 0.85, 340),
+    height: Math.min(screenWidth * 0.85, 340),
+    borderRadius: Math.min(screenWidth * 0.425, 170),
     borderWidth: 2,
     borderColor: 'rgba(245, 158, 11, 0.2)',
     borderStyle: 'dashed',
@@ -439,12 +451,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.4)',
+    position: 'relative',
   },
   
   // Card images
   cardBackImage: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   cardFrontImage: {
     width: '100%',
@@ -464,6 +480,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
+    zIndex: 5,
   },
   lightEffect2: {
     position: 'absolute',
@@ -477,10 +494,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 6,
+    zIndex: 5,
   },
   lightEffect3: {
     position: 'absolute',
-    bottom: 50,
+    bottom: 70, // Moved up to avoid overlapping with tap hint
     left: 30,
     width: 8,
     height: 8,
@@ -490,10 +508,11 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 10,
+    zIndex: 5,
   },
   lightEffect4: {
     position: 'absolute',
-    bottom: 25,
+    bottom: 70, // Moved up to avoid overlapping with tap hint
     right: 15,
     width: 5,
     height: 5,
@@ -503,21 +522,23 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 7,
+    zIndex: 5,
   },
   
-  // Tap hint overlay
+  // FIXED: Tap hint overlay that doesn't block touch events
   tapHintOverlay: {
     position: 'absolute',
-    bottom: 25,
+    bottom: 20,
     left: 15,
     right: 15,
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.4)',
+    zIndex: 3, // Lower than touch area
   },
   tapHint: {
     fontSize: 16,
@@ -553,7 +574,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   
-  // I Ching container - Positioned normally in layout
+  // I Ching container
   ichingContainer: {
     width: '100%',
     marginBottom: 20,
@@ -699,7 +720,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // Continue button - Normal layout positioning
+  // Continue button
   continueButton: {
     borderRadius: 22,
     overflow: 'hidden',

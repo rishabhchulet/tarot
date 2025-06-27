@@ -85,7 +85,45 @@ export default function TodayScreen() {
   const [hasDrawnToday, setHasDrawnToday] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // CRITICAL: Single source of truth for time-based data
+  const [timeData, setTimeData] = useState(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    console.log('🕐 Initial time calculation:', {
+      currentTime: now.toLocaleTimeString(),
+      hour: hour,
+      timestamp: now.getTime()
+    });
+    
+    // Determine if it's daytime (6 AM to 8 PM = Sun, otherwise Moon)
+    const isDaytime = hour >= 6 && hour < 20;
+    
+    // Get greeting based on time
+    let greeting;
+    if (hour >= 5 && hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+      greeting = 'Good afternoon';
+    } else {
+      greeting = 'Good evening';
+    }
+    
+    // Get icon and color
+    const IconComponent = isDaytime ? Sun : Moon;
+    const iconColor = isDaytime ? '#F59E0B' : '#E5E7EB';
+    
+    console.log('🎨 Time-based calculation result:', { 
+      hour, 
+      isDaytime, 
+      greeting, 
+      iconType: isDaytime ? 'Sun' : 'Moon',
+      iconColor 
+    });
+    
+    return { greeting, IconComponent, iconColor, isDaytime };
+  });
 
   // Animation values
   const intentionBoxScale = useSharedValue(0.95);
@@ -100,10 +138,43 @@ export default function TodayScreen() {
     
     // Update time every minute to ensure accurate icon display
     const timeInterval = setInterval(() => {
-      const newTime = new Date();
-      console.log('⏰ Time updated:', newTime.toLocaleTimeString(), 'Hour:', newTime.getHours());
-      setCurrentTime(newTime);
-    }, 60000);
+      const now = new Date();
+      const hour = now.getHours();
+      
+      console.log('⏰ Time interval update:', {
+        currentTime: now.toLocaleTimeString(),
+        hour: hour,
+        timestamp: now.getTime()
+      });
+      
+      // Determine if it's daytime (6 AM to 8 PM = Sun, otherwise Moon)
+      const isDaytime = hour >= 6 && hour < 20;
+      
+      // Get greeting based on time
+      let greeting;
+      if (hour >= 5 && hour < 12) {
+        greeting = 'Good morning';
+      } else if (hour >= 12 && hour < 17) {
+        greeting = 'Good afternoon';
+      } else {
+        greeting = 'Good evening';
+      }
+      
+      // Get icon and color
+      const IconComponent = isDaytime ? Sun : Moon;
+      const iconColor = isDaytime ? '#F59E0B' : '#E5E7EB';
+      
+      console.log('🔄 Updated time-based data:', { 
+        hour, 
+        isDaytime, 
+        greeting, 
+        iconType: isDaytime ? 'Sun' : 'Moon',
+        iconColor 
+      });
+      
+      // Update state with new time data
+      setTimeData({ greeting, IconComponent, iconColor, isDaytime });
+    }, 60000); // Update every minute
 
     return () => clearInterval(timeInterval);
   }, []);
@@ -174,39 +245,6 @@ export default function TodayScreen() {
     setHasDrawnToday(true);
   };
 
-  // FIXED: Unified time-based logic using the same currentTime state
-  const getTimeBasedData = () => {
-    const hour = currentTime.getHours();
-    console.log('🕐 Getting time-based data for hour:', hour, 'Full time:', currentTime.toLocaleTimeString());
-    
-    // Determine if it's daytime (6 AM to 8 PM = Sun, otherwise Moon)
-    const isDaytime = hour >= 6 && hour < 20;
-    
-    // Get greeting based on time
-    let greeting;
-    if (hour < 12) {
-      greeting = 'Good morning';
-    } else if (hour < 17) {
-      greeting = 'Good afternoon';
-    } else {
-      greeting = 'Good evening';
-    }
-    
-    // Get icon and color
-    const Icon = isDaytime ? Sun : Moon;
-    const iconColor = isDaytime ? '#F59E0B' : '#E5E7EB';
-    
-    console.log('🎨 Time-based data:', { 
-      hour, 
-      isDaytime, 
-      greeting, 
-      iconType: isDaytime ? 'Sun' : 'Moon',
-      iconColor 
-    });
-    
-    return { greeting, Icon, iconColor, isDaytime };
-  };
-
   // Animated styles
   const intentionBoxStyle = useAnimatedStyle(() => ({
     transform: [{ scale: intentionBoxScale.value }],
@@ -258,10 +296,10 @@ export default function TodayScreen() {
     );
   }
 
-  // FIXED: Get unified time-based data
-  const { greeting, Icon: TimeIcon, iconColor, isDaytime } = getTimeBasedData();
+  // FIXED: Use the unified timeData state for both greeting and icon
+  const { greeting, IconComponent, iconColor, isDaytime } = timeData;
 
-  // Default state - enhanced with magical animations and correct time-based icon
+  // Default state - enhanced with magical animations and SYNCHRONIZED time-based icon
   return (
     <LinearGradient
       colors={['#1F2937', '#374151', '#6B46C1']}
@@ -306,19 +344,19 @@ export default function TodayScreen() {
         <TrialBanner subscriptionStatus={subscriptionStatus} />
         
         <View style={styles.header}>
-          {/* FIXED: Time-based icon with proper synchronization */}
+          {/* FIXED: Time-based icon using the SAME timeData state */}
           <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
             <View style={[styles.iconGlow, { shadowColor: iconColor }]}>
-              <TimeIcon size={36} color={iconColor} strokeWidth={1.5} />
+              <IconComponent size={36} color={iconColor} strokeWidth={1.5} />
             </View>
           </Animated.View>
 
-          {/* FIXED: Greeting text using the same time calculation */}
+          {/* FIXED: Greeting text using the SAME timeData state */}
           <Text style={styles.greeting}>
             {greeting}, {user?.name || 'friend'}
           </Text>
           <Text style={styles.date}>
-            {currentTime.toLocaleDateString('en-US', { 
+            {new Date().toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 

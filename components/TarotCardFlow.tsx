@@ -167,6 +167,12 @@ export function TarotCardFlow() {
 
   const renderCardBack = () => (
     <View style={styles.fullScreenContainer}>
+      {/* Full Background Gradient */}
+      <LinearGradient
+        colors={['#000000', '#1F2937', '#374151']}
+        style={styles.backgroundGradient}
+      />
+      
       {/* Magical Background Effects */}
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
@@ -176,8 +182,8 @@ export function TarotCardFlow() {
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
       <View style={styles.cardCenterContainer}>
-        <Pressable style={styles.fullPageCardContainer} onPress={handleRevealCard}>
-          <Animated.View style={[styles.fullPageCard, frontAnimatedStyle]}>
+        <Pressable style={styles.fullScreenCardContainer} onPress={handleRevealCard}>
+          <Animated.View style={[styles.fullScreenCard, frontAnimatedStyle]}>
             {/* Mystical Border */}
             <LinearGradient
               colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
@@ -188,7 +194,7 @@ export function TarotCardFlow() {
               <View style={styles.innerBorder}>
                 <Image
                   source={require('@/assets/images/back of the deck.jpeg')}
-                  style={styles.fullPageCardBackImage}
+                  style={styles.fullScreenCardBackImage}
                   resizeMode="cover"
                 />
                 {/* Floating Light Effects */}
@@ -209,8 +215,13 @@ export function TarotCardFlow() {
 
   const renderCardAndIching = () => (
     <View style={styles.fullContainer}>
-      <View style={styles.fullPageCardContainer}>
-        <Animated.View style={[styles.fullPageCard, styles.cardFront, backAnimatedStyle]}>
+      <LinearGradient
+        colors={['#000000', '#1F2937', '#374151']}
+        style={styles.backgroundGradient}
+      />
+      
+      <View style={styles.fullScreenCardContainer}>
+        <Animated.View style={[styles.fullScreenCard, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
             start={{ x: 0, y: 0 }}
@@ -220,7 +231,7 @@ export function TarotCardFlow() {
             <View style={styles.innerBorder}>
               <Image
                 source={{ uri: selectedCard.imageUrl }}
-                style={styles.fullPageCardImage}
+                style={styles.fullScreenCardImage}
                 resizeMode="cover"
               />
               <View style={styles.cardInfo}>
@@ -264,6 +275,11 @@ export function TarotCardFlow() {
 
   const renderKeywordsOnly = () => (
     <View style={styles.fullContainer}>
+      <LinearGradient
+        colors={['#000000', '#1F2937', '#374151']}
+        style={styles.backgroundGradient}
+      />
+      
       <View style={styles.keywordsMainContainer}>
         <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
         <Text style={styles.keywordsSubtitle}>
@@ -320,6 +336,10 @@ export function TarotCardFlow() {
 
   const renderReflectionQuestions = () => (
     <View style={styles.fullContainer}>
+      <LinearGradient
+        colors={['#000000', '#1F2937', '#374151']}
+        style={styles.backgroundGradient}
+      />
       <ReflectionPrompt
         card={selectedCard}
         hexagram={selectedHexagram}
@@ -351,9 +371,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: screenWidth,
     height: screenHeight,
-    backgroundColor: 'rgba(0, 0, 0, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
   },
   glowEffect1: {
     position: 'absolute',
@@ -394,20 +422,26 @@ const styles = StyleSheet.create({
   cardCenterContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    flex: 1,
   },
   fullContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
     alignItems: 'center',
     paddingVertical: 20,
-    width: '100%',
-    minHeight: screenHeight,
   },
-  fullPageCardContainer: {
-    width: screenWidth * 0.75,
-    height: screenHeight * 0.65,
+  fullScreenCardContainer: {
+    width: screenWidth * 0.85,
+    height: screenHeight * 0.75,
     position: 'relative',
     marginBottom: 24,
   },
-  fullPageCard: {
+  fullScreenCard: {
     position: 'absolute',
     width: '100%',
     height: '100%',
@@ -416,27 +450,27 @@ const styles = StyleSheet.create({
   },
   mysticalBorder: {
     flex: 1,
-    padding: 4,
+    padding: 6,
     borderRadius: 24,
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
+    shadowRadius: 25,
+    elevation: 25,
   },
   innerBorder: {
     flex: 1,
-    borderRadius: 20,
+    borderRadius: 18,
     overflow: 'hidden',
     backgroundColor: '#000',
     borderWidth: 2,
     borderColor: 'rgba(245, 158, 11, 0.5)',
   },
-  fullPageCardBackImage: {
+  fullScreenCardBackImage: {
     width: '100%',
     height: '100%',
   },
-  fullPageCardImage: {
+  fullScreenCardImage: {
     width: '100%',
     height: '75%',
   },
@@ -539,6 +573,8 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 24,
     marginBottom: 24,
+    position: 'absolute',
+    bottom: 120,
   },
   ichingTitle: {
     fontSize: 20,
@@ -599,6 +635,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginBottom: 32,
     paddingTop: 60,
+    flex: 1,
   },
   keywordsTitle: {
     fontSize: 28,
@@ -683,8 +720,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     overflow: 'hidden',
     minWidth: 200,
-    marginTop: 16,
-    marginBottom: 40,
+    position: 'absolute',
+    bottom: 40,
   },
   continueButtonGradient: {
     paddingVertical: 16,

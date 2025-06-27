@@ -166,11 +166,11 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.absoluteContainer}>
-      {/* Full Background Gradient - Covers entire screen */}
+    <View style={styles.screenContainer}>
+      {/* Full Screen Background - Fixed to cover everything */}
       <LinearGradient
         colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullScreenBackground}
+        style={styles.fullBackground}
       />
       
       {/* Magical Background Effects */}
@@ -182,7 +182,7 @@ export function TarotCardFlow() {
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
       {/* Card Container - Perfectly Centered */}
-      <View style={styles.perfectCenterContainer}>
+      <View style={styles.centerContainer}>
         <Pressable style={styles.cardTouchArea} onPress={handleRevealCard}>
           <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
             {/* Mystical Border */}
@@ -215,13 +215,13 @@ export function TarotCardFlow() {
   );
 
   const renderCardAndIching = () => (
-    <View style={styles.absoluteContainer}>
+    <View style={styles.screenContainer}>
       <LinearGradient
         colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullScreenBackground}
+        style={styles.fullBackground}
       />
       
-      <View style={styles.perfectCenterContainer}>
+      <View style={styles.centerContainer}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
@@ -275,10 +275,10 @@ export function TarotCardFlow() {
   );
 
   const renderKeywordsOnly = () => (
-    <View style={styles.absoluteContainer}>
+    <View style={styles.screenContainer}>
       <LinearGradient
         colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullScreenBackground}
+        style={styles.fullBackground}
       />
       
       <View style={styles.keywordsMainContainer}>
@@ -336,10 +336,10 @@ export function TarotCardFlow() {
   );
 
   const renderReflectionQuestions = () => (
-    <View style={styles.absoluteContainer}>
+    <View style={styles.screenContainer}>
       <LinearGradient
         colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullScreenBackground}
+        style={styles.fullBackground}
       />
       <ReflectionPrompt
         card={selectedCard}
@@ -364,31 +364,28 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // Absolute container that covers the entire screen
-  absoluteContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
+  // Main screen container that takes full viewport
+  screenContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'relative',
   },
   
-  // Full screen background that covers everything
-  fullScreenBackground: {
+  // Full background that covers the entire screen without gaps
+  fullBackground: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
+    width: '100%',
+    height: '100%',
     zIndex: 0,
   },
   
   // Perfect centering container
-  perfectCenterContainer: {
+  centerContainer: {
     position: 'absolute',
     top: 0,
     left: 0,

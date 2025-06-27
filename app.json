@@ -21,7 +21,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "single",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -29,7 +29,13 @@
       "expo-font", 
       "expo-web-browser",
       "expo-notifications",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-router",
+        {
+          "origin": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

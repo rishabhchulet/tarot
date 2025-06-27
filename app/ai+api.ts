@@ -4,13 +4,13 @@ import OpenAI from 'openai';
 let openaiClient: OpenAI | null = null;
 
 function getOpenAIClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY environment variable is required but not set');
+  }
+  
   if (!openaiClient) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    
-    if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is required but not set');
-    }
-    
     openaiClient = new OpenAI({
       apiKey: apiKey,
     });
@@ -22,6 +22,20 @@ function getOpenAIClient(): OpenAI {
 export async function POST(request: Request) {
   try {
     // Check if OpenAI API key is available before processing
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.' 
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     const openai = getOpenAIClient();
     
     const body = await request.json();

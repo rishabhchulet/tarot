@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Save } from 'lucide-react-native';
+import { Save, Mic, Square, Play, Pause } from 'lucide-react-native';
 import { saveJournalEntry } from '@/utils/database';
-import { saveAudioToDocuments, AudioRecording } from '@/utils/audio';
-import { VoiceRecorder } from './VoiceRecorder';
-import { AIReflectionPrompts } from './AIReflectionPrompts';
+import { saveAudioToDocuments, AudioRecording, startRecording, stopRecording, playAudio } from '@/utils/audio';
+import { AIInterpretation } from './AIInterpretation';
+import { DynamicReflectionQuestions } from './DynamicReflectionQuestions';
+import { router } from 'expo-router';
+
+const { height: screenHeight } = Dimensions.get('window');
 
 interface ReflectionPromptProps {
   card: any;
@@ -14,45 +17,84 @@ interface ReflectionPromptProps {
 }
 
 export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromptProps) {
-  const [firstImpressions, setFirstImpressions] = useState('');
-  const [personalMeaning, setPersonalMeaning] = useState('');
+  const [reflection1, setReflection1] = useState('');
+  const [reflection2, setReflection2] = useState('');
   const [voiceRecording, setVoiceRecording] = useState<AudioRecording | null>(null);
   const [saving, setSaving] = useState(false);
-  const [showAIPrompts, setShowAIPrompts] = useState(true);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
-  const handleVoiceRecording = async (recording: AudioRecording) => {
-    try {
-      // Save the audio file with a unique name
-      const timestamp = new Date().getTime();
-      const filename = `voice_memo_${timestamp}.m4a`;
-      const savedUri = await saveAudioToDocuments(recording.uri, filename);
-      
-      if (savedUri) {
-        setVoiceRecording({
-          ...recording,
-          uri: savedUri,
-        });
-        console.log('Voice recording saved:', savedUri);
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isRecording) {
+      interval = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
       }
-    } catch (error) {
-      console.error('Error saving voice recording:', error);
-      Alert.alert('Error', 'Failed to save voice recording');
+    };
+  }, [isRecording]);
+
+  const handleStartRecording = async () => {
+    const success = await startRecording();
+    if (success) {
+      setIsRecording(true);
+      setRecordingTime(0);
+      setVoiceRecording(null);
     }
   };
 
-  const handleAIPromptSelect = (prompt: string) => {
-    // If first impressions is empty, use it there, otherwise use personal meaning
-    if (!firstImpressions.trim()) {
-      setFirstImpressions(prompt);
-    } else {
-      setPersonalMeaning(prompt);
+  const handleStopRecording = async () => {
+    const recording = await stopRecording();
+    setIsRecording(false);
+    setRecordingTime(0);
+    
+    if (recording) {
+      try {
+        const timestamp = new Date().getTime();
+        const filename = `voice_memo_${timestamp}.m4a`;
+        const savedUri = await saveAudioToDocuments(recording.uri, filename);
+        
+        if (savedUri) {
+          setVoiceRecording({
+            ...recording,
+            uri: savedUri,
+          });
+        }
+      } catch (error) {
+        console.error('Error saving voice recording:', error);
+        Alert.alert('Error', 'Failed to save voice recording');
+      }
     }
-    setShowAIPrompts(false);
+  };
+
+  const handlePlayRecording = async () => {
+    if (!voiceRecording) return;
+
+    setIsPlayingAudio(true);
+    await playAudio(voiceRecording.uri);
+    
+    setTimeout(() => {
+      setIsPlayingAudio(false);
+    }, Math.min(voiceRecording.duration, 5000));
+  };
+
+  const handleQuestionSelect = (question: string, questionIndex: number) => {
+    if (questionIndex === 0) {
+      setReflection1(question);
+    } else {
+      setReflection2(question);
+    }
   };
 
   const handleSave = async () => {
-    // Check if user has provided any input
-    const hasTextInput = firstImpressions.trim() || personalMeaning.trim();
+    const hasTextInput = reflection1.trim() || reflection2.trim();
     const hasVoiceInput = voiceRecording !== null;
 
     if (!hasTextInput && !hasVoiceInput) {
@@ -67,16 +109,14 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
 
     try {
       const entry = {
-        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD format
+        date: new Date().toISOString().split('T')[0],
         card_name: card.name,
         card_keywords: card.keywords,
-        first_impressions: firstImpressions.trim(),
-        personal_meaning: personalMeaning.trim(),
-        reflection: `${firstImpressions.trim()} ${personalMeaning.trim()}`.trim(),
+        first_impressions: reflection1.trim(),
+        personal_meaning: reflection2.trim(),
+        reflection: `${reflection1.trim()} ${reflection2.trim()}`.trim(),
         voice_memo_path: voiceRecording?.uri || null,
       };
-
-      console.log('Saving journal entry:', entry);
 
       const { error } = await saveJournalEntry(entry);
       
@@ -85,16 +125,8 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         Alert.alert('Error', 'Failed to save your reflection. Please try again.');
       } else {
         console.log('Journal entry saved successfully');
-        Alert.alert(
-          'Reflection Saved!', 
-          'Your daily reflection has been saved to your journal.',
-          [
-            {
-              text: 'OK',
-              onPress: onComplete,
-            }
-          ]
-        );
+        // Navigate back to today screen
+        router.replace('/(tabs)');
       }
     } catch (error) {
       console.error('Unexpected error saving journal entry:', error);
@@ -104,141 +136,146 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reflect on Your Draw</Text>
       
-      <View style={styles.guidanceContainer}>
-        <Text style={styles.guidanceTitle}>Your Spiritual Messages</Text>
-        <View style={styles.messageRow}>
-          <View style={styles.messageCard}>
-            <Text style={styles.messageLabel}>Tarot Card</Text>
-            <Text style={styles.messageName}>{card.name}</Text>
-            <View style={styles.messageKeywords}>
-              {card.keywords.slice(0, 2).map((keyword: string, index: number) => (
-                <Text key={index} style={styles.messageKeyword}>{keyword}</Text>
-              ))}
-            </View>
-          </View>
-          
-          <View style={styles.messageCard}>
-            <Text style={styles.messageLabel}>I Ching</Text>
-            <Text style={styles.messageName}>{hexagram.name}</Text>
-            <Text style={styles.messageKeyword}>#{hexagram.number}</Text>
-          </View>
+      {/* Spiritual Messages Header */}
+      <View style={styles.messagesHeader}>
+        <View style={styles.messageCard}>
+          <Text style={styles.messageLabel}>Tarot</Text>
+          <Text style={styles.messageName}>{card.name}</Text>
+        </View>
+        
+        <View style={styles.messageCard}>
+          <Text style={styles.messageLabel}>I Ching</Text>
+          <Text style={styles.messageName}>{hexagram.name}</Text>
         </View>
       </View>
 
-      {showAIPrompts && (
-        <AIReflectionPrompts
-          card={card}
-          hexagram={hexagram}
-          onPromptSelect={handleAIPromptSelect}
-        />
-      )}
+      {/* Spiritual Insight */}
+      <AIInterpretation
+        card={card}
+        hexagram={hexagram}
+      />
 
-      {!showAIPrompts && (
-        <Pressable 
-          style={styles.showPromptsButton}
-          onPress={() => setShowAIPrompts(true)}
-        >
-          <Text style={styles.showPromptsText}>Show AI Prompts Again</Text>
-        </Pressable>
-      )}
-      
-      <View style={styles.promptContainer}>
-        <Text style={styles.promptLabel}>What are your first impressions with this pull?</Text>
-        <TextInput
-          style={styles.textInput}
-          value={firstImpressions}
-          onChangeText={setFirstImpressions}
-          placeholder="Share your initial thoughts and feelings..."
-          placeholderTextColor="#6B7280"
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-        />
-      </View>
+      {/* Dynamic Questions */}
+      <DynamicReflectionQuestions
+        card={card}
+        hexagram={hexagram}
+        onQuestionSelect={handleQuestionSelect}
+        reflection1={reflection1}
+        setReflection1={setReflection1}
+        reflection2={reflection2}
+        setReflection2={setReflection2}
+      />
 
-      <View style={styles.promptContainer}>
-        <Text style={styles.promptLabel}>What does it mean to you right now?</Text>
-        <TextInput
-          style={styles.textInput}
-          value={personalMeaning}
-          onChangeText={setPersonalMeaning}
-          placeholder="How does this message relate to your current journey?"
-          placeholderTextColor="#6B7280"
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-        />
-      </View>
-
-      <View style={styles.voiceContainer}>
-        <Text style={styles.promptLabel}>Or record a voice memo</Text>
-        <VoiceRecorder 
-          onRecordingComplete={handleVoiceRecording}
-          disabled={saving}
-        />
-      </View>
-
-      <View style={styles.actionContainer}>
-        <Pressable 
-          style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
-          onPress={handleSave}
-          disabled={saving}
-        >
-          <LinearGradient
-            colors={saving ? ['#6B7280', '#4B5563'] : ['#10B981', '#059669']}
-            style={styles.saveButtonGradient}
+      {/* Voice Recording Section */}
+      <View style={styles.voiceSection}>
+        <Text style={styles.voiceLabel}>Or record a voice memo</Text>
+        
+        {voiceRecording ? (
+          <View style={styles.recordingInfo}>
+            <Text style={styles.recordingLabel}>Voice memo recorded ({formatTime(Math.floor(voiceRecording.duration / 1000))})</Text>
+            <View style={styles.playbackControls}>
+              <Pressable
+                style={[styles.playButton, isPlayingAudio && styles.playButtonActive]}
+                onPress={handlePlayRecording}
+                disabled={isPlayingAudio}
+              >
+                {isPlayingAudio ? (
+                  <Pause size={16} color="#FFFFFF" />
+                ) : (
+                  <Play size={16} color="#F59E0B" />
+                )}
+              </Pressable>
+              
+              <Pressable
+                style={styles.newRecordingButton}
+                onPress={() => setVoiceRecording(null)}
+              >
+                <Text style={styles.newRecordingText}>Record New</Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : isRecording ? (
+          <View style={styles.recordingContainer}>
+            <View style={styles.recordingIndicator}>
+              <View style={styles.recordingDot} />
+              <Text style={styles.recordingText}>Recording... {formatTime(recordingTime)}</Text>
+            </View>
+            
+            <Pressable style={styles.stopButton} onPress={handleStopRecording}>
+              <Square size={20} color="#FFFFFF" fill="#FFFFFF" />
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable
+            style={[styles.recordButton, saving && styles.recordButtonDisabled]}
+            onPress={handleStartRecording}
+            disabled={saving}
           >
-            <Save size={20} color="#FFFFFF" />
-            <Text style={styles.saveButtonText}>
-              {saving ? 'Saving...' : 'Save Reflection'}
+            <Mic size={20} color={saving ? '#6B7280' : '#F59E0B'} />
+            <Text style={[styles.recordButtonText, saving && styles.recordButtonTextDisabled]}>
+              Voice Memo
             </Text>
-          </LinearGradient>
-        </Pressable>
+          </Pressable>
+        )}
       </View>
+
+      {/* Save Button */}
+      <Pressable 
+        style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+        onPress={handleSave}
+        disabled={saving}
+      >
+        <LinearGradient
+          colors={saving ? ['#6B7280', '#4B5563'] : ['#10B981', '#059669']}
+          style={styles.saveButtonGradient}
+        >
+          <Save size={18} color="#FFFFFF" />
+          <Text style={styles.saveButtonText}>
+            {saving ? 'Saving...' : 'Save Reflection'}
+          </Text>
+        </LinearGradient>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     width: '100%',
-    paddingHorizontal: 24,
+    height: screenHeight - 140, // Account for tab bar
+    paddingHorizontal: 20,
+    paddingVertical: 10,
   },
   title: {
     fontSize: 24,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 24,
-  },
-  guidanceContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  guidanceTitle: {
-    fontSize: 18,
-    fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F59E0B',
-    textAlign: 'center',
     marginBottom: 16,
   },
-  messageRow: {
+  
+  // Compact Messages Header
+  messagesHeader: {
     flexDirection: 'row',
     gap: 12,
+    marginBottom: 16,
   },
   messageCard: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -247,74 +284,128 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   messageName: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 8,
   },
-  messageKeywords: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 4,
-  },
-  messageKeyword: {
-    fontSize: 10,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  showPromptsButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderRadius: 12,
-    padding: 12,
+  
+  // Voice Section
+  voiceSection: {
     alignItems: 'center',
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
-  showPromptsText: {
+  voiceLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#3B82F6',
-  },
-  promptContainer: {
-    marginBottom: 24,
-  },
-  promptLabel: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#9CA3AF',
     marginBottom: 12,
   },
-  textInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  recordButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
     borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    minHeight: 100,
+    borderColor: '#F59E0B',
+    gap: 8,
   },
-  voiceContainer: {
-    marginBottom: 32,
+  recordButtonDisabled: {
+    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+    borderColor: '#6B7280',
+  },
+  recordButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+  },
+  recordButtonTextDisabled: {
+    color: '#6B7280',
+  },
+  recordingContainer: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  recordingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+  },
+  recordingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
+  },
+  recordingText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#EF4444',
+  },
+  stopButton: {
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recordingInfo: {
     alignItems: 'center',
   },
-  actionContainer: {
-    marginTop: 24,
+  recordingLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#10B981',
+    marginBottom: 8,
   },
+  playbackControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  playButton: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 12,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  playButtonActive: {
+    backgroundColor: '#F59E0B',
+  },
+  newRecordingButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  newRecordingText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
+  
+  // Save Button
   saveButton: {
     borderRadius: 12,
     overflow: 'hidden',
+    marginTop: 'auto',
+    marginBottom: 10,
   },
   saveButtonDisabled: {
     opacity: 0.6,
@@ -323,12 +414,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 32,
     gap: 8,
   },
   saveButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },

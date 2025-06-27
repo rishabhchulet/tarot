@@ -56,12 +56,12 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <Brain size={20} color="#F59E0B" />
-          <Text style={styles.title}>AI Spiritual Guidance</Text>
+          <Brain size={18} color="#F59E0B" />
+          <Text style={styles.title}>Spiritual Insight</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#F59E0B" />
-          <Text style={styles.loadingText}>Channeling your personalized guidance...</Text>
+          <Text style={styles.loadingText}>Channeling your guidance...</Text>
         </View>
       </View>
     );
@@ -71,10 +71,9 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <AlertCircle size={20} color="#EF4444" />
-          <Text style={styles.title}>Guidance Unavailable</Text>
+          <AlertCircle size={18} color="#EF4444" />
+          <Text style={styles.title}>Spiritual Insight</Text>
         </View>
-        <Text style={styles.errorText}>{error}</Text>
         <Text style={styles.fallbackText}>
           Trust your intuition as you reflect on the {card.name} and {hexagram.name} combination.
         </Text>
@@ -85,13 +84,10 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Sparkles size={20} color="#F59E0B" />
-        <Text style={styles.title}>AI Spiritual Guidance</Text>
+        <Sparkles size={18} color="#F59E0B" />
+        <Text style={styles.title}>Spiritual Insight</Text>
       </View>
       <Text style={styles.interpretation}>{interpretation}</Text>
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>✨ Personalized for your spiritual journey</Text>
-      </View>
     </View>
   );
 }
@@ -99,20 +95,20 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
 const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20,
-    marginVertical: 16,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     gap: 8,
   },
   title: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
   },
@@ -120,7 +116,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 20,
+    paddingVertical: 16,
   },
   loadingText: {
     fontSize: 14,
@@ -129,33 +125,16 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   interpretation: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
-    lineHeight: 24,
-    marginBottom: 16,
-  },
-  errorText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#EF4444',
-    marginBottom: 12,
+    color: '#F3F4F6',
+    lineHeight: 20,
   },
   fallbackText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     fontStyle: 'italic',
-  },
-  footer: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(245, 158, 11, 0.2)',
-    paddingTop: 12,
-    alignItems: 'center',
-  },
-  footerText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    lineHeight: 20,
   },
 });

@@ -87,12 +87,11 @@ export default function TodayScreen() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
 
   // Animation values
-  const headerGlow = useSharedValue(0);
   const intentionBoxScale = useSharedValue(0.95);
   const buttonPulse = useSharedValue(1);
   const backgroundShimmer = useSharedValue(0);
   const starRotation = useSharedValue(0);
-  const moonPhase = useSharedValue(0);
+  const timeIconPulse = useSharedValue(1);
 
   useEffect(() => {
     checkSubscription();
@@ -105,13 +104,6 @@ export default function TodayScreen() {
   };
 
   const startMagicalAnimations = () => {
-    // Header glow animation
-    headerGlow.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-
     // Intention box breathing animation
     intentionBoxScale.value = withRepeat(
       withTiming(1.02, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
@@ -143,9 +135,9 @@ export default function TodayScreen() {
       false
     );
 
-    // Moon phase animation
-    moonPhase.value = withRepeat(
-      withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.ease) }),
+    // Time icon gentle pulse
+    timeIconPulse.value = withRepeat(
+      withTiming(1.1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
@@ -173,11 +165,6 @@ export default function TodayScreen() {
   };
 
   // Animated styles
-  const headerGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(headerGlow.value, [0, 1], [0.3, 0.8]),
-    transform: [{ scale: interpolate(headerGlow.value, [0, 1], [1, 1.1]) }],
-  }));
-
   const intentionBoxStyle = useAnimatedStyle(() => ({
     transform: [{ scale: intentionBoxScale.value }],
   }));
@@ -197,12 +184,8 @@ export default function TodayScreen() {
     transform: [{ rotate: `${starRotation.value}deg` }],
   }));
 
-  const moonPhaseStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(moonPhase.value, [0, 1], [0.4, 1]),
-    transform: [
-      { scale: interpolate(moonPhase.value, [0, 1], [0.8, 1.2]) },
-      { rotate: `${moonPhase.value * 15}deg` }
-    ],
+  const timeIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: timeIconPulse.value }],
   }));
 
   const getTimeBasedGreeting = () => {
@@ -214,8 +197,9 @@ export default function TodayScreen() {
 
   const getTimeBasedIcon = () => {
     const hour = new Date().getHours();
-    if (hour < 6 || hour > 20) return Moon;
-    return Sun;
+    // Show Sun during day (6 AM to 8 PM), Moon during night
+    if (hour >= 6 && hour < 20) return Sun;
+    return Moon;
   };
 
   // Show different layouts based on state
@@ -292,11 +276,8 @@ export default function TodayScreen() {
         <TrialBanner subscriptionStatus={subscriptionStatus} />
         
         <View style={styles.header}>
-          {/* Animated header glow */}
-          <Animated.View style={[styles.headerGlow, headerGlowStyle]} />
-          
-          {/* Time-based icon with moon phase animation */}
-          <Animated.View style={[styles.timeIconContainer, moonPhaseStyle]}>
+          {/* Time-based icon with gentle pulse animation */}
+          <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
             <TimeIcon size={32} color="#F59E0B" />
           </Animated.View>
 
@@ -370,7 +351,7 @@ export default function TodayScreen() {
             </Pressable>
           </Animated.View>
 
-          {/* Mystical footer text */}
+          {/* Enhanced mystical footer text with better visibility */}
           <Text style={styles.mysticalFooter}>
             ✨ The universe awaits your question ✨
           </Text>
@@ -450,14 +431,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: 'center',
     position: 'relative',
-  },
-  headerGlow: {
-    position: 'absolute',
-    top: 40,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
   },
   timeIconContainer: {
     marginBottom: 16,
@@ -582,16 +555,22 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   
-  // Mystical footer
+  // Enhanced mystical footer with better visibility
   mysticalFooter: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#8B5CF6',
+    color: '#F59E0B',
     marginTop: 24,
     fontStyle: 'italic',
-    textShadowColor: 'rgba(139, 92, 246, 0.3)',
+    textShadowColor: 'rgba(245, 158, 11, 0.8)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 4,
+    textShadowRadius: 8,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   
   // Card flow container

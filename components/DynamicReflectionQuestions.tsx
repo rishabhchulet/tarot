@@ -33,10 +33,21 @@ export function DynamicReflectionQuestions({
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [regenerating, setRegenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     generateQuestions();
   }, [card.name, hexagram.name]);
+
+  const createFallbackQuestions = () => {
+    const primaryKeyword = card.keywords[0] || 'wisdom';
+    const focusArea = user?.focusArea || 'spiritual journey';
+    
+    return [
+      `How does the energy of ${primaryKeyword.toLowerCase()} from ${card.name} guide your ${focusArea} today?`,
+      `What wisdom from ${hexagram.name} can you apply to your current path forward?`
+    ];
+  };
 
   const generateQuestions = async (isRegeneration = false) => {
     if (isRegeneration) {
@@ -44,8 +55,11 @@ export function DynamicReflectionQuestions({
     } else {
       setLoading(true);
     }
+    setError(null);
 
     try {
+      console.log('🤔 Generating reflection questions...');
+      
       // Get recent journal entries for context
       const recentEntries = await getJournalEntries();
       const recentThemes = extractRecentThemes(recentEntries);
@@ -58,21 +72,21 @@ export function DynamicReflectionQuestions({
         previousEntries: recentThemes,
       });
 
-      if (aiError || !aiQuestions || aiQuestions.length < 2) {
-        // Fallback questions
-        setQuestions([
-          `How does ${card.name} guide your ${user?.focusArea || 'journey'} today?`,
-          `What wisdom from ${hexagram.name} can you apply right now?`
-        ]);
+      if (aiError) {
+        console.warn('⚠️ AI questions error, using fallback:', aiError);
+        setError(aiError);
+        setQuestions(createFallbackQuestions());
+      } else if (!aiQuestions || aiQuestions.length < 2) {
+        console.warn('⚠️ Insufficient AI questions, using fallback');
+        setQuestions(createFallbackQuestions());
       } else {
+        console.log('✅ AI questions generated successfully');
         setQuestions(aiQuestions.slice(0, 2)); // Only take first 2 questions
       }
     } catch (err: any) {
-      // Fallback questions
-      setQuestions([
-        `What message does ${card.name} have for you today?`,
-        `How can ${hexagram.name} guide your current path?`
-      ]);
+      console.error('❌ Error generating questions:', err);
+      setError(err.message);
+      setQuestions(createFallbackQuestions());
     } finally {
       setLoading(false);
       setRegenerating(false);
@@ -80,6 +94,7 @@ export function DynamicReflectionQuestions({
   };
 
   const handleRegenerate = () => {
+    console.log('🔄 Regenerating questions...');
     generateQuestions(true);
   };
 
@@ -92,7 +107,7 @@ export function DynamicReflectionQuestions({
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#3B82F6" />
-          <Text style={styles.loadingText}>Crafting questions...</Text>
+          <Text style={styles.loadingText}>Crafting personalized questions...</Text>
         </View>
       </View>
     );
@@ -115,15 +130,19 @@ export function DynamicReflectionQuestions({
         </Pressable>
       </View>
 
+      {error && (
+        <Text style={styles.errorText}>Using personalized fallback questions</Text>
+      )}
+
       {/* Question 1 */}
       <View style={styles.questionContainer}>
         <Pressable
           style={styles.questionButton}
-          onPress={() => onQuestionSelect(questions[0], 0)}
+          onPress={() => onQuestionSelect(questions[0] || '', 0)}
         >
           <View style={styles.questionContent}>
             <Lightbulb size={12} color="#3B82F6" />
-            <Text style={styles.questionText}>{questions[0]}</Text>
+            <Text style={styles.questionText}>{questions[0] || 'Loading question...'}</Text>
           </View>
         </Pressable>
         
@@ -143,11 +162,11 @@ export function DynamicReflectionQuestions({
       <View style={styles.questionContainer}>
         <Pressable
           style={styles.questionButton}
-          onPress={() => onQuestionSelect(questions[1], 1)}
+          onPress={() => onQuestionSelect(questions[1] || '', 1)}
         >
           <View style={styles.questionContent}>
             <Lightbulb size={12} color="#3B82F6" />
-            <Text style={styles.questionText}>{questions[1]}</Text>
+            <Text style={styles.questionText}>{questions[1] || 'Loading question...'}</Text>
           </View>
         </Pressable>
         
@@ -206,6 +225,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     fontStyle: 'italic',
+  },
+  errorText: {
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    color: '#F59E0B',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   questionContainer: {
     marginBottom: 12,

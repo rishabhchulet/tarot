@@ -43,9 +43,29 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
       if (aiError) {
         setError(aiError);
       } else {
-        // Truncate interpretation to approximately 50 words
-        const words = aiInterpretation?.split(' ') || [];
-        const shortInterpretation = words.slice(0, 50).join(' ') + (words.length > 50 ? '...' : '');
+        // Smart truncation that preserves sentence completion
+        const smartTruncate = (text: string, maxWords: number = 45): string => {
+          const words = text.split(' ');
+          if (words.length <= maxWords) return text;
+          
+          // Find the last complete sentence within the word limit
+          let truncated = words.slice(0, maxWords).join(' ');
+          const lastSentenceEnd = Math.max(
+            truncated.lastIndexOf('.'),
+            truncated.lastIndexOf('!'),
+            truncated.lastIndexOf('?')
+          );
+          
+          if (lastSentenceEnd > truncated.length * 0.6) {
+            // If we have a sentence ending in the last 40% of text, use it
+            return truncated.substring(0, lastSentenceEnd + 1);
+          } else {
+            // Otherwise, add ellipsis to the word-truncated version
+            return truncated + '...';
+          }
+        };
+
+        const shortInterpretation = smartTruncate(aiInterpretation || '');
         setInterpretation(shortInterpretation);
       }
     } catch (err: any) {
@@ -55,12 +75,13 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     }
   };
 
-  // Create a fallback insight using the keywords
+  // Create a fallback insight using the keywords - ensuring it mentions them and completes meaning
   const createFallbackInsight = () => {
     const primaryKeyword = card.keywords[0]?.toLowerCase() || 'wisdom';
     const secondaryKeyword = card.keywords[1]?.toLowerCase() || 'growth';
+    const thirdKeyword = card.keywords[2]?.toLowerCase() || 'insight';
     
-    return `Today's combination of ${card.name} and ${hexagram.name} brings ${primaryKeyword} and ${secondaryKeyword} into focus. This powerful pairing invites you to embrace transformation and trust your inner guidance as you navigate your spiritual journey.`;
+    return `Today's combination of ${card.name} and ${hexagram.name} brings ${primaryKeyword}, ${secondaryKeyword}, and ${thirdKeyword} into focus. This powerful pairing invites you to embrace transformation and trust your inner guidance as you navigate your spiritual journey with clarity and purpose.`;
   };
 
   if (loading) {

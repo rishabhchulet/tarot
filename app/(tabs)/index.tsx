@@ -100,7 +100,9 @@ export default function TodayScreen() {
     
     // Update time every minute to ensure accurate icon display
     const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
+      const newTime = new Date();
+      console.log('⏰ Time updated:', newTime.toLocaleTimeString(), 'Hour:', newTime.getHours());
+      setCurrentTime(newTime);
     }, 60000);
 
     return () => clearInterval(timeInterval);
@@ -172,6 +174,39 @@ export default function TodayScreen() {
     setHasDrawnToday(true);
   };
 
+  // FIXED: Unified time-based logic using the same currentTime state
+  const getTimeBasedData = () => {
+    const hour = currentTime.getHours();
+    console.log('🕐 Getting time-based data for hour:', hour, 'Full time:', currentTime.toLocaleTimeString());
+    
+    // Determine if it's daytime (6 AM to 8 PM = Sun, otherwise Moon)
+    const isDaytime = hour >= 6 && hour < 20;
+    
+    // Get greeting based on time
+    let greeting;
+    if (hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour < 17) {
+      greeting = 'Good afternoon';
+    } else {
+      greeting = 'Good evening';
+    }
+    
+    // Get icon and color
+    const Icon = isDaytime ? Sun : Moon;
+    const iconColor = isDaytime ? '#F59E0B' : '#E5E7EB';
+    
+    console.log('🎨 Time-based data:', { 
+      hour, 
+      isDaytime, 
+      greeting, 
+      iconType: isDaytime ? 'Sun' : 'Moon',
+      iconColor 
+    });
+    
+    return { greeting, Icon, iconColor, isDaytime };
+  };
+
   // Animated styles
   const intentionBoxStyle = useAnimatedStyle(() => ({
     transform: [{ scale: intentionBoxScale.value }],
@@ -195,32 +230,6 @@ export default function TodayScreen() {
   const timeIconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: timeIconPulse.value }],
   }));
-
-  const getTimeBasedGreeting = () => {
-    const hour = currentTime.getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
-  };
-
-  const getTimeBasedIcon = () => {
-    const hour = currentTime.getHours();
-    console.log('🕐 Current hour:', hour, 'Current time:', currentTime.toLocaleTimeString());
-    
-    // Show Sun during day (6 AM to 8 PM), Moon during night
-    const isDaytime = hour >= 6 && hour < 20;
-    console.log('☀️ Is daytime?', isDaytime, '- Should show:', isDaytime ? 'Sun' : 'Moon');
-    
-    return isDaytime ? Sun : Moon;
-  };
-
-  const getTimeBasedIconColor = () => {
-    const hour = currentTime.getHours();
-    const isDaytime = hour >= 6 && hour < 20;
-    
-    // Use golden color for sun, silver for moon
-    return isDaytime ? '#F59E0B' : '#E5E7EB';
-  };
 
   // Show different layouts based on state
   if (isDrawing) {
@@ -249,17 +258,8 @@ export default function TodayScreen() {
     );
   }
 
-  // Get the correct icon and color based on current time
-  const TimeIcon = getTimeBasedIcon();
-  const iconColor = getTimeBasedIconColor();
-  const greeting = getTimeBasedGreeting();
-
-  console.log('🎨 Rendering with:', { 
-    greeting, 
-    iconColor, 
-    hour: currentTime.getHours(),
-    iconType: TimeIcon === Sun ? 'Sun' : 'Moon'
-  });
+  // FIXED: Get unified time-based data
+  const { greeting, Icon: TimeIcon, iconColor, isDaytime } = getTimeBasedData();
 
   // Default state - enhanced with magical animations and correct time-based icon
   return (
@@ -306,13 +306,14 @@ export default function TodayScreen() {
         <TrialBanner subscriptionStatus={subscriptionStatus} />
         
         <View style={styles.header}>
-          {/* Time-based icon with enhanced styling and proper color */}
+          {/* FIXED: Time-based icon with proper synchronization */}
           <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
             <View style={[styles.iconGlow, { shadowColor: iconColor }]}>
               <TimeIcon size={36} color={iconColor} strokeWidth={1.5} />
             </View>
           </Animated.View>
 
+          {/* FIXED: Greeting text using the same time calculation */}
           <Text style={styles.greeting}>
             {greeting}, {user?.name || 'friend'}
           </Text>

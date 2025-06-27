@@ -63,33 +63,71 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🚀 AuthContext initializing...');
     
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('📱 Initial session check:', { hasSession: !!session });
-      setSession(session);
-      if (session) {
-        refreshUser();
-      }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔔 Auth state changed:', { event, hasSession: !!session });
-        setSession(session);
+    let mounted = true;
+    
+    // Get initial session with error handling
+    const initializeAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session) {
-          await refreshUser();
-        } else {
-          setUser(null);
+        if (error) {
+          console.error('❌ Error getting initial session:', error);
+          if (mounted) {
+            setSession(null);
+            setLoading(false);
+          }
+          return;
         }
         
-        setLoading(false);
+        console.log('📱 Initial session check:', { hasSession: !!session });
+        
+        if (mounted) {
+          setSession(session);
+          if (session) {
+            await refreshUser();
+          }
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('❌ Error initializing auth:', error);
+        if (mounted) {
+          setSession(null);
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for auth changes with error handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        
+        try {
+          console.log('🔔 Auth state changed:', { event, hasSession: !!session });
+          setSession(session);
+          
+          if (session) {
+            await refreshUser();
+          } else {
+            setUser(null);
+          }
+          
+          setLoading(false);
+        } catch (error) {
+          console.error('❌ Error handling auth state change:', error);
+          if (mounted) {
+            setLoading(false);
+          }
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return (

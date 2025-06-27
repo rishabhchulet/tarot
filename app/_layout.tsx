@@ -16,6 +16,7 @@ import {
   Inter_600SemiBold
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
+import { Platform } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,7 +35,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
-      registerForPushNotificationsAsync();
+      
+      // Only register for push notifications on native platforms
+      if (Platform.OS !== 'web') {
+        registerForPushNotificationsAsync();
+      }
     }
   }, [fontsLoaded]);
 
@@ -48,6 +53,7 @@ export default function RootLayout() {
         <Stack.Screen name="auth" />
         <Stack.Screen name="onboarding" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="profile" />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="light" backgroundColor="#1F2937" />

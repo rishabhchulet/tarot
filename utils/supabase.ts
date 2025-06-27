@@ -17,39 +17,52 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
 }
 
-// Custom storage adapter for Expo SecureStore
+// Custom storage adapter for Expo SecureStore with better error handling
 const ExpoSecureStoreAdapter = {
   getItem: (key: string) => {
-    if (Platform.OS === 'web') {
-      // Check if we're in a browser environment
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return localStorage.getItem(key);
+    try {
+      if (Platform.OS === 'web') {
+        // Check if we're in a browser environment
+        if (typeof window !== 'undefined' && window.localStorage) {
+          return localStorage.getItem(key);
+        }
+        // Return null if localStorage is not available (e.g., server-side rendering)
+        return null;
       }
-      // Return null if localStorage is not available (e.g., server-side rendering)
+      return SecureStore.getItemAsync(key);
+    } catch (error) {
+      console.warn('Storage getItem error:', error);
       return null;
     }
-    return SecureStore.getItemAsync(key);
   },
   setItem: (key: string, value: string) => {
-    if (Platform.OS === 'web') {
-      // Check if we're in a browser environment
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem(key, value);
+    try {
+      if (Platform.OS === 'web') {
+        // Check if we're in a browser environment
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.setItem(key, value);
+        }
+        // Do nothing if localStorage is not available
+      } else {
+        SecureStore.setItemAsync(key, value);
       }
-      // Do nothing if localStorage is not available
-    } else {
-      SecureStore.setItemAsync(key, value);
+    } catch (error) {
+      console.warn('Storage setItem error:', error);
     }
   },
   removeItem: (key: string) => {
-    if (Platform.OS === 'web') {
-      // Check if we're in a browser environment
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem(key);
+    try {
+      if (Platform.OS === 'web') {
+        // Check if we're in a browser environment
+        if (typeof window !== 'undefined' && window.localStorage) {
+          localStorage.removeItem(key);
+        }
+        // Do nothing if localStorage is not available
+      } else {
+        SecureStore.deleteItemAsync(key);
       }
-      // Do nothing if localStorage is not available
-    } else {
-      SecureStore.deleteItemAsync(key);
+    } catch (error) {
+      console.warn('Storage removeItem error:', error);
     }
   },
 };

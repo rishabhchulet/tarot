@@ -25,50 +25,55 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      console.log('🔍 Routing check:', { 
-        hasSession: !!session, 
-        hasUser: !!user, 
-        userFocusArea: user?.focusArea,
-        userName: user?.name,
-        loading 
-      });
-
-      if (session && user) {
-        // Check if user has completed onboarding
-        // A user has completed onboarding if they have a focus area set and it's not empty
-        const focusArea = user.focusArea;
-        const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
-        
-        console.log('🎯 Onboarding check details:', { 
-          focusArea: focusArea,
-          focusAreaType: typeof focusArea,
-          focusAreaLength: focusArea ? focusArea.length : 0,
-          hasCompletedOnboarding: hasCompletedOnboarding
+    // Add a small delay to ensure auth state is properly loaded
+    const navigationTimeout = setTimeout(() => {
+      if (!loading) {
+        console.log('🔍 Routing check:', { 
+          hasSession: !!session, 
+          hasUser: !!user, 
+          userFocusArea: user?.focusArea,
+          userName: user?.name,
+          loading 
         });
-        
-        if (!hasCompletedOnboarding) {
-          console.log('📚 User needs onboarding - redirecting to quiz...');
-          // Use replace to prevent going back to this screen
-          router.replace('/onboarding/quiz');
-          return;
-        } else {
-          console.log('✅ User has completed onboarding - going to main app...');
-          router.replace('/(tabs)');
-          return;
+
+        try {
+          if (session && user) {
+            // Check if user has completed onboarding
+            const focusArea = user.focusArea;
+            const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
+            
+            console.log('🎯 Onboarding check details:', { 
+              focusArea: focusArea,
+              focusAreaType: typeof focusArea,
+              focusAreaLength: focusArea ? focusArea.length : 0,
+              hasCompletedOnboarding: hasCompletedOnboarding
+            });
+            
+            if (!hasCompletedOnboarding) {
+              console.log('📚 User needs onboarding - redirecting to quiz...');
+              router.replace('/onboarding/quiz');
+            } else {
+              console.log('✅ User has completed onboarding - going to main app...');
+              router.replace('/(tabs)');
+            }
+          } else if (session && !user) {
+            console.log('⚠️ Session exists but no user data - waiting for user refresh...');
+            // Don't navigate yet, wait for user data to load
+          } else {
+            console.log('🔐 No session - redirecting to auth...');
+            router.replace('/auth');
+          }
+        } catch (error) {
+          console.error('❌ Navigation error:', error);
+          // Fallback to auth screen on any navigation error
+          router.replace('/auth');
         }
-      } else if (session && !user) {
-        console.log('⚠️ Session exists but no user data - waiting for user refresh...');
-        // Don't navigate yet, wait for user data to load
-        return;
       } else {
-        console.log('🔐 No session - redirecting to auth...');
-        router.replace('/auth');
-        return;
+        console.log('⏳ Still loading auth state...');
       }
-    } else {
-      console.log('⏳ Still loading auth state...');
-    }
+    }, 100); // Small delay to ensure proper state loading
+
+    return () => clearTimeout(navigationTimeout);
   }, [loading, session, user]);
 
   const animatedSparkleStyle = useAnimatedStyle(() => {

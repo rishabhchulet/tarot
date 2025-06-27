@@ -166,14 +166,8 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.screenContainer}>
-      {/* Full Screen Background - Fixed to cover everything */}
-      <LinearGradient
-        colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullBackground}
-      />
-      
-      {/* Magical Background Effects */}
+    <View style={styles.fullScreenContainer}>
+      {/* Background Effects */}
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect3, glowAnimatedStyle]} />
@@ -181,8 +175,8 @@ export function TarotCardFlow() {
       {/* Animated Border Ring */}
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
-      {/* Card Container - Perfectly Centered and Larger */}
-      <View style={styles.centerContainer}>
+      {/* Card Container - Perfectly Centered */}
+      <View style={styles.cardCenterContainer}>
         <Pressable style={styles.cardTouchArea} onPress={handleRevealCard}>
           <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
             {/* Mystical Border */}
@@ -215,13 +209,8 @@ export function TarotCardFlow() {
   );
 
   const renderCardAndIching = () => (
-    <View style={styles.screenContainer}>
-      <LinearGradient
-        colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullBackground}
-      />
-      
-      <View style={styles.centerContainer}>
+    <View style={styles.fullScreenContainer}>
+      <View style={styles.cardCenterContainer}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
@@ -275,12 +264,7 @@ export function TarotCardFlow() {
   );
 
   const renderKeywordsOnly = () => (
-    <View style={styles.screenContainer}>
-      <LinearGradient
-        colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullBackground}
-      />
-      
+    <View style={styles.fullScreenContainer}>
       <View style={styles.keywordsMainContainer}>
         <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
         <Text style={styles.keywordsSubtitle}>
@@ -336,11 +320,7 @@ export function TarotCardFlow() {
   );
 
   const renderReflectionQuestions = () => (
-    <View style={styles.screenContainer}>
-      <LinearGradient
-        colors={['#000000', '#111827', '#1F2937']}
-        style={styles.fullBackground}
-      />
+    <View style={styles.fullScreenContainer}>
       <ReflectionPrompt
         card={selectedCard}
         hexagram={selectedHexagram}
@@ -364,31 +344,17 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // Main screen container that takes full viewport
-  screenContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  // CRITICAL: Full screen container that properly fills the entire viewport
+  fullScreenContainer: {
+    flex: 1,
     width: '100%',
     height: '100%',
+    backgroundColor: '#000000',
+    position: 'relative',
   },
   
-  // Full background that covers the entire screen without gaps
-  fullBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 0,
-  },
-  
-  // Perfect centering container
-  centerContainer: {
+  // Perfect centering container for the card
+  cardCenterContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -405,82 +371,82 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Main card container - Much larger and properly centered
+  // Main card container - Larger and properly sized
   cardContainer: {
-    width: Math.min(screenWidth * 0.9, 400), // Larger width, max 400px
-    height: Math.min(screenHeight * 0.75, 600), // Larger height, max 600px
+    width: Math.min(screenWidth * 0.85, 350), // 85% of screen width, max 350px
+    height: Math.min(screenHeight * 0.65, 550), // 65% of screen height, max 550px
     borderRadius: 24,
     backfaceVisibility: 'hidden',
   },
   
-  // Glow effects positioned absolutely
+  // Glow effects positioned absolutely within the full container
   glowEffect1: {
     position: 'absolute',
-    width: 400,
-    height: 400,
-    borderRadius: 200,
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    top: '15%',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    top: '10%',
     left: '5%',
     zIndex: 1,
   },
   glowEffect2: {
     position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    bottom: '20%',
-    right: '10%',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(139, 92, 246, 0.08)',
+    bottom: '15%',
+    right: '8%',
     zIndex: 1,
   },
   glowEffect3: {
     position: 'absolute',
-    width: 250,
-    height: 250,
-    borderRadius: 125,
-    backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    top: '55%',
-    left: '15%',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(59, 130, 246, 0.06)',
+    top: '60%',
+    left: '10%',
     zIndex: 1,
   },
   
-  // Border ring effect - Adjusted for larger card
+  // Border ring effect - Properly centered around the card
   borderRing: {
     position: 'absolute',
-    width: Math.min(screenWidth * 1.1, 500),
-    height: Math.min(screenWidth * 1.1, 500),
-    borderRadius: Math.min(screenWidth * 0.55, 250),
+    width: Math.min(screenWidth * 0.95, 400),
+    height: Math.min(screenWidth * 0.95, 400),
+    borderRadius: Math.min(screenWidth * 0.475, 200),
     borderWidth: 2,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(245, 158, 11, 0.25)',
     borderStyle: 'dashed',
     top: '50%',
     left: '50%',
-    marginTop: -Math.min(screenWidth * 0.55, 250),
-    marginLeft: -Math.min(screenWidth * 0.55, 250),
+    marginTop: -Math.min(screenWidth * 0.475, 200),
+    marginLeft: -Math.min(screenWidth * 0.475, 200),
     zIndex: 2,
   },
   
   // Mystical border with enhanced glow
   mysticalBorder: {
     flex: 1,
-    padding: 6,
+    padding: 4,
     borderRadius: 24,
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 30,
-    elevation: 30,
+    shadowOpacity: 0.7,
+    shadowRadius: 25,
+    elevation: 25,
   },
   
   // Inner border
   innerBorder: {
     flex: 1,
-    borderRadius: 18,
+    borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: '#000',
-    borderWidth: 2,
-    borderColor: 'rgba(245, 158, 11, 0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.4)',
   },
   
   // Card images
@@ -496,73 +462,73 @@ const styles = StyleSheet.create({
   // Light effects
   lightEffect1: {
     position: 'absolute',
-    top: 20,
-    left: 20,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-  },
-  lightEffect2: {
-    position: 'absolute',
-    top: 40,
-    right: 30,
+    top: 15,
+    left: 15,
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#8B5CF6',
-    shadowColor: '#8B5CF6',
+    backgroundColor: '#F59E0B',
+    shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
   },
+  lightEffect2: {
+    position: 'absolute',
+    top: 35,
+    right: 25,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#8B5CF6',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 6,
+  },
   lightEffect3: {
     position: 'absolute',
-    bottom: 60,
-    left: 40,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    bottom: 50,
+    left: 30,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#3B82F6',
     shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
-    shadowRadius: 12,
+    shadowRadius: 10,
   },
   lightEffect4: {
     position: 'absolute',
-    bottom: 30,
-    right: 20,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    bottom: 25,
+    right: 15,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
     backgroundColor: '#F59E0B',
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
-    shadowRadius: 9,
+    shadowRadius: 7,
   },
   
   // Tap hint overlay
   tapHintOverlay: {
     position: 'absolute',
-    bottom: 30,
-    left: 20,
-    right: 20,
+    bottom: 25,
+    left: 15,
+    right: 15,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.5)',
+    borderColor: 'rgba(245, 158, 11, 0.4)',
   },
   tapHint: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
@@ -573,71 +539,71 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 25,
-    elevation: 25,
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 20,
   },
   
   // Card info
   cardInfo: {
-    padding: 20,
+    padding: 16,
     flex: 1,
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
   cardName: {
-    fontSize: 28,
+    fontSize: 24,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F59E0B',
     textAlign: 'center',
-    textShadowColor: 'rgba(245, 158, 11, 0.5)',
+    textShadowColor: 'rgba(245, 158, 11, 0.4)',
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 10,
+    textShadowRadius: 8,
   },
   
-  // I Ching container
+  // I Ching container - Positioned at bottom
   ichingContainer: {
     position: 'absolute',
-    bottom: 120,
-    left: 24,
-    right: 24,
+    bottom: 100,
+    left: 20,
+    right: 20,
     zIndex: 20,
   },
   ichingTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   ichingCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 14,
+    padding: 20,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   ichingNumber: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   ichingName: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   hexagramSymbol: {
-    marginBottom: 20,
-    gap: 4,
+    marginBottom: 16,
+    gap: 3,
   },
   line: {
-    height: 4,
-    width: 80,
+    height: 3,
+    width: 70,
     backgroundColor: '#F59E0B',
   },
   solidLine: {
@@ -645,13 +611,13 @@ const styles = StyleSheet.create({
   },
   brokenLine: {
     // Broken line - create gap in middle
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#F59E0B',
     backgroundColor: 'transparent',
     borderStyle: 'dashed',
   },
   ichingEssence: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
@@ -661,34 +627,34 @@ const styles = StyleSheet.create({
   // Keywords screen
   keywordsMainContainer: {
     position: 'absolute',
-    top: 60,
-    left: 24,
-    right: 24,
-    bottom: 120,
+    top: 50,
+    left: 20,
+    right: 20,
+    bottom: 100,
     zIndex: 10,
   },
   keywordsTitle: {
-    fontSize: 28,
+    fontSize: 26,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   keywordsSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 28,
   },
   keywordSection: {
-    marginBottom: 32,
+    marginBottom: 28,
   },
   keywordSectionHeader: {
-    marginBottom: 16,
+    marginBottom: 14,
   },
   keywordSectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
@@ -697,74 +663,74 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
   },
   tarotKeyword: {
     backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.4)',
   },
   tarotKeywordText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
   },
   ichingKeyword: {
     backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   ichingKeywordText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#3B82F6',
   },
   essenceContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 14,
+    padding: 20,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   essenceTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#D1D5DB',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   essenceText: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     fontStyle: 'italic',
   },
   
-  // Continue button
+  // Continue button - Fixed at bottom
   continueButton: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 30,
     left: '50%',
-    marginLeft: -100,
-    borderRadius: 25,
+    marginLeft: -90,
+    borderRadius: 22,
     overflow: 'hidden',
-    minWidth: 200,
+    minWidth: 180,
     zIndex: 30,
   },
   continueButtonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
     alignItems: 'center',
   },
   continueButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },

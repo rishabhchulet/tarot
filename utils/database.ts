@@ -104,17 +104,14 @@ export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
       .select('*')
       .eq('user_id', user.id)
       .eq('date', today)
-      .single();
+      .limit(1);
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        // No entry found for today
-        return null;
-      }
       throw error;
     }
 
-    return data;
+    // Return the first entry if found, otherwise null
+    return data && data.length > 0 ? data[0] : null;
   } catch (error) {
     console.error('Error getting today\'s entry:', error);
     return null;

@@ -166,11 +166,11 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.fullScreenContainer}>
-      {/* Full Background Gradient */}
+    <View style={styles.absoluteContainer}>
+      {/* Full Background Gradient - Covers entire screen */}
       <LinearGradient
-        colors={['#000000', '#1F2937', '#374151']}
-        style={styles.backgroundGradient}
+        colors={['#000000', '#111827', '#1F2937']}
+        style={styles.fullScreenBackground}
       />
       
       {/* Magical Background Effects */}
@@ -181,9 +181,10 @@ export function TarotCardFlow() {
       {/* Animated Border Ring */}
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
-      <View style={styles.cardCenterContainer}>
-        <Pressable style={styles.fullScreenCardContainer} onPress={handleRevealCard}>
-          <Animated.View style={[styles.fullScreenCard, frontAnimatedStyle]}>
+      {/* Card Container - Perfectly Centered */}
+      <View style={styles.perfectCenterContainer}>
+        <Pressable style={styles.cardTouchArea} onPress={handleRevealCard}>
+          <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
             {/* Mystical Border */}
             <LinearGradient
               colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
@@ -194,7 +195,7 @@ export function TarotCardFlow() {
               <View style={styles.innerBorder}>
                 <Image
                   source={require('@/assets/images/back of the deck.jpeg')}
-                  style={styles.fullScreenCardBackImage}
+                  style={styles.cardBackImage}
                   resizeMode="cover"
                 />
                 {/* Floating Light Effects */}
@@ -214,14 +215,14 @@ export function TarotCardFlow() {
   );
 
   const renderCardAndIching = () => (
-    <View style={styles.fullContainer}>
+    <View style={styles.absoluteContainer}>
       <LinearGradient
-        colors={['#000000', '#1F2937', '#374151']}
-        style={styles.backgroundGradient}
+        colors={['#000000', '#111827', '#1F2937']}
+        style={styles.fullScreenBackground}
       />
       
-      <View style={styles.fullScreenCardContainer}>
-        <Animated.View style={[styles.fullScreenCard, styles.cardFront, backAnimatedStyle]}>
+      <View style={styles.perfectCenterContainer}>
+        <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
             start={{ x: 0, y: 0 }}
@@ -231,7 +232,7 @@ export function TarotCardFlow() {
             <View style={styles.innerBorder}>
               <Image
                 source={{ uri: selectedCard.imageUrl }}
-                style={styles.fullScreenCardImage}
+                style={styles.cardFrontImage}
                 resizeMode="cover"
               />
               <View style={styles.cardInfo}>
@@ -274,10 +275,10 @@ export function TarotCardFlow() {
   );
 
   const renderKeywordsOnly = () => (
-    <View style={styles.fullContainer}>
+    <View style={styles.absoluteContainer}>
       <LinearGradient
-        colors={['#000000', '#1F2937', '#374151']}
-        style={styles.backgroundGradient}
+        colors={['#000000', '#111827', '#1F2937']}
+        style={styles.fullScreenBackground}
       />
       
       <View style={styles.keywordsMainContainer}>
@@ -335,10 +336,10 @@ export function TarotCardFlow() {
   );
 
   const renderReflectionQuestions = () => (
-    <View style={styles.fullContainer}>
+    <View style={styles.absoluteContainer}>
       <LinearGradient
-        colors={['#000000', '#1F2937', '#374151']}
-        style={styles.backgroundGradient}
+        colors={['#000000', '#111827', '#1F2937']}
+        style={styles.fullScreenBackground}
       />
       <ReflectionPrompt
         card={selectedCard}
@@ -363,7 +364,8 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  fullScreenContainer: {
+  // Absolute container that covers the entire screen
+  absoluteContainer: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -371,26 +373,56 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: screenWidth,
     height: screenHeight,
+  },
+  
+  // Full screen background that covers everything
+  fullScreenBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
+    zIndex: 0,
+  },
+  
+  // Perfect centering container
+  perfectCenterContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  
+  // Card touch area for better interaction
+  cardTouchArea: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backgroundGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
+  
+  // Main card container
+  cardContainer: {
+    width: screenWidth * 0.85,
+    height: screenHeight * 0.7,
+    borderRadius: 24,
+    backfaceVisibility: 'hidden',
   },
+  
+  // Glow effects positioned absolutely
   glowEffect1: {
     position: 'absolute',
     width: 400,
     height: 400,
     borderRadius: 200,
     backgroundColor: 'rgba(245, 158, 11, 0.15)',
-    top: '20%',
-    left: '10%',
+    top: '15%',
+    left: '5%',
+    zIndex: 1,
   },
   glowEffect2: {
     position: 'absolute',
@@ -398,8 +430,9 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 150,
     backgroundColor: 'rgba(139, 92, 246, 0.1)',
-    bottom: '25%',
-    right: '15%',
+    bottom: '20%',
+    right: '10%',
+    zIndex: 1,
   },
   glowEffect3: {
     position: 'absolute',
@@ -407,47 +440,28 @@ const styles = StyleSheet.create({
     height: 250,
     borderRadius: 125,
     backgroundColor: 'rgba(59, 130, 246, 0.08)',
-    top: '60%',
-    left: '20%',
+    top: '55%',
+    left: '15%',
+    zIndex: 1,
   },
+  
+  // Border ring effect
   borderRing: {
     position: 'absolute',
-    width: screenWidth * 0.9,
-    height: screenWidth * 0.9,
-    borderRadius: screenWidth * 0.45,
+    width: screenWidth * 0.95,
+    height: screenWidth * 0.95,
+    borderRadius: screenWidth * 0.475,
     borderWidth: 2,
     borderColor: 'rgba(245, 158, 11, 0.3)',
     borderStyle: 'dashed',
+    top: '50%',
+    left: '50%',
+    marginTop: -(screenWidth * 0.475),
+    marginLeft: -(screenWidth * 0.475),
+    zIndex: 2,
   },
-  cardCenterContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  fullContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: screenWidth,
-    height: screenHeight,
-    alignItems: 'center',
-    paddingVertical: 20,
-  },
-  fullScreenCardContainer: {
-    width: screenWidth * 0.85,
-    height: screenHeight * 0.75,
-    position: 'relative',
-    marginBottom: 24,
-  },
-  fullScreenCard: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    borderRadius: 24,
-    backfaceVisibility: 'hidden',
-  },
+  
+  // Mystical border with enhanced glow
   mysticalBorder: {
     flex: 1,
     padding: 6,
@@ -455,9 +469,11 @@ const styles = StyleSheet.create({
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
-    shadowRadius: 25,
-    elevation: 25,
+    shadowRadius: 30,
+    elevation: 30,
   },
+  
+  // Inner border
   innerBorder: {
     flex: 1,
     borderRadius: 18,
@@ -466,14 +482,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(245, 158, 11, 0.5)',
   },
-  fullScreenCardBackImage: {
+  
+  // Card images
+  cardBackImage: {
     width: '100%',
     height: '100%',
   },
-  fullScreenCardImage: {
+  cardFrontImage: {
     width: '100%',
     height: '75%',
   },
+  
+  // Light effects
   lightEffect1: {
     position: 'absolute',
     top: 20,
@@ -526,17 +546,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 9,
   },
+  
+  // Tap hint overlay
   tapHintOverlay: {
     position: 'absolute',
     bottom: 30,
-    left: 0,
-    right: 0,
+    left: 20,
+    right: 20,
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 25,
-    marginHorizontal: 20,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.5)',
   },
@@ -546,6 +567,8 @@ const styles = StyleSheet.create({
     color: '#F59E0B',
     textAlign: 'center',
   },
+  
+  // Card front styling
   cardFront: {
     backgroundColor: '#FFFFFF',
     shadowColor: '#F59E0B',
@@ -554,6 +577,8 @@ const styles = StyleSheet.create({
     shadowRadius: 25,
     elevation: 25,
   },
+  
+  // Card info
   cardInfo: {
     padding: 20,
     flex: 1,
@@ -569,12 +594,14 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
   },
+  
+  // I Ching container
   ichingContainer: {
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 24,
     position: 'absolute',
     bottom: 120,
+    left: 24,
+    right: 24,
+    zIndex: 20,
   },
   ichingTitle: {
     fontSize: 20,
@@ -630,12 +657,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
+  
+  // Keywords screen
   keywordsMainContainer: {
-    width: '100%',
-    paddingHorizontal: 24,
-    marginBottom: 32,
-    paddingTop: 60,
-    flex: 1,
+    position: 'absolute',
+    top: 60,
+    left: 24,
+    right: 24,
+    bottom: 120,
+    zIndex: 10,
   },
   keywordsTitle: {
     fontSize: 28,
@@ -716,12 +746,17 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
+  
+  // Continue button
   continueButton: {
+    position: 'absolute',
+    bottom: 40,
+    left: '50%',
+    marginLeft: -100,
     borderRadius: 25,
     overflow: 'hidden',
     minWidth: 200,
-    position: 'absolute',
-    bottom: 40,
+    zIndex: 30,
   },
   continueButtonGradient: {
     paddingVertical: 16,

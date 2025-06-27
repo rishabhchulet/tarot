@@ -240,23 +240,29 @@ export function TarotCardFlow() {
         </Animated.View>
       </View>
 
+      {/* COMPACT: Smaller I Ching container */}
       <View style={styles.ichingContainer}>
         <Text style={styles.ichingTitle}>Your I Ching Guidance</Text>
         <View style={styles.ichingCard}>
-          <Text style={styles.ichingNumber}>#{selectedHexagram.number}</Text>
-          <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
-          <View style={styles.hexagramSymbol}>
-            {selectedHexagram.lines.map((line: boolean, index: number) => (
-              <View
-                key={index}
-                style={[
-                  styles.line,
-                  line ? styles.solidLine : styles.brokenLine
-                ]}
-              />
-            ))}
+          <View style={styles.ichingHeader}>
+            <Text style={styles.ichingNumber}>#{selectedHexagram.number}</Text>
+            <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
           </View>
-          <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+          
+          <View style={styles.ichingContent}>
+            <View style={styles.hexagramSymbol}>
+              {selectedHexagram.lines.map((line: boolean, index: number) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.line,
+                    line ? styles.solidLine : styles.brokenLine
+                  ]}
+                />
+              ))}
+            </View>
+            <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+          </View>
         </View>
       </View>
 
@@ -367,7 +373,7 @@ const styles = StyleSheet.create({
   cardCenterContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 30,
+    marginBottom: 20, // REDUCED: Less margin (was 30)
   },
   
   // FIXED: Touch area that covers the entire card and is properly positioned
@@ -575,46 +581,57 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   
-  // I Ching container
+  // COMPACT: Smaller I Ching container
   ichingContainer: {
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 16, // REDUCED: Less margin (was 20)
   },
   ichingTitle: {
-    fontSize: 18,
+    fontSize: 16, // REDUCED: Smaller font (was 18)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 12, // REDUCED: Less margin (was 16)
   },
   ichingCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
-    padding: 20,
+    borderRadius: 12, // REDUCED: Smaller radius (was 14)
+    padding: 16, // REDUCED: Less padding (was 20)
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
+  
+  // COMPACT: Reorganized I Ching header and content
+  ichingHeader: {
+    alignItems: 'center',
+    marginBottom: 12, // REDUCED: Less margin (was 16)
+  },
   ichingNumber: {
-    fontSize: 14,
+    fontSize: 12, // REDUCED: Smaller font (was 14)
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
-    marginBottom: 6,
+    marginBottom: 4, // REDUCED: Less margin (was 6)
   },
   ichingName: {
-    fontSize: 20,
+    fontSize: 18, // REDUCED: Smaller font (was 20)
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 16,
+  },
+  
+  // COMPACT: Horizontal layout for hexagram and essence
+  ichingContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
   hexagramSymbol: {
-    marginBottom: 16,
-    gap: 3,
+    gap: 2, // REDUCED: Less gap (was 3)
   },
   line: {
-    height: 3,
-    width: 70,
+    height: 2, // REDUCED: Thinner lines (was 3)
+    width: 50, // REDUCED: Shorter lines (was 70)
     backgroundColor: '#F59E0B',
   },
   solidLine: {
@@ -622,13 +639,13 @@ const styles = StyleSheet.create({
   },
   brokenLine: {
     // Broken line - create gap in middle
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: '#F59E0B',
     backgroundColor: 'transparent',
     borderStyle: 'dashed',
   },
   ichingEssence: {
-    fontSize: 16,
+    fontSize: 14, // REDUCED: Smaller font (was 16)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
@@ -727,7 +744,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minWidth: 180,
     alignSelf: 'center',
-    marginTop: 20,
+    marginTop: 16, // REDUCED: Less margin (was 20)
   },
   continueButtonGradient: {
     paddingVertical: 14,

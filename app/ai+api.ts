@@ -1,27 +1,58 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Lazy initialization of OpenAI client
+let openaiClient: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openaiClient) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    
+    if (!apiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is required but not set');
+    }
+    
+    openaiClient = new OpenAI({
+      apiKey: apiKey,
+    });
+  }
+  
+  return openaiClient;
+}
 
 export async function POST(request: Request) {
   try {
+    // Check if OpenAI API key is available before processing
+    const openai = getOpenAIClient();
+    
     const body = await request.json();
     const { type, data } = body;
 
     switch (type) {
       case 'card-interpretation':
-        return await handleCardInterpretation(data);
+        return await handleCardInterpretation(data, openai);
       case 'reflection-prompts':
-        return await handleReflectionPrompts(data);
+        return await handleReflectionPrompts(data, openai);
       case 'personalized-guidance':
-        return await handlePersonalizedGuidance(data);
+        return await handlePersonalizedGuidance(data, openai);
       default:
         return new Response('Invalid request type', { status: 400 });
     }
   } catch (error: any) {
     console.error('AI API Error:', error);
+    
+    // Handle missing API key specifically
+    if (error.message?.includes('OPENAI_API_KEY')) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.' 
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     return new Response(
       JSON.stringify({ error: 'Failed to process AI request' }),
       { 
@@ -39,7 +70,7 @@ async function handleCardInterpretation(data: {
   hexagramNumber: number;
   focusArea?: string;
   userContext?: string;
-}) {
+}, openai: OpenAI) {
   const { cardName, cardKeywords, hexagramName, hexagramNumber, focusArea, userContext } = data;
 
   const prompt = `You are a wise and compassionate spiritual guide specializing in tarot and I Ching interpretations. 
@@ -95,7 +126,7 @@ async function handleReflectionPrompts(data: {
   hexagramName: string;
   focusArea?: string;
   previousEntries?: string[];
-}) {
+}, openai: OpenAI) {
   const { cardName, cardKeywords, hexagramName, focusArea, previousEntries } = data;
 
   const prompt = `You are a thoughtful spiritual mentor creating personalized reflection questions.
@@ -164,7 +195,7 @@ async function handlePersonalizedGuidance(data: {
   focusArea?: string;
   timeOfDay: 'morning' | 'afternoon' | 'evening';
   mood?: string;
-}) {
+}, openai: OpenAI) {
   const { cardName, hexagramName, focusArea, timeOfDay, mood } = data;
 
   const prompt = `You are a gentle spiritual companion offering personalized daily guidance.

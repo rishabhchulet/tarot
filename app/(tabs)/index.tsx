@@ -197,9 +197,26 @@ export default function TodayScreen() {
 
   const getTimeBasedIcon = () => {
     const hour = new Date().getHours();
+    console.log('Current hour:', hour); // Debug log
+    
     // Show Sun during day (6 AM to 8 PM), Moon during night
-    if (hour >= 6 && hour < 20) return Sun;
-    return Moon;
+    if (hour >= 6 && hour < 20) {
+      console.log('Showing Sun icon'); // Debug log
+      return Sun;
+    } else {
+      console.log('Showing Moon icon'); // Debug log
+      return Moon;
+    }
+  };
+
+  const getTimeBasedIconColor = () => {
+    const hour = new Date().getHours();
+    // Use golden color for sun, silver for moon
+    if (hour >= 6 && hour < 20) {
+      return '#F59E0B'; // Golden for sun
+    } else {
+      return '#E5E7EB'; // Silver for moon
+    }
   };
 
   // Show different layouts based on state
@@ -230,6 +247,7 @@ export default function TodayScreen() {
   }
 
   const TimeIcon = getTimeBasedIcon();
+  const iconColor = getTimeBasedIconColor();
 
   // Default state - enhanced with magical animations
   return (
@@ -276,9 +294,9 @@ export default function TodayScreen() {
         <TrialBanner subscriptionStatus={subscriptionStatus} />
         
         <View style={styles.header}>
-          {/* Time-based icon with gentle pulse animation */}
+          {/* Time-based icon with gentle pulse animation and proper color */}
           <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
-            <TimeIcon size={32} color="#F59E0B" />
+            <TimeIcon size={32} color={iconColor} />
           </Animated.View>
 
           <Text style={styles.greeting}>

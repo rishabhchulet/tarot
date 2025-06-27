@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Save, Mic, Square, Play, Pause } from 'lucide-react-native';
-import { saveJournalEntry } from '@/utils/database';
+import { saveJournalEntry, saveDailyQuestion } from '@/utils/database';
 import { saveAudioToDocuments, AudioRecording, startRecording, stopRecording, playAudio } from '@/utils/audio';
 import { AIInterpretation } from './AIInterpretation';
 import { DynamicReflectionQuestions } from '@/components/DynamicReflectionQuestions';
@@ -24,6 +24,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [dailyQuestion, setDailyQuestion] = useState<string>('');
 
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -93,6 +94,12 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
     }
   };
 
+  // NEW: Handle daily question from DynamicReflectionQuestions
+  const handleDailyQuestionReceived = (question: string) => {
+    console.log('📝 Daily question received:', question);
+    setDailyQuestion(question);
+  };
+
   const handleSave = async () => {
     const hasTextInput = reflection1.trim() || reflection2.trim();
     const hasVoiceInput = voiceRecording !== null;
@@ -118,16 +125,36 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         voice_memo_path: voiceRecording?.uri || null,
       };
 
+      console.log('💾 Saving journal entry...');
       const { error } = await saveJournalEntry(entry);
       
       if (error) {
         console.error('Error saving journal entry:', error);
         Alert.alert('Error', 'Failed to save your reflection. Please try again.');
-      } else {
-        console.log('Journal entry saved successfully');
-        // Navigate back to today screen
-        router.replace('/(tabs)');
+        return;
       }
+
+      // NEW: Save the daily question if we have one
+      if (dailyQuestion) {
+        console.log('💾 Saving daily question...');
+        await saveDailyQuestion(dailyQuestion);
+      }
+
+      console.log('✅ Journal entry saved successfully');
+      
+      // Show success message and navigate back to today screen
+      Alert.alert(
+        'Reflection Saved!',
+        'Your daily reflection has been saved. You can access your daily question anytime.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/(tabs)');
+            }
+          }
+        ]
+      );
     } catch (error) {
       console.error('Unexpected error saving journal entry:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
@@ -157,17 +184,12 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         </View>
       </View>
 
-      {/* Compact Spiritual Insight */}
-      <AIInterpretation
-        card={card}
-        hexagram={hexagram}
-      />
-
       {/* Enhanced Dynamic Questions - No scrolling needed */}
       <DynamicReflectionQuestions
         card={card}
         hexagram={hexagram}
         onQuestionSelect={handleQuestionSelect}
+        onDailyQuestionReceived={handleDailyQuestionReceived}
         reflection1={reflection1}
         setReflection1={setReflection1}
         reflection2={reflection2}

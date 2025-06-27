@@ -58,6 +58,100 @@ export const getJournalEntries = async (): Promise<JournalEntry[]> => {
   }
 };
 
+// NEW: Check if user has drawn a card today
+export const hasDrawnCardToday = async (): Promise<boolean> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return false;
+    }
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .limit(1);
+
+    if (error) {
+      console.error('Error checking today\'s card:', error);
+      return false;
+    }
+
+    return (data && data.length > 0);
+  } catch (error) {
+    console.error('Error checking today\'s card:', error);
+    return false;
+  }
+};
+
+// NEW: Get today's journal entry (if exists)
+export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return null;
+    }
+
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('date', today)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No entry found for today
+        return null;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting today\'s entry:', error);
+    return null;
+  }
+};
+
+// NEW: Save today's daily question for later reference
+export const saveDailyQuestion = async (question: string) => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('No authenticated user');
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+
+    // Update today's entry with the daily question
+    const { error } = await supabase
+      .from('journal_entries')
+      .update({
+        daily_question: question,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id)
+      .eq('date', today);
+
+    if (error) {
+      throw error;
+    }
+
+    return { error: null };
+  } catch (error: any) {
+    return { error: error.message };
+  }
+};
+
 export const startFreeTrial = async () => {
   try {
     const { data: { user } } = await supabase.auth.getUser();

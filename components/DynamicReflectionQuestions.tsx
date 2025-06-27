@@ -18,6 +18,7 @@ interface DynamicReflectionQuestionsProps {
   reflection2: string;
   setReflection2: (text: string) => void;
   onQuestionSelect: (question: string, questionIndex: number) => void;
+  onDailyQuestionReceived?: (question: string) => void; // NEW: Callback for daily question
 }
 
 export function DynamicReflectionQuestions({ 
@@ -27,7 +28,8 @@ export function DynamicReflectionQuestions({
   setReflection1,
   reflection2,
   setReflection2,
-  onQuestionSelect 
+  onQuestionSelect,
+  onDailyQuestionReceived
 }: DynamicReflectionQuestionsProps) {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<string[]>([]);
@@ -39,6 +41,14 @@ export function DynamicReflectionQuestions({
     console.log('🎯 DynamicReflectionQuestions mounted, generating questions...');
     generateQuestions();
   }, [card.name, hexagram.name]);
+
+  // NEW: Send daily question to parent when it's set
+  useEffect(() => {
+    if (shadowQuestion && onDailyQuestionReceived) {
+      console.log('📤 Sending daily question to parent:', shadowQuestion);
+      onDailyQuestionReceived(shadowQuestion);
+    }
+  }, [shadowQuestion, onDailyQuestionReceived]);
 
   const createPersonalizedFallbackQuestions = () => {
     const primaryKeyword = card.keywords[0] || 'wisdom';

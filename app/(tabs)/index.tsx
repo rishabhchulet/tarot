@@ -5,9 +5,9 @@ import { router } from 'expo-router';
 import { TarotCardFlow } from '@/components/TarotCardFlow';
 import { TrialBanner } from '@/components/TrialBanner';
 import { MagicalCardDraw } from '@/components/MagicalCardDraw';
-import { Sparkles, Star, Zap, Moon, Sun } from 'lucide-react-native';
+import { Sparkles, Star, Zap, Moon, Sun, BookOpen, Calendar } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import { getSubscriptionStatus } from '@/utils/database';
+import { getSubscriptionStatus, hasDrawnCardToday, getTodaysEntry } from '@/utils/database';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -85,6 +85,8 @@ export default function TodayScreen() {
   const [hasDrawnToday, setHasDrawnToday] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [todaysEntry, setTodaysEntry] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
   // CRITICAL: Single source of truth for time-based data
   const [timeData, setTimeData] = useState(() => {
@@ -133,6 +135,7 @@ export default function TodayScreen() {
   const timeIconPulse = useSharedValue(1);
 
   useEffect(() => {
+    checkTodaysStatus();
     checkSubscription();
     startMagicalAnimations();
     
@@ -178,6 +181,25 @@ export default function TodayScreen() {
 
     return () => clearInterval(timeInterval);
   }, []);
+
+  const checkTodaysStatus = async () => {
+    console.log('🔍 Checking today\'s card status...');
+    setLoading(true);
+    
+    try {
+      const drawnToday = await hasDrawnCardToday();
+      const entry = await getTodaysEntry();
+      
+      console.log('📊 Today\'s status:', { drawnToday, hasEntry: !!entry });
+      
+      setHasDrawnToday(drawnToday);
+      setTodaysEntry(entry);
+    } catch (error) {
+      console.error('❌ Error checking today\'s status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const checkSubscription = async () => {
     const status = await getSubscriptionStatus();
@@ -243,6 +265,18 @@ export default function TodayScreen() {
   const handleDrawComplete = () => {
     setIsDrawing(false);
     setHasDrawnToday(true);
+    // Refresh today's entry
+    checkTodaysStatus();
+  };
+
+  const handleViewTodaysQuestion = () => {
+    console.log('📖 Navigating to today\'s question page...');
+    router.push('/daily-question');
+  };
+
+  const handleViewJournal = () => {
+    console.log('📚 Navigating to journal...');
+    router.push('/(tabs)/journal');
   };
 
   // Animated styles
@@ -270,6 +304,20 @@ export default function TodayScreen() {
   }));
 
   // Show different layouts based on state
+  if (loading) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <View style={styles.loadingContainer}>
+          <Sparkles size={40} color="#F59E0B" />
+          <Text style={styles.loadingText}>Checking your daily practice...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
+
   if (isDrawing) {
     return (
       <LinearGradient
@@ -281,15 +329,68 @@ export default function TodayScreen() {
     );
   }
 
-  if (hasDrawnToday) {
+  if (hasDrawnToday && todaysEntry) {
     return (
       <LinearGradient
         colors={['#1F2937', '#374151', '#6B46C1']}
         style={styles.container}
       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-          <View style={styles.cardFlowContainer}>
-            <TarotCardFlow />
+          <View style={styles.completedHeader}>
+            <Text style={styles.completedTitle}>Today's Practice Complete</Text>
+            <Text style={styles.completedSubtitle}>
+              You've drawn your card for {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+          </View>
+
+          {/* Today's Card Summary */}
+          <View style={styles.cardSummary}>
+            <Text style={styles.cardSummaryTitle}>Your Card Today</Text>
+            <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
+            {todaysEntry.card_keywords && (
+              <View style={styles.keywords}>
+                {todaysEntry.card_keywords.slice(0, 3).map((keyword: string, index: number) => (
+                  <View key={index} style={styles.keyword}>
+                    <Text style={styles.keywordText}>{keyword}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <Pressable style={styles.actionButton} onPress={handleViewTodaysQuestion}>
+              <LinearGradient
+                colors={['#F59E0B', '#D97706']}
+                style={styles.actionButtonGradient}
+              >
+                <BookOpen size={20} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Today's Question</Text>
+              </LinearGradient>
+            </Pressable>
+
+            <Pressable style={styles.actionButton} onPress={handleViewJournal}>
+              <LinearGradient
+                colors={['#3B82F6', '#1D4ED8']}
+                style={styles.actionButtonGradient}
+              >
+                <Calendar size={20} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>View Journal</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+
+          {/* Next Card Info */}
+          <View style={styles.nextCardInfo}>
+            <Text style={styles.nextCardTitle}>Tomorrow's Practice</Text>
+            <Text style={styles.nextCardText}>
+              Return tomorrow for your next daily card and spiritual guidance.
+            </Text>
           </View>
         </ScrollView>
       </LinearGradient>
@@ -415,7 +516,7 @@ export default function TodayScreen() {
                 {/* Button content */}
                 <View style={styles.buttonContent}>
                   <Zap size={20} color="#FFFFFF" />
-                  <Text style={styles.pullButtonText}>Draw Your Card</Text>
+                  <Text style={styles.pullButtonText}>Draw Your Daily Card</Text>
                   <Sparkles size={16} color="#FFFFFF" />
                 </View>
               </LinearGradient>
@@ -424,7 +525,7 @@ export default function TodayScreen() {
 
           {/* Enhanced mystical footer text with better visibility */}
           <Text style={styles.mysticalFooter}>
-            ✨ The universe awaits your question ✨
+            ✨ One card, one day, one sacred moment ✨
           </Text>
         </View>
       </ScrollView>
@@ -440,6 +541,20 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingHorizontal: 24,
+  },
+  
+  // Loading state
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F3F4F6',
+    textAlign: 'center',
   },
   
   // Background effects
@@ -650,12 +765,113 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   
-  // Card flow container
-  cardFlowContainer: {
-    flex: 1,
+  // Completed state styles
+  completedHeader: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    alignItems: 'center',
+  },
+  completedTitle: {
+    fontSize: 28,
+    fontFamily: 'CormorantGaramond-Bold',
+    color: '#10B981',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  completedSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  
+  // Card summary
+  cardSummary: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  cardSummaryTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginBottom: 12,
+  },
+  cardName: {
+    fontSize: 24,
+    fontFamily: 'CormorantGaramond-Bold',
+    color: '#F59E0B',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  keywords: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  keyword: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  keywordText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+  },
+  
+  // Action buttons
+  actionButtons: {
+    gap: 16,
+    marginBottom: 32,
+  },
+  actionButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  actionButtonGradient: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 40,
-    paddingBottom: 100,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  actionButtonText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  
+  // Next card info
+  nextCardInfo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 40,
+  },
+  nextCardTitle: {
+    fontSize: 18,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F3F4F6',
+    marginBottom: 8,
+  },
+  nextCardText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

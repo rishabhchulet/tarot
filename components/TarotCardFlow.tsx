@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withTiming,
-  interpolate 
+  interpolate,
+  withSequence,
+  withDelay,
+  Easing
 } from 'react-native-reanimated';
 import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-only' | 'reflection-questions';
 
@@ -25,12 +30,31 @@ export function TarotCardFlow() {
   });
 
   const flipAnimation = useSharedValue(0);
+  const glowAnimation = useSharedValue(0);
+  const scaleAnimation = useSharedValue(0.8);
+  const borderAnimation = useSharedValue(0);
 
   const handleRevealCard = () => {
-    flipAnimation.value = withTiming(1, { duration: 800 });
+    // Start the magical sequence
+    glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
+    
+    // Scale up slightly before flip
+    scaleAnimation.value = withSequence(
+      withTiming(1.05, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
+    );
+    
+    // Delayed flip animation for more dramatic effect
+    flipAnimation.value = withDelay(1200, withTiming(1, { 
+      duration: 1200, 
+      easing: Easing.inOut(Easing.cubic) 
+    }));
+    
+    // Change step after the full animation sequence
     setTimeout(() => {
       setCurrentStep('card-and-iching');
-    }, 400);
+    }, 2000);
   };
 
   const handleShowKeywords = () => {
@@ -42,14 +66,16 @@ export function TarotCardFlow() {
   };
 
   const handleReflectionComplete = () => {
-    // Handle completion - could navigate somewhere or reset
     console.log('Reflection completed');
   };
 
   const frontAnimatedStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flipAnimation.value, [0, 1], [0, 180], 'clamp');
     return {
-      transform: [{ rotateY: `${rotateY}deg` }],
+      transform: [
+        { scale: scaleAnimation.value },
+        { rotateY: `${rotateY}deg` }
+      ],
       opacity: interpolate(flipAnimation.value, [0, 0.5], [1, 0], 'clamp'),
     };
   });
@@ -57,8 +83,29 @@ export function TarotCardFlow() {
   const backAnimatedStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flipAnimation.value, [0, 1], [180, 360], 'clamp');
     return {
-      transform: [{ rotateY: `${rotateY}deg` }],
+      transform: [
+        { scale: scaleAnimation.value },
+        { rotateY: `${rotateY}deg` }
+      ],
       opacity: interpolate(flipAnimation.value, [0.5, 1], [0, 1], 'clamp'),
+    };
+  });
+
+  const glowAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: glowAnimation.value,
+      transform: [
+        { scale: interpolate(glowAnimation.value, [0, 1], [0.8, 1.2], 'clamp') }
+      ],
+    };
+  });
+
+  const borderAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: borderAnimation.value,
+      transform: [
+        { scale: interpolate(borderAnimation.value, [0, 1], [0.9, 1.1], 'clamp') }
+      ],
     };
   });
 
@@ -119,33 +166,57 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.centeredContainer}>
-      <Pressable style={styles.cardContainer} onPress={handleRevealCard}>
-        <Animated.View style={[styles.card, frontAnimatedStyle]}>
-          <Image
-            source={require('@/assets/images/back of the deck.jpeg')}
-            style={styles.cardBackImage}
-            resizeMode="cover"
-          />
-          <View style={styles.tapHintOverlay}>
-            <Text style={styles.tapHint}>Tap to reveal</Text>
-          </View>
-        </Animated.View>
-      </Pressable>
+    <View style={styles.fullScreenContainer}>
+      {/* Magical Background Effects */}
+      <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
+      <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
+      <Animated.View style={[styles.glowEffect3, glowAnimatedStyle]} />
+      
+      {/* Animated Border Ring */}
+      <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
+      
+      <View style={styles.cardCenterContainer}>
+        <Pressable style={styles.fullPageCardContainer} onPress={handleRevealCard}>
+          <Animated.View style={[styles.fullPageCard, frontAnimatedStyle]}>
+            {/* Mystical Border */}
+            <View style={styles.mysticalBorder}>
+              <View style={styles.innerBorder}>
+                <Image
+                  source={require('@/assets/images/back of the deck.jpeg')}
+                  style={styles.fullPageCardBackImage}
+                  resizeMode="cover"
+                />
+                {/* Floating Light Effects */}
+                <View style={styles.lightEffect1} />
+                <View style={styles.lightEffect2} />
+                <View style={styles.lightEffect3} />
+                <View style={styles.lightEffect4} />
+              </View>
+            </View>
+            <View style={styles.tapHintOverlay}>
+              <Text style={styles.tapHint}>✨ Tap to reveal your destiny ✨</Text>
+            </View>
+          </Animated.View>
+        </Pressable>
+      </View>
     </View>
   );
 
   const renderCardAndIching = () => (
     <View style={styles.fullContainer}>
-      <View style={styles.cardContainer}>
-        <Animated.View style={[styles.card, styles.cardFront, backAnimatedStyle]}>
-          <Image
-            source={{ uri: selectedCard.imageUrl }}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardName}>{selectedCard.name}</Text>
+      <View style={styles.fullPageCardContainer}>
+        <Animated.View style={[styles.fullPageCard, styles.cardFront, backAnimatedStyle]}>
+          <View style={styles.mysticalBorder}>
+            <View style={styles.innerBorder}>
+              <Image
+                source={{ uri: selectedCard.imageUrl }}
+                style={styles.fullPageCardImage}
+                resizeMode="cover"
+              />
+              <View style={styles.cardInfo}>
+                <Text style={styles.cardName}>{selectedCard.name}</Text>
+              </View>
+            </View>
           </View>
         </Animated.View>
       </View>
@@ -262,76 +333,198 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  centeredContainer: {
-    flex: 1,
+  fullScreenContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: screenWidth,
+    height: screenHeight,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 500,
+  },
+  glowEffect1: {
+    position: 'absolute',
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    top: '20%',
+    left: '10%',
+  },
+  glowEffect2: {
+    position: 'absolute',
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    bottom: '25%',
+    right: '15%',
+  },
+  glowEffect3: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    top: '60%',
+    left: '20%',
+  },
+  borderRing: {
+    position: 'absolute',
+    width: screenWidth * 0.9,
+    height: screenWidth * 0.9,
+    borderRadius: screenWidth * 0.45,
+    borderWidth: 2,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderStyle: 'dashed',
+  },
+  cardCenterContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fullContainer: {
     alignItems: 'center',
     paddingVertical: 20,
     width: '100%',
+    minHeight: screenHeight,
   },
-  cardContainer: {
-    width: 250,
-    height: 400,
+  fullPageCardContainer: {
+    width: screenWidth * 0.75,
+    height: screenHeight * 0.65,
     position: 'relative',
     marginBottom: 24,
   },
-  card: {
+  fullPageCard: {
     position: 'absolute',
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: 24,
     backfaceVisibility: 'hidden',
   },
-  cardBackImage: {
+  mysticalBorder: {
+    flex: 1,
+    padding: 4,
+    borderRadius: 24,
+    background: 'linear-gradient(45deg, #F59E0B, #8B5CF6, #3B82F6, #F59E0B)',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+  innerBorder: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    borderWidth: 2,
+    borderColor: 'rgba(245, 158, 11, 0.5)',
+  },
+  fullPageCardBackImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+  },
+  fullPageCardImage: {
+    width: '100%',
+    height: '75%',
+  },
+  lightEffect1: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#F59E0B',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+  },
+  lightEffect2: {
+    position: 'absolute',
+    top: 40,
+    right: 30,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8B5CF6',
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+  },
+  lightEffect3: {
+    position: 'absolute',
+    bottom: 60,
+    left: 40,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#3B82F6',
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+  },
+  lightEffect4: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#F59E0B',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 9,
   },
   tapHintOverlay: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 30,
     left: 0,
     right: 0,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 25,
     marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.5)',
   },
   tapHint: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
+    fontSize: 18,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F59E0B',
+    textAlign: 'center',
   },
   cardFront: {
     backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  cardImage: {
-    width: '100%',
-    height: 280,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 25,
+    elevation: 25,
   },
   cardInfo: {
     padding: 20,
     flex: 1,
     justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
   },
   cardName: {
-    fontSize: 24,
+    fontSize: 28,
     fontFamily: 'CormorantGaramond-Bold',
-    color: '#1F2937',
+    color: '#F59E0B',
     textAlign: 'center',
+    textShadowColor: 'rgba(245, 158, 11, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   ichingContainer: {
     width: '100%',
@@ -396,6 +589,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 24,
     marginBottom: 32,
+    paddingTop: 60,
   },
   keywordsTitle: {
     fontSize: 28,
@@ -481,6 +675,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     minWidth: 200,
     marginTop: 16,
+    marginBottom: 40,
   },
   continueButtonGradient: {
     paddingVertical: 16,

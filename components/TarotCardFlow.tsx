@@ -10,7 +10,6 @@ import Animated, {
 import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
-import { AIInterpretation } from './AIInterpretation';
 
 type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-only' | 'reflection-questions';
 
@@ -123,15 +122,14 @@ export function TarotCardFlow() {
     <View style={styles.centeredContainer}>
       <Pressable style={styles.cardContainer} onPress={handleRevealCard}>
         <Animated.View style={[styles.card, frontAnimatedStyle]}>
-          <LinearGradient
-            colors={['#6B46C1', '#8B5CF6']}
-            style={styles.cardBack}
-          >
-            <View style={styles.cardPattern}>
-              <Text style={styles.cardBackText}>✦</Text>
-            </View>
+          <Image
+            source={require('@/assets/images/back of the deck.jpeg')}
+            style={styles.cardBackImage}
+            resizeMode="cover"
+          />
+          <View style={styles.tapHintOverlay}>
             <Text style={styles.tapHint}>Tap to reveal</Text>
-          </LinearGradient>
+          </View>
         </Animated.View>
       </Pressable>
     </View>
@@ -288,29 +286,27 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backfaceVisibility: 'hidden',
   },
-  cardBack: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+  cardBackImage: {
+    width: '100%',
+    height: '100%',
     borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#F59E0B',
   },
-  cardPattern: {
+  tapHintOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-  },
-  cardBackText: {
-    fontSize: 60,
-    color: '#F59E0B',
-    fontFamily: 'CormorantGaramond-Bold',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    marginHorizontal: 20,
   },
   tapHint: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
-    marginBottom: 20,
+    color: '#F3F4F6',
   },
   cardFront: {
     backgroundColor: '#FFFFFF',

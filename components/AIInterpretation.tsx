@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { Sparkles, Brain, AlertCircle } from 'lucide-react-native';
+import { Sparkles, Brain, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { getAICardInterpretation } from '@/utils/ai';
 import { useAuth } from '@/contexts/AuthContext';
 

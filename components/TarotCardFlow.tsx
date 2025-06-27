@@ -166,7 +166,7 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.container}>
+    <View style={styles.stepContainer}>
       {/* Background Effects */}
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
@@ -209,7 +209,7 @@ export function TarotCardFlow() {
   );
 
   const renderCardAndIching = () => (
-    <View style={styles.container}>
+    <View style={styles.stepContainer}>
       <View style={styles.cardCenterContainer}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
@@ -264,7 +264,7 @@ export function TarotCardFlow() {
   );
 
   const renderKeywordsOnly = () => (
-    <View style={styles.container}>
+    <View style={styles.stepContainer}>
       <View style={styles.keywordsMainContainer}>
         <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
         <Text style={styles.keywordsSubtitle}>
@@ -320,7 +320,7 @@ export function TarotCardFlow() {
   );
 
   const renderReflectionQuestions = () => (
-    <View style={styles.container}>
+    <View style={styles.stepContainer}>
       <ReflectionPrompt
         card={selectedCard}
         hexagram={selectedHexagram}
@@ -344,14 +344,14 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // FIXED: Use normal container that works within the existing layout
-  container: {
+  // FIXED: Remove problematic container styling - let parent handle layout
+  stepContainer: {
     flex: 1,
-    backgroundColor: 'transparent', // Remove black background
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 40,
+    paddingVertical: 20,
+    width: '100%',
   },
   
   // FIXED: Center container using flexbox instead of absolute positioning

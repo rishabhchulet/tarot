@@ -166,7 +166,7 @@ export function TarotCardFlow() {
   };
 
   const renderCardBack = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.fullScreenOverlay}>
       {/* Background Effects */}
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
@@ -176,7 +176,7 @@ export function TarotCardFlow() {
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
       {/* Card Container - Absolutely Centered */}
-      <View style={styles.absoluteCenterContainer}>
+      <View style={styles.cardCenterWrapper}>
         <Pressable style={styles.cardTouchArea} onPress={handleRevealCard}>
           <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
             {/* Mystical Border */}
@@ -209,8 +209,8 @@ export function TarotCardFlow() {
   );
 
   const renderCardAndIching = () => (
-    <View style={styles.absoluteFullScreen}>
-      <View style={styles.absoluteCenterContainer}>
+    <View style={styles.fullScreenOverlay}>
+      <View style={styles.cardCenterWrapper}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
           <LinearGradient
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
@@ -264,7 +264,7 @@ export function TarotCardFlow() {
   );
 
   const renderKeywordsOnly = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.fullScreenOverlay}>
       <View style={styles.keywordsMainContainer}>
         <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
         <Text style={styles.keywordsSubtitle}>
@@ -320,7 +320,7 @@ export function TarotCardFlow() {
   );
 
   const renderReflectionQuestions = () => (
-    <View style={styles.absoluteFullScreen}>
+    <View style={styles.fullScreenOverlay}>
       <ReflectionPrompt
         card={selectedCard}
         hexagram={selectedHexagram}
@@ -344,29 +344,27 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // CRITICAL FIX: Absolute full screen container that ignores all parent constraints
-  absoluteFullScreen: {
+  // CRITICAL FIX: Full screen overlay that completely ignores parent containers
+  fullScreenOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
     width: screenWidth,
     height: screenHeight,
     backgroundColor: '#000000',
-    zIndex: 1000, // High z-index to ensure it's on top
+    zIndex: 9999, // Maximum z-index to ensure it's on top
   },
   
-  // CRITICAL FIX: Absolute centering that works regardless of parent containers
-  absoluteCenterContainer: {
+  // CRITICAL FIX: Perfect center wrapper using flexbox within the overlay
+  cardCenterWrapper: {
     position: 'absolute',
-    top: screenHeight / 2,
-    left: screenWidth / 2,
-    transform: [
-      { translateX: -Math.min(screenWidth * 0.425, 175) }, // Half of card width
-      { translateY: -Math.min(screenHeight * 0.325, 275) }, // Half of card height
-    ],
-    zIndex: 1001,
+    top: 0,
+    left: 0,
+    width: screenWidth,
+    height: screenHeight,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10000,
   },
   
   // Card touch area for better interaction
@@ -569,7 +567,7 @@ const styles = StyleSheet.create({
     bottom: 100,
     left: 20,
     right: 20,
-    zIndex: 1002,
+    zIndex: 10001,
   },
   ichingTitle: {
     fontSize: 18,
@@ -633,7 +631,7 @@ const styles = StyleSheet.create({
     left: 20,
     right: 20,
     bottom: 100,
-    zIndex: 1001,
+    zIndex: 10001,
   },
   keywordsTitle: {
     fontSize: 26,
@@ -723,7 +721,7 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: 'hidden',
     minWidth: 180,
-    zIndex: 1003,
+    zIndex: 10002,
   },
   continueButtonGradient: {
     paddingVertical: 14,

@@ -280,7 +280,7 @@ export function TarotCardFlow() {
   const renderKeywordsOnly = () => (
     <View style={styles.stepContainer}>
       <View style={styles.keywordsMainContainer}>
-        {/* ENHANCED: Better header with more space */}
+        {/* COMPACT: Smaller header */}
         <View style={styles.keywordsHeader}>
           <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
           <Text style={styles.keywordsSubtitle}>
@@ -288,13 +288,11 @@ export function TarotCardFlow() {
           </Text>
         </View>
 
-        {/* ENHANCED: Tarot Keywords Section */}
+        {/* COMPACT: Tarot Keywords Section */}
         <View style={styles.keywordSection}>
-          <View style={styles.keywordSectionHeader}>
-            <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
-          </View>
+          <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
           <View style={styles.keywordGrid}>
-            {selectedCard.keywords.map((keyword, index) => (
+            {selectedCard.keywords.slice(0, 4).map((keyword, index) => (
               <View key={index} style={styles.tarotKeyword}>
                 <Text style={styles.tarotKeywordText}>{keyword}</Text>
               </View>
@@ -302,11 +300,9 @@ export function TarotCardFlow() {
           </View>
         </View>
 
-        {/* ENHANCED: I Ching Keywords Section */}
+        {/* COMPACT: I Ching Keywords Section */}
         <View style={styles.keywordSection}>
-          <View style={styles.keywordSectionHeader}>
-            <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
-          </View>
+          <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
           <View style={styles.keywordGrid}>
             {getIChingKeywords(selectedHexagram).map((keyword, index) => (
               <View key={index} style={styles.ichingKeyword}>
@@ -316,26 +312,29 @@ export function TarotCardFlow() {
           </View>
         </View>
 
-        {/* ENHANCED: Combined Essence with better styling */}
+        {/* COMPACT: Combined Essence */}
         <View style={styles.essenceContainer}>
           <Text style={styles.essenceTitle}>Today's Essence</Text>
           <Text style={styles.essenceText}>
             {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
           </Text>
           <Text style={styles.essenceDescription}>
-            Let these energies guide your reflection and actions today
+            Let these energies guide your reflection today
           </Text>
         </View>
       </View>
 
-      <Pressable style={styles.continueButton} onPress={handleShowReflection}>
-        <LinearGradient
-          colors={['#10B981', '#059669']}
-          style={styles.continueButtonGradient}
-        >
-          <Text style={styles.continueButtonText}>Begin Reflection</Text>
-        </LinearGradient>
-      </Pressable>
+      {/* FIXED: Button positioned to be always visible */}
+      <View style={styles.buttonContainer}>
+        <Pressable style={styles.continueButton} onPress={handleShowReflection}>
+          <LinearGradient
+            colors={['#10B981', '#059669']}
+            style={styles.continueButtonGradient}
+          >
+            <Text style={styles.continueButtonText}>Begin Reflection</Text>
+          </LinearGradient>
+        </Pressable>
+      </View>
     </View>
   );
 
@@ -364,15 +363,13 @@ export function TarotCardFlow() {
 }
 
 const styles = StyleSheet.create({
-  // FIXED: Proper container that works with parent layout
+  // OPTIMIZED: Container that ensures everything fits in viewport
   stepContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
     width: '100%',
-    minHeight: screenHeight * 0.7, // Ensure minimum height
+    height: screenHeight - 140, // Account for tab bar and status bar
+    paddingHorizontal: 20,
+    paddingVertical: 10, // REDUCED: Less vertical padding
   },
   
   // FIXED: Center container using flexbox
@@ -658,68 +655,64 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // ENHANCED: Keywords screen with better spacing and typography
+  // OPTIMIZED: Keywords screen to fit in viewport
   keywordsMainContainer: {
     flex: 1,
     width: '100%',
-    paddingVertical: 30, // INCREASED: More vertical padding (was 20)
-    paddingHorizontal: 10, // INCREASED: More horizontal padding
+    justifyContent: 'space-between', // ADDED: Distribute space evenly
   },
   
-  // ENHANCED: Better header section
+  // COMPACT: Smaller header section
   keywordsHeader: {
     alignItems: 'center',
-    marginBottom: 40, // INCREASED: More space after header (was 28)
+    marginBottom: 20, // REDUCED: Less space (was 40)
   },
   keywordsTitle: {
-    fontSize: 32, // INCREASED: Larger title (was 26)
+    fontSize: 28, // REDUCED: Smaller title (was 32)
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 12, // INCREASED: More space (was 6)
-    lineHeight: 38, // ADDED: Better line height
+    marginBottom: 8, // REDUCED: Less space (was 12)
+    lineHeight: 32, // REDUCED: Tighter line height
   },
   keywordsSubtitle: {
-    fontSize: 18, // INCREASED: Larger subtitle (was 14)
+    fontSize: 16, // REDUCED: Smaller subtitle (was 18)
     fontFamily: 'Inter-Regular',
-    color: '#D1D5DB', // ENHANCED: Better contrast (was #9CA3AF)
+    color: '#D1D5DB',
     textAlign: 'center',
-    lineHeight: 24, // ADDED: Better line height
-    maxWidth: 280, // ADDED: Constrain width for better readability
+    lineHeight: 20, // REDUCED: Tighter line height
+    maxWidth: 280,
   },
   
-  // ENHANCED: Better keyword sections
+  // COMPACT: Smaller keyword sections
   keywordSection: {
-    marginBottom: 36, // INCREASED: More space between sections (was 28)
-  },
-  keywordSectionHeader: {
-    marginBottom: 20, // INCREASED: More space (was 14)
-    alignItems: 'center',
+    marginBottom: 20, // REDUCED: Less space between sections (was 36)
   },
   keywordSectionTitle: {
-    fontSize: 22, // INCREASED: Larger section titles (was 18)
+    fontSize: 18, // REDUCED: Smaller section titles (was 22)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
-    lineHeight: 28, // ADDED: Better line height
+    lineHeight: 22, // REDUCED: Tighter line height
+    marginBottom: 12, // REDUCED: Less space (was 20)
   },
   
-  // ENHANCED: Better keyword grid
+  // COMPACT: Tighter keyword grid
   keywordGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 14, // INCREASED: More space between keywords (was 10)
+    gap: 10, // REDUCED: Less space between keywords (was 14)
   },
   
-  // ENHANCED: Better tarot keywords
+  // COMPACT: Smaller tarot keywords
   tarotKeyword: {
-    backgroundColor: 'rgba(245, 158, 11, 0.25)', // ENHANCED: More vibrant background (was 0.2)
-    paddingHorizontal: 18, // INCREASED: More padding (was 14)
-    paddingVertical: 12, // INCREASED: More padding (was 8)
-    borderRadius: 22, // INCREASED: More rounded (was 18)
-    borderWidth: 1.5, // ENHANCED: Thicker border (was 1)
-    borderColor: 'rgba(245, 158, 11, 0.5)', // ENHANCED: More visible border (was 0.4)
+    backgroundColor: 'rgba(245, 158, 11, 0.25)',
+    paddingHorizontal: 14, // REDUCED: Less padding (was 18)
+    paddingVertical: 8, // REDUCED: Less padding (was 12)
+    borderRadius: 18, // REDUCED: Less rounded (was 22)
+    borderWidth: 1.5,
+    borderColor: 'rgba(245, 158, 11, 0.5)',
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -727,20 +720,20 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   tarotKeywordText: {
-    fontSize: 16, // INCREASED: Larger text (was 14)
+    fontSize: 14, // REDUCED: Smaller text (was 16)
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
   },
   
-  // ENHANCED: Better I Ching keywords
+  // COMPACT: Smaller I Ching keywords
   ichingKeyword: {
-    backgroundColor: 'rgba(59, 130, 246, 0.25)', // ENHANCED: More vibrant background (was 0.2)
-    paddingHorizontal: 18, // INCREASED: More padding (was 14)
-    paddingVertical: 12, // INCREASED: More padding (was 8)
-    borderRadius: 22, // INCREASED: More rounded (was 18)
-    borderWidth: 1.5, // ENHANCED: Thicker border (was 1)
-    borderColor: 'rgba(59, 130, 246, 0.5)', // ENHANCED: More visible border (was 0.4)
+    backgroundColor: 'rgba(59, 130, 246, 0.25)',
+    paddingHorizontal: 14, // REDUCED: Less padding (was 18)
+    paddingVertical: 8, // REDUCED: Less padding (was 12)
+    borderRadius: 18, // REDUCED: Less rounded (was 22)
+    borderWidth: 1.5,
+    borderColor: 'rgba(59, 130, 246, 0.5)',
     shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -748,52 +741,58 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   ichingKeywordText: {
-    fontSize: 16, // INCREASED: Larger text (was 14)
+    fontSize: 14, // REDUCED: Smaller text (was 16)
     fontFamily: 'Inter-SemiBold',
     color: '#3B82F6',
     textAlign: 'center',
   },
   
-  // ENHANCED: Better essence container
+  // COMPACT: Smaller essence container
   essenceContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)', // ENHANCED: More visible background (was 0.05)
-    borderRadius: 20, // INCREASED: More rounded (was 14)
-    padding: 28, // INCREASED: More padding (was 20)
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 16, // REDUCED: Less rounded (was 20)
+    padding: 20, // REDUCED: Less padding (was 28)
     alignItems: 'center',
-    borderWidth: 1.5, // ENHANCED: Thicker border (was 1)
-    borderColor: 'rgba(255, 255, 255, 0.15)', // ENHANCED: More visible border (was 0.1)
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
     shadowColor: '#F59E0B',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
-    marginTop: 10, // ADDED: Extra space from keywords
   },
   essenceTitle: {
-    fontSize: 20, // INCREASED: Larger title (was 16)
+    fontSize: 16, // REDUCED: Smaller title (was 20)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#D1D5DB',
-    marginBottom: 16, // INCREASED: More space (was 10)
+    marginBottom: 10, // REDUCED: Less space (was 16)
     textAlign: 'center',
   },
   essenceText: {
-    fontSize: 24, // INCREASED: Much larger essence text (was 18)
+    fontSize: 20, // REDUCED: Smaller essence text (was 24)
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 32, // ADDED: Better line height
-    marginBottom: 12, // ADDED: Space for description
+    lineHeight: 26, // REDUCED: Tighter line height
+    marginBottom: 8, // REDUCED: Less space (was 12)
   },
   
-  // ADDED: New essence description
+  // COMPACT: Smaller essence description
   essenceDescription: {
-    fontSize: 16,
+    fontSize: 14, // REDUCED: Smaller text (was 16)
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 22,
-    maxWidth: 260,
+    lineHeight: 18, // REDUCED: Tighter line height
+    maxWidth: 240, // REDUCED: Narrower width
+  },
+  
+  // FIXED: Button container to ensure visibility
+  buttonContainer: {
+    paddingTop: 10, // ADDED: Small padding at top
+    paddingBottom: 20, // ADDED: Padding at bottom for tab bar
+    alignItems: 'center',
   },
   
   // Continue button
@@ -801,8 +800,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     overflow: 'hidden',
     minWidth: 180,
-    alignSelf: 'center',
-    marginTop: 16, // REDUCED: Less margin (was 20)
   },
   continueButtonGradient: {
     paddingVertical: 14,

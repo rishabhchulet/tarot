@@ -5,7 +5,7 @@ import { Save, Mic, Square, Play, Pause } from 'lucide-react-native';
 import { saveJournalEntry } from '@/utils/database';
 import { saveAudioToDocuments, AudioRecording, startRecording, stopRecording, playAudio } from '@/utils/audio';
 import { AIInterpretation } from './AIInterpretation';
-import { DynamicReflectionQuestions } from './DynamicReflectionQuestions';
+import { DynamicReflectionQuestions } from '@/components/DynamicReflectionQuestions';
 import { router } from 'expo-router';
 
 const { height: screenHeight } = Dimensions.get('window');

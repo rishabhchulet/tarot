@@ -76,36 +76,8 @@ export const signUp = async (email: string, password: string, name: string) => {
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // Verify the profile was created
-        try {
-          const { data: profile, error: profileError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-
-          if (profileError || !profile) {
-            console.warn('⚠️ Profile not found, creating manually...');
-            // Create profile manually if trigger failed
-            const { error: manualProfileError } = await supabase
-              .from('users')
-              .insert({
-                id: data.user.id,
-                email: data.user.email!,
-                name: name.trim(),
-              });
-
-            if (manualProfileError) {
-              console.error('❌ Manual profile creation failed:', manualProfileError);
-            } else {
-              console.log('✅ Manual profile creation successful');
-            }
-          } else {
-            console.log('✅ User profile verified');
-          }
-        } catch (verifyError) {
-          console.error('❌ Error verifying profile:', verifyError);
-        }
+        // Verify the profile was created with retry logic
+        await ensureUserProfileWithRetry(data.user, name.trim());
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -159,7 +131,7 @@ export const signIn = async (email: string, password: string) => {
       console.log('✅ Sign in successful for user:', data.user.id);
       
       // Ensure user profile exists
-      await ensureUserProfile(data.user);
+      await ensureUserProfileWithRetry(data.user);
     }
 
     return { user: data.user, error: null };
@@ -169,33 +141,53 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// Helper function to ensure user profile exists
-const ensureUserProfile = async (user: any) => {
-  try {
-    const { data: existingProfile } = await supabase
-      .from('users')
-      .select('id')
-      .eq('id', user.id)
-      .single();
-
-    if (!existingProfile) {
-      console.log('👤 Creating missing user profile...');
-      const { error } = await supabase
+// Enhanced helper function with retry logic
+const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries = 3) => {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`👤 Checking user profile (attempt ${attempt}/${maxRetries})...`);
+      
+      const { data: existingProfile } = await supabase
         .from('users')
-        .insert({
-          id: user.id,
-          email: user.email,
-          name: user.user_metadata?.name || 'User',
-        });
+        .select('id')
+        .eq('id', user.id)
+        .single();
 
-      if (error) {
-        console.error('❌ Error creating user profile:', error);
+      if (!existingProfile) {
+        console.log('👤 Creating missing user profile...');
+        const { error } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name: name || user.user_metadata?.name || 'User',
+          });
+
+        if (error) {
+          console.error(`❌ Error creating user profile (attempt ${attempt}):`, error);
+          if (attempt === maxRetries) {
+            throw error;
+          }
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          continue;
+        } else {
+          console.log('✅ User profile created successfully');
+          break;
+        }
       } else {
-        console.log('✅ User profile created');
+        console.log('✅ User profile already exists');
+        break;
+      }
+    } catch (error) {
+      console.error(`❌ Error in profile check (attempt ${attempt}):`, error);
+      if (attempt === maxRetries) {
+        console.error('❌ Failed to ensure user profile after all retries');
+      } else {
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
     }
-  } catch (error) {
-    console.error('❌ Error ensuring user profile:', error);
   }
 };
 
@@ -230,28 +222,43 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // Ensure profile exists
-    await ensureUserProfile(user);
+    // Ensure profile exists with retry
+    await ensureUserProfileWithRetry(user);
 
-    // Get user profile from our users table
-    const { data: profile, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', user.id)
-      .single();
+    // Get user profile from our users table with retry logic
+    let profile = null;
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single();
 
-    if (error) {
-      console.error('⚠️ Error fetching user profile:', error);
-      // Return basic user info from auth if profile fetch fails
-      return {
-        id: user.id,
-        email: user.email || '',
-        name: user.user_metadata?.name || 'User',
-      };
+        if (error) {
+          lastError = error;
+          console.error(`⚠️ Error fetching user profile (attempt ${attempt}):`, error);
+          if (attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            continue;
+          }
+        } else {
+          profile = data;
+          break;
+        }
+      } catch (error) {
+        lastError = error;
+        console.error(`❌ Exception in profile fetch (attempt ${attempt}):`, error);
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
     }
 
     if (!profile) {
-      console.log('👤 No user profile found after creation attempt');
+      console.log('👤 No user profile found after retries, returning basic auth info');
       return {
         id: user.id,
         email: user.email || '',

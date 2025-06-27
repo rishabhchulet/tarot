@@ -12,7 +12,7 @@ import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
 import { AIInterpretation } from './AIInterpretation';
 
-type FlowStep = 'card-back' | 'card-and-iching' | 'ai-interpretation' | 'keywords-and-reflection' | 'reflection-questions';
+type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-only' | 'reflection-questions';
 
 export function TarotCardFlow() {
   const [currentStep, setCurrentStep] = useState<FlowStep>('card-back');
@@ -34,15 +34,11 @@ export function TarotCardFlow() {
     }, 400);
   };
 
-  const handleShowAIInterpretation = () => {
-    setCurrentStep('ai-interpretation');
+  const handleShowKeywords = () => {
+    setCurrentStep('keywords-only');
   };
 
   const handleShowReflection = () => {
-    setCurrentStep('keywords-and-reflection');
-  };
-
-  const handleShowQuestions = () => {
     setCurrentStep('reflection-questions');
   };
 
@@ -93,6 +89,34 @@ export function TarotCardFlow() {
     };
     
     return essenceMap[hexagram.name] || 'Wisdom';
+  };
+
+  // Get I Ching keywords based on the hexagram
+  const getIChingKeywords = (hexagram: any) => {
+    const keywordMap: { [key: string]: string[] } = {
+      'The Creative': ['Initiative', 'Leadership', 'Power'],
+      'The Receptive': ['Acceptance', 'Nurturing', 'Support'],
+      'Difficulty at the Beginning': ['Perseverance', 'Growth', 'Breakthrough'],
+      'Youthful Folly': ['Learning', 'Guidance', 'Wisdom'],
+      'Waiting': ['Patience', 'Timing', 'Trust'],
+      'Conflict': ['Resolution', 'Balance', 'Harmony'],
+      'The Army': ['Organization', 'Strategy', 'Discipline'],
+      'Holding Together': ['Unity', 'Cooperation', 'Bond'],
+      'Small Taming': ['Restraint', 'Gentleness', 'Patience'],
+      'Treading': ['Caution', 'Respect', 'Mindfulness'],
+      'Peace': ['Harmony', 'Balance', 'Prosperity'],
+      'Standstill': ['Stillness', 'Reflection', 'Pause'],
+      'Fellowship': ['Community', 'Friendship', 'Collaboration'],
+      'Great Possession': ['Abundance', 'Responsibility', 'Sharing'],
+      'Modesty': ['Humility', 'Grace', 'Simplicity'],
+      'Enthusiasm': ['Inspiration', 'Energy', 'Motivation'],
+      'Following': ['Adaptation', 'Flow', 'Flexibility'],
+      'Work on the Decayed': ['Healing', 'Restoration', 'Renewal'],
+      'Approach': ['Progress', 'Advancement', 'Growth'],
+      'Contemplation': ['Reflection', 'Insight', 'Understanding']
+    };
+    
+    return keywordMap[hexagram.name] || ['Wisdom', 'Growth', 'Understanding'];
   };
 
   const renderCardBack = () => (
@@ -148,127 +172,68 @@ export function TarotCardFlow() {
         </View>
       </View>
 
-      <Pressable style={styles.continueButton} onPress={handleShowAIInterpretation}>
+      <Pressable style={styles.continueButton} onPress={handleShowKeywords}>
         <LinearGradient
           colors={['#F59E0B', '#D97706']}
           style={styles.continueButtonGradient}
         >
-          <Text style={styles.continueButtonText}>Get AI Interpretation</Text>
+          <Text style={styles.continueButtonText}>Show Keywords</Text>
         </LinearGradient>
       </Pressable>
     </View>
   );
 
-  const renderAIInterpretation = () => (
+  const renderKeywordsOnly = () => (
     <View style={styles.fullContainer}>
-      <View style={styles.cardContainer}>
-        <View style={[styles.card, styles.cardFront]}>
-          <Image
-            source={{ uri: selectedCard.imageUrl }}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardName}>{selectedCard.name}</Text>
-          </View>
-        </View>
-      </View>
+      <View style={styles.keywordsMainContainer}>
+        <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
+        <Text style={styles.keywordsSubtitle}>
+          These energies are guiding you today
+        </Text>
 
-      <View style={styles.ichingContainer}>
-        <Text style={styles.ichingTitle}>Your I Ching Guidance</Text>
-        <View style={styles.ichingCard}>
-          <Text style={styles.ichingNumber}>#{selectedHexagram.number}</Text>
-          <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
-          <View style={styles.hexagramSymbol}>
-            {selectedHexagram.lines.map((line: boolean, index: number) => (
-              <View
-                key={index}
-                style={[
-                  styles.line,
-                  line ? styles.solidLine : styles.brokenLine
-                ]}
-              />
+        {/* Tarot Keywords */}
+        <View style={styles.keywordSection}>
+          <View style={styles.keywordSectionHeader}>
+            <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
+          </View>
+          <View style={styles.keywordGrid}>
+            {selectedCard.keywords.map((keyword, index) => (
+              <View key={index} style={styles.tarotKeyword}>
+                <Text style={styles.tarotKeywordText}>{keyword}</Text>
+              </View>
             ))}
           </View>
-          <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+        </View>
+
+        {/* I Ching Keywords */}
+        <View style={styles.keywordSection}>
+          <View style={styles.keywordSectionHeader}>
+            <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
+          </View>
+          <View style={styles.keywordGrid}>
+            {getIChingKeywords(selectedHexagram).map((keyword, index) => (
+              <View key={index} style={styles.ichingKeyword}>
+                <Text style={styles.ichingKeywordText}>{keyword}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Combined Essence */}
+        <View style={styles.essenceContainer}>
+          <Text style={styles.essenceTitle}>Today's Essence</Text>
+          <Text style={styles.essenceText}>
+            {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
+          </Text>
         </View>
       </View>
-
-      <AIInterpretation
-        card={selectedCard}
-        hexagram={selectedHexagram}
-      />
 
       <Pressable style={styles.continueButton} onPress={handleShowReflection}>
-        <LinearGradient
-          colors={['#3B82F6', '#1D4ED8']}
-          style={styles.continueButtonGradient}
-        >
-          <Text style={styles.continueButtonText}>Continue to Reflection</Text>
-        </LinearGradient>
-      </Pressable>
-    </View>
-  );
-
-  const renderKeywordsAndReflection = () => (
-    <View style={styles.fullContainer}>
-      <View style={styles.cardContainer}>
-        <View style={[styles.card, styles.cardFront]}>
-          <Image
-            source={{ uri: selectedCard.imageUrl }}
-            style={styles.cardImage}
-            resizeMode="cover"
-          />
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardName}>{selectedCard.name}</Text>
-            <View style={styles.keywords}>
-              {selectedCard.keywords.map((keyword, index) => (
-                <View key={index} style={styles.keyword}>
-                  <Text style={styles.keywordText}>{keyword}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.ichingContainer}>
-        <Text style={styles.ichingTitle}>Your I Ching Guidance</Text>
-        <View style={styles.ichingCard}>
-          <Text style={styles.ichingNumber}>#{selectedHexagram.number}</Text>
-          <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
-          <View style={styles.hexagramSymbol}>
-            {selectedHexagram.lines.map((line: boolean, index: number) => (
-              <View
-                key={index}
-                style={[
-                  styles.line,
-                  line ? styles.solidLine : styles.brokenLine
-                ]}
-              />
-            ))}
-          </View>
-          <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
-        </View>
-      </View>
-
-      <View style={styles.reflectionContainer}>
-        <Text style={styles.reflectionTitle}>Your Spiritual Message</Text>
-        <Text style={styles.reflectionText}>
-          The {selectedCard.name} card combined with the {selectedHexagram.name} hexagram brings you a message of {getIChingEssence(selectedHexagram).toLowerCase()}. 
-          This powerful combination suggests that {selectedCard.keywords[0].toLowerCase()} and {getIChingEssence(selectedHexagram).toLowerCase()} are key themes for your spiritual journey today.
-        </Text>
-        <Text style={styles.reflectionText}>
-          {selectedCard.description}
-        </Text>
-      </View>
-
-      <Pressable style={styles.continueButton} onPress={handleShowQuestions}>
         <LinearGradient
           colors={['#10B981', '#059669']}
           style={styles.continueButtonGradient}
         >
-          <Text style={styles.continueButtonText}>Start Reflection</Text>
+          <Text style={styles.continueButtonText}>Begin Reflection</Text>
         </LinearGradient>
       </Pressable>
     </View>
@@ -289,10 +254,8 @@ export function TarotCardFlow() {
       return renderCardBack();
     case 'card-and-iching':
       return renderCardAndIching();
-    case 'ai-interpretation':
-      return renderAIInterpretation();
-    case 'keywords-and-reflection':
-      return renderKeywordsAndReflection();
+    case 'keywords-only':
+      return renderKeywordsOnly();
     case 'reflection-questions':
       return renderReflectionQuestions();
     default:
@@ -366,31 +329,13 @@ const styles = StyleSheet.create({
   cardInfo: {
     padding: 20,
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
   },
   cardName: {
     fontSize: 24,
     fontFamily: 'CormorantGaramond-Bold',
     color: '#1F2937',
     textAlign: 'center',
-    marginBottom: 16,
-  },
-  keywords: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  keyword: {
-    backgroundColor: '#F59E0B',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  keywordText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
   },
   ichingContainer: {
     width: '100%',
@@ -451,29 +396,89 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontStyle: 'italic',
   },
-  reflectionContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 24,
-    marginBottom: 24,
-    marginHorizontal: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+  keywordsMainContainer: {
+    width: '100%',
+    paddingHorizontal: 24,
+    marginBottom: 32,
   },
-  reflectionTitle: {
+  keywordsTitle: {
+    fontSize: 28,
+    fontFamily: 'CormorantGaramond-Bold',
+    color: '#F3F4F6',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  keywordsSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  keywordSection: {
+    marginBottom: 32,
+  },
+  keywordSectionHeader: {
+    marginBottom: 16,
+  },
+  keywordSectionTitle: {
     fontSize: 20,
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
-    marginBottom: 16,
   },
-  reflectionText: {
+  keywordGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  tarotKeyword: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.4)',
+  },
+  tarotKeywordText: {
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+  },
+  ichingKeyword: {
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
+  },
+  ichingKeywordText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#3B82F6',
+  },
+  essenceContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  essenceTitle: {
+    fontSize: 18,
+    fontFamily: 'CormorantGaramond-SemiBold',
     color: '#D1D5DB',
-    lineHeight: 24,
+    marginBottom: 12,
+  },
+  essenceText: {
+    fontSize: 20,
+    fontFamily: 'CormorantGaramond-Bold',
+    color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 16,
+    fontStyle: 'italic',
   },
   continueButton: {
     borderRadius: 25,

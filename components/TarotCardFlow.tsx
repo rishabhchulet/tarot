@@ -280,12 +280,15 @@ export function TarotCardFlow() {
   const renderKeywordsOnly = () => (
     <View style={styles.stepContainer}>
       <View style={styles.keywordsMainContainer}>
-        <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
-        <Text style={styles.keywordsSubtitle}>
-          These energies are guiding you today
-        </Text>
+        {/* ENHANCED: Better header with more space */}
+        <View style={styles.keywordsHeader}>
+          <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
+          <Text style={styles.keywordsSubtitle}>
+            These energies are guiding you today
+          </Text>
+        </View>
 
-        {/* Tarot Keywords */}
+        {/* ENHANCED: Tarot Keywords Section */}
         <View style={styles.keywordSection}>
           <View style={styles.keywordSectionHeader}>
             <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
@@ -299,7 +302,7 @@ export function TarotCardFlow() {
           </View>
         </View>
 
-        {/* I Ching Keywords */}
+        {/* ENHANCED: I Ching Keywords Section */}
         <View style={styles.keywordSection}>
           <View style={styles.keywordSectionHeader}>
             <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
@@ -313,11 +316,14 @@ export function TarotCardFlow() {
           </View>
         </View>
 
-        {/* Combined Essence */}
+        {/* ENHANCED: Combined Essence with better styling */}
         <View style={styles.essenceContainer}>
           <Text style={styles.essenceTitle}>Today's Essence</Text>
           <Text style={styles.essenceText}>
             {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
+          </Text>
+          <Text style={styles.essenceDescription}>
+            Let these energies guide your reflection and actions today
           </Text>
         </View>
       </View>
@@ -652,90 +658,142 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   
-  // Keywords screen
+  // ENHANCED: Keywords screen with better spacing and typography
   keywordsMainContainer: {
     flex: 1,
     width: '100%',
-    paddingVertical: 20,
+    paddingVertical: 30, // INCREASED: More vertical padding (was 20)
+    paddingHorizontal: 10, // INCREASED: More horizontal padding
+  },
+  
+  // ENHANCED: Better header section
+  keywordsHeader: {
+    alignItems: 'center',
+    marginBottom: 40, // INCREASED: More space after header (was 28)
   },
   keywordsTitle: {
-    fontSize: 26,
+    fontSize: 32, // INCREASED: Larger title (was 26)
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 12, // INCREASED: More space (was 6)
+    lineHeight: 38, // ADDED: Better line height
   },
   keywordsSubtitle: {
-    fontSize: 14,
+    fontSize: 18, // INCREASED: Larger subtitle (was 14)
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#D1D5DB', // ENHANCED: Better contrast (was #9CA3AF)
     textAlign: 'center',
-    marginBottom: 28,
+    lineHeight: 24, // ADDED: Better line height
+    maxWidth: 280, // ADDED: Constrain width for better readability
   },
+  
+  // ENHANCED: Better keyword sections
   keywordSection: {
-    marginBottom: 28,
+    marginBottom: 36, // INCREASED: More space between sections (was 28)
   },
   keywordSectionHeader: {
-    marginBottom: 14,
+    marginBottom: 20, // INCREASED: More space (was 14)
+    alignItems: 'center',
   },
   keywordSectionTitle: {
-    fontSize: 18,
+    fontSize: 22, // INCREASED: Larger section titles (was 18)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
+    lineHeight: 28, // ADDED: Better line height
   },
+  
+  // ENHANCED: Better keyword grid
   keywordGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 10,
+    gap: 14, // INCREASED: More space between keywords (was 10)
   },
+  
+  // ENHANCED: Better tarot keywords
   tarotKeyword: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+    backgroundColor: 'rgba(245, 158, 11, 0.25)', // ENHANCED: More vibrant background (was 0.2)
+    paddingHorizontal: 18, // INCREASED: More padding (was 14)
+    paddingVertical: 12, // INCREASED: More padding (was 8)
+    borderRadius: 22, // INCREASED: More rounded (was 18)
+    borderWidth: 1.5, // ENHANCED: Thicker border (was 1)
+    borderColor: 'rgba(245, 158, 11, 0.5)', // ENHANCED: More visible border (was 0.4)
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   tarotKeywordText: {
-    fontSize: 14,
+    fontSize: 16, // INCREASED: Larger text (was 14)
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
+    textAlign: 'center',
   },
+  
+  // ENHANCED: Better I Ching keywords
   ichingKeyword: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.4)',
+    backgroundColor: 'rgba(59, 130, 246, 0.25)', // ENHANCED: More vibrant background (was 0.2)
+    paddingHorizontal: 18, // INCREASED: More padding (was 14)
+    paddingVertical: 12, // INCREASED: More padding (was 8)
+    borderRadius: 22, // INCREASED: More rounded (was 18)
+    borderWidth: 1.5, // ENHANCED: Thicker border (was 1)
+    borderColor: 'rgba(59, 130, 246, 0.5)', // ENHANCED: More visible border (was 0.4)
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   ichingKeywordText: {
-    fontSize: 14,
+    fontSize: 16, // INCREASED: Larger text (was 14)
     fontFamily: 'Inter-SemiBold',
     color: '#3B82F6',
+    textAlign: 'center',
   },
+  
+  // ENHANCED: Better essence container
   essenceContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 14,
-    padding: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)', // ENHANCED: More visible background (was 0.05)
+    borderRadius: 20, // INCREASED: More rounded (was 14)
+    padding: 28, // INCREASED: More padding (was 20)
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 1.5, // ENHANCED: Thicker border (was 1)
+    borderColor: 'rgba(255, 255, 255, 0.15)', // ENHANCED: More visible border (was 0.1)
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
+    marginTop: 10, // ADDED: Extra space from keywords
   },
   essenceTitle: {
-    fontSize: 16,
+    fontSize: 20, // INCREASED: Larger title (was 16)
     fontFamily: 'CormorantGaramond-SemiBold',
     color: '#D1D5DB',
-    marginBottom: 10,
+    marginBottom: 16, // INCREASED: More space (was 10)
+    textAlign: 'center',
   },
   essenceText: {
-    fontSize: 18,
+    fontSize: 24, // INCREASED: Much larger essence text (was 18)
     fontFamily: 'CormorantGaramond-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     fontStyle: 'italic',
+    lineHeight: 32, // ADDED: Better line height
+    marginBottom: 12, // ADDED: Space for description
+  },
+  
+  // ADDED: New essence description
+  essenceDescription: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 22,
+    maxWidth: 260,
   },
   
   // Continue button

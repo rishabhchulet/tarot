@@ -143,7 +143,7 @@ async function handleReflectionPrompts(data: {
 }, openai: OpenAI) {
   const { cardName, cardKeywords, hexagramName, focusArea, previousEntries } = data;
 
-  const prompt = `You are a thoughtful spiritual mentor creating personalized reflection questions.
+  const prompt = `You are a thoughtful spiritual mentor creating deeply personal reflection questions that connect to real life experiences.
 
 Today's spiritual draw:
 - Tarot Card: ${cardName}
@@ -152,14 +152,20 @@ Today's spiritual draw:
 ${focusArea ? `- User's Focus Area: ${focusArea}` : ''}
 ${previousEntries?.length ? `- Recent reflection themes: ${previousEntries.slice(0, 3).join(', ')}` : ''}
 
-Generate 3 unique, thought-provoking reflection questions that:
+Generate 3 deeply personal, life-focused reflection questions that:
 1. Connect to today's card and hexagram combination
-2. Relate to the user's focus area
-3. Encourage deep self-reflection and growth
-4. Are specific and actionable, not generic
-5. Build on their spiritual journey
+2. Ask about real life situations, relationships, choices, and personal experiences
+3. Use language like "Where in your life..." "How are you being called..." "What in your current situation..."
+4. Focus on personal growth, relationships, life decisions, and authentic living
+5. Are specific to human experience, not abstract spiritual concepts
+6. Follow this pattern: 2 main reflection questions + 1 "return to throughout the day" question
 
-Format as a JSON array of strings. Each question should be 10-20 words.`;
+Examples of the style:
+- "Where in your life are you being called to choose what sets your heart alight, even if it's uncertain?"
+- "Can you let desire be a guide—not to possession, but to illumination?"
+- "What am I truly devoted to—and does it reflect my truth?"
+
+Format as a JSON array of exactly 3 strings. Make them personal, life-focused, and meaningful.`;
 
   try {
     const completion = await openai.chat.completions.create({
@@ -167,14 +173,14 @@ Format as a JSON array of strings. Each question should be 10-20 words.`;
       messages: [
         {
           role: 'system',
-          content: 'You are a spiritual mentor who creates personalized, thought-provoking reflection questions. Always respond with valid JSON.'
+          content: 'You are a spiritual mentor who creates deeply personal, life-focused reflection questions. Always respond with valid JSON containing exactly 3 questions.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      max_tokens: 300,
+      max_tokens: 400,
       temperature: 0.8,
     });
 
@@ -183,16 +189,19 @@ Format as a JSON array of strings. Each question should be 10-20 words.`;
     try {
       const questions = JSON.parse(response);
       return Response.json({
-        questions: Array.isArray(questions) ? questions : [],
+        questions: Array.isArray(questions) && questions.length >= 3 ? questions.slice(0, 3) : [],
         timestamp: new Date().toISOString()
       });
     } catch (parseError) {
-      // Fallback if JSON parsing fails
+      // Enhanced fallback if JSON parsing fails
+      const primaryKeyword = cardKeywords[0] || 'wisdom';
+      const focusAreaText = focusArea || 'life';
+      
       return Response.json({
         questions: [
-          `How does the energy of ${cardName} guide your ${focusArea || 'spiritual journey'} today?`,
-          `What wisdom from ${hexagramName} can you apply to your current challenges?`,
-          `How can you embody the qualities of ${cardKeywords[0]?.toLowerCase()} in your daily life?`
+          `Where in your ${focusAreaText} are you being called to choose what sets your heart alight, even if it's uncertain?`,
+          `Can you let ${primaryKeyword.toLowerCase()} be a guide—not to possession, but to illumination in your daily choices?`,
+          `What am I truly devoted to—and does it reflect my authentic truth?`
         ],
         timestamp: new Date().toISOString()
       });

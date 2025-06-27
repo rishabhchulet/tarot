@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator } from 'react-native';
-import { MessageCircle, RefreshCw, Lightbulb } from 'lucide-react-native';
+import { MessageCircle, Lightbulb } from 'lucide-react-native';
 import { getAIReflectionPrompts, extractRecentThemes } from '@/utils/ai';
 import { getJournalEntries } from '@/utils/database';
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,8 +31,8 @@ export function DynamicReflectionQuestions({
 }: DynamicReflectionQuestionsProps) {
   const { user } = useAuth();
   const [questions, setQuestions] = useState<string[]>([]);
+  const [shadowQuestion, setShadowQuestion] = useState<string>('');
   const [loading, setLoading] = useState(true);
-  const [regenerating, setRegenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -43,25 +43,26 @@ export function DynamicReflectionQuestions({
   const createPersonalizedFallbackQuestions = () => {
     const primaryKeyword = card.keywords[0] || 'wisdom';
     const secondaryKeyword = card.keywords[1] || 'growth';
-    const focusArea = user?.focusArea || 'spiritual journey';
+    const focusArea = user?.focusArea || 'life';
     
+    // Create more personal, life-focused questions following the pattern
     const fallbackQuestions = [
-      `Where in your life are you being called to choose what sets your heart alight, even if it's uncertain?`,
-      `Can you let ${primaryKeyword.toLowerCase()} be a guide—not to possession, but to illumination?`
+      `Where in your ${focusArea} are you being called to choose what sets your heart alight, even if it's uncertain?`,
+      `Can you let ${primaryKeyword.toLowerCase()} be a guide—not to possession, but to illumination in your daily choices?`
     ];
     
+    // Create a shadow/daily reflection question
+    const fallbackShadowQuestion = `What am I truly devoted to—and does it reflect my authentic truth?`;
+    
     console.log('🔄 Created personalized fallback questions:', fallbackQuestions);
-    return fallbackQuestions;
+    console.log('🌙 Created shadow question:', fallbackShadowQuestion);
+    
+    return { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion };
   };
 
-  const generateQuestions = async (isRegeneration = false) => {
-    console.log(`🤔 ${isRegeneration ? 'Regenerating' : 'Generating'} reflection questions...`);
-    
-    if (isRegeneration) {
-      setRegenerating(true);
-    } else {
-      setLoading(true);
-    }
+  const generateQuestions = async () => {
+    console.log('🤔 Generating personal reflection questions...');
+    setLoading(true);
     setError(null);
 
     try {
@@ -71,7 +72,7 @@ export function DynamicReflectionQuestions({
       const recentThemes = extractRecentThemes(recentEntries);
       console.log('📝 Recent themes extracted:', recentThemes);
 
-      console.log('🤖 Calling AI for reflection prompts...');
+      console.log('🤖 Calling AI for personal reflection prompts...');
       const { questions: aiQuestions, error: aiError } = await getAIReflectionPrompts({
         cardName: card.name,
         cardKeywords: card.keywords,
@@ -82,36 +83,29 @@ export function DynamicReflectionQuestions({
 
       console.log('📋 AI response:', { aiQuestions, aiError });
 
-      if (aiError) {
-        console.warn('⚠️ AI questions error, using personalized fallback:', aiError);
-        setError('Using personalized questions');
-        const fallbackQuestions = createPersonalizedFallbackQuestions();
+      if (aiError || !aiQuestions || !Array.isArray(aiQuestions) || aiQuestions.length < 3) {
+        console.warn('⚠️ AI questions insufficient, using personalized fallback. Received:', aiQuestions);
+        setError(null); // Don't show error to user
+        const { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion } = createPersonalizedFallbackQuestions();
         setQuestions(fallbackQuestions);
-      } else if (!aiQuestions || !Array.isArray(aiQuestions) || aiQuestions.length < 2) {
-        console.warn('⚠️ Insufficient AI questions, using personalized fallback. Received:', aiQuestions);
-        setError('Using personalized questions');
-        const fallbackQuestions = createPersonalizedFallbackQuestions();
-        setQuestions(fallbackQuestions);
+        setShadowQuestion(fallbackShadowQuestion);
       } else {
         console.log('✅ AI questions generated successfully:', aiQuestions);
-        setQuestions(aiQuestions.slice(0, 2)); // Only take first 2 questions
+        // Take first 2 questions for main reflection, 3rd for shadow question
+        setQuestions(aiQuestions.slice(0, 2));
+        setShadowQuestion(aiQuestions[2] || createPersonalizedFallbackQuestions().shadowQuestion);
         setError(null);
       }
     } catch (err: any) {
       console.error('❌ Error generating questions:', err);
-      setError('Using personalized questions');
-      const fallbackQuestions = createPersonalizedFallbackQuestions();
+      setError(null); // Don't show error to user
+      const { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion } = createPersonalizedFallbackQuestions();
       setQuestions(fallbackQuestions);
+      setShadowQuestion(fallbackShadowQuestion);
     } finally {
       setLoading(false);
-      setRegenerating(false);
       console.log('🏁 Question generation complete');
     }
-  };
-
-  const handleRegenerate = () => {
-    console.log('🔄 User requested question regeneration');
-    generateQuestions(true);
   };
 
   const handleQuestionPress = (questionIndex: number) => {
@@ -127,11 +121,11 @@ export function DynamicReflectionQuestions({
       <View style={styles.container}>
         <View style={styles.header}>
           <MessageCircle size={16} color="#3B82F6" />
-          <Text style={styles.title}>Reflection Questions</Text>
+          <Text style={styles.title}>Your Reflection Today</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#3B82F6" />
-          <Text style={styles.loadingText}>Crafting personalized questions...</Text>
+          <Text style={styles.loadingText}>Crafting your personal questions...</Text>
         </View>
       </View>
     );
@@ -139,80 +133,75 @@ export function DynamicReflectionQuestions({
 
   return (
     <View style={styles.container}>
+      {/* Header following the pattern */}
       <View style={styles.header}>
-        <MessageCircle size={16} color="#3B82F6" />
-        <Text style={styles.title}>Reflection Questions</Text>
-        <Pressable
-          style={[styles.regenerateButton, regenerating && styles.regenerateButtonDisabled]}
-          onPress={handleRegenerate}
-          disabled={regenerating}
-        >
-          <RefreshCw 
-            size={12} 
-            color={regenerating ? "#6B7280" : "#9CA3AF"} 
-          />
-        </Pressable>
+        <Text style={styles.title}>Your Reflection Today</Text>
       </View>
 
-      {error && (
-        <Text style={styles.errorText}>{error}</Text>
-      )}
+      {/* Card and Hexagram description */}
+      <View style={styles.descriptionContainer}>
+        <Text style={styles.descriptionText}>
+          <Text style={styles.cardName}>{card.name}</Text> speaks to {card.keywords.slice(0, 2).join(', ').toLowerCase()}, and the deep mirroring that occurs in relationships—both with others and within yourself.
+        </Text>
+        <Text style={styles.descriptionText}>
+          <Text style={styles.hexagramName}>Hexagram {hexagram.name}</Text> invites you to honor the intensity of your inner flame: your desire, your devotion, and what lights you up from within.
+        </Text>
+      </View>
 
-      {/* Question 1 */}
-      <View style={styles.questionContainer}>
+      {/* Together, this pairing asks: */}
+      <View style={styles.pairingContainer}>
+        <Text style={styles.pairingTitle}>Together, this pairing asks:</Text>
+        
+        {/* Question 1 */}
         <Pressable
           style={styles.questionButton}
           onPress={() => handleQuestionPress(0)}
         >
-          <View style={styles.questionContent}>
-            <Lightbulb size={12} color="#3B82F6" />
-            <Text style={styles.questionText}>
-              {questions[0] || 'Where in your life are you being called to choose what sets your heart alight?'}
-            </Text>
-          </View>
+          <Text style={styles.questionText}>
+            {questions[0] || 'Where in your life are you being called to choose what sets your heart alight, even if it\'s uncertain?'}
+          </Text>
         </Pressable>
         
         <TextInput
           style={styles.textInput}
           value={reflection1}
           onChangeText={setReflection1}
-          placeholder="Share your thoughts..."
+          placeholder="Share your thoughts and feelings..."
           placeholderTextColor="#6B7280"
           multiline
-          numberOfLines={2}
+          numberOfLines={3}
           textAlignVertical="top"
         />
-      </View>
 
-      {/* Question 2 */}
-      <View style={styles.questionContainer}>
+        {/* Question 2 */}
         <Pressable
           style={styles.questionButton}
           onPress={() => handleQuestionPress(1)}
         >
-          <View style={styles.questionContent}>
-            <Lightbulb size={12} color="#3B82F6" />
-            <Text style={styles.questionText}>
-              {questions[1] || 'Can you let desire be a guide—not to possession, but to illumination?'}
-            </Text>
-          </View>
+          <Text style={styles.questionText}>
+            {questions[1] || 'Can you let desire be a guide—not to possession, but to illumination?'}
+          </Text>
         </Pressable>
         
         <TextInput
           style={styles.textInput}
           value={reflection2}
           onChangeText={setReflection2}
-          placeholder="Share your thoughts..."
+          placeholder="How does this message relate to your current journey?"
           placeholderTextColor="#6B7280"
           multiline
-          numberOfLines={2}
+          numberOfLines={3}
           textAlignVertical="top"
         />
       </View>
 
-      <Text style={styles.footerText}>
-        ✨ Questions personalized for your {user?.focusArea || 'spiritual journey'}
-      </Text>
+      {/* Return to this question throughout the day */}
+      <View style={styles.shadowContainer}>
+        <Text style={styles.shadowTitle}>Return to this question throughout the day:</Text>
+        <Text style={styles.shadowQuestion}>
+          "{shadowQuestion || 'What am I truly devoted to—and does it reflect my truth?'}"
+        </Text>
+      </View>
     </View>
   );
 }
@@ -221,36 +210,27 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 16,
   },
   title: {
-    fontSize: 15,
-    fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#3B82F6',
-    flex: 1,
-  },
-  regenerateButton: {
-    padding: 4,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  regenerateButtonDisabled: {
-    opacity: 0.5,
+    fontSize: 18,
+    fontFamily: 'CormorantGaramond-Bold',
+    color: '#F3F4F6',
+    textAlign: 'center',
   },
   loadingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 12,
+    justifyContent: 'center',
   },
   loadingText: {
     fontSize: 12,
@@ -258,52 +238,79 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
-  errorText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Regular',
-    color: '#F59E0B',
-    marginBottom: 8,
-    textAlign: 'center',
+  
+  // Description section
+  descriptionContainer: {
+    marginBottom: 16,
   },
-  questionContainer: {
+  descriptionText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#D1D5DB',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  cardName: {
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F59E0B',
+  },
+  hexagramName: {
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#3B82F6',
+  },
+  
+  // Pairing section
+  pairingContainer: {
+    marginBottom: 16,
+  },
+  pairingTitle: {
+    fontSize: 15,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F3F4F6',
     marginBottom: 12,
   },
   questionButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-  },
-  questionContent: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
+    marginBottom: 8,
+    paddingVertical: 4,
   },
   questionText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
     color: '#F3F4F6',
-    lineHeight: 16,
-    flex: 1,
+    lineHeight: 20,
   },
   textInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 8,
-    padding: 8,
-    fontSize: 12,
+    padding: 12,
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#F3F4F6',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    minHeight: 50,
+    minHeight: 70,
+    marginBottom: 16,
   },
-  footerText: {
-    fontSize: 11,
+  
+  // Shadow question section
+  shadowContainer: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
+  shadowTitle: {
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 8,
+    color: '#F59E0B',
+    marginBottom: 6,
+  },
+  shadowQuestion: {
+    fontSize: 14,
+    fontFamily: 'CormorantGaramond-SemiBold',
+    color: '#F3F4F6',
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
 });

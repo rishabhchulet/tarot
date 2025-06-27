@@ -144,8 +144,6 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reflect on Your Draw</Text>
-      
       {/* Compact Spiritual Messages Header */}
       <View style={styles.messagesHeader}>
         <View style={styles.messageCard}>
@@ -165,7 +163,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         hexagram={hexagram}
       />
 
-      {/* Compact Dynamic Questions */}
+      {/* Enhanced Dynamic Questions - No scrolling needed */}
       <DynamicReflectionQuestions
         card={card}
         hexagram={hexagram}
@@ -254,13 +252,6 @@ const styles = StyleSheet.create({
     height: screenHeight - 140, // Account for tab bar
     paddingHorizontal: 20,
     paddingVertical: 8,
-  },
-  title: {
-    fontSize: 22,
-    fontFamily: 'CormorantGaramond-Bold',
-    color: '#F3F4F6',
-    textAlign: 'center',
-    marginBottom: 12,
   },
   
   // Ultra Compact Messages Header

@@ -70,27 +70,6 @@ export function SupabaseTest() {
     }
   };
 
-  const runUserAccessDebug = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert('No authenticated user found');
-        return;
-      }
-
-      const { data, error } = await supabase.rpc('debug_user_access', { user_uuid: user.id });
-      
-      if (error) {
-        alert(`Debug error: ${error.message}`);
-      } else {
-        const debugText = data.map((row: any) => `${row.test_name}: ${row.result} - ${row.details}`).join('\n');
-        alert(`User Access Debug:\n\n${debugText}`);
-      }
-    } catch (error: any) {
-      alert(`Debug failed: ${error.message}`);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Supabase Connection Test</Text>
@@ -137,10 +116,6 @@ export function SupabaseTest() {
 
       <Pressable style={styles.button} onPress={fetchDebugInfo}>
         <Text style={styles.buttonText}>Show Debug Info</Text>
-      </Pressable>
-
-      <Pressable style={styles.button} onPress={runUserAccessDebug}>
-        <Text style={styles.buttonText}>Debug User Access</Text>
       </Pressable>
     </View>
   );

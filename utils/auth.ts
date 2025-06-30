@@ -176,15 +176,6 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
     
     console.log('🔍 Database access test:', testResult);
     
-    // Try to get existing profile with debugging
-    const debugResult = await createTimeoutWrapper(
-      () => supabase.rpc('debug_user_access', { user_uuid: user.id }),
-      3000,
-      []
-    );
-    
-    console.log('🔍 User access debug:', debugResult);
-    
     // Check if profile exists
     const { data: existingProfile, error: selectError } = await createTimeoutWrapper(
       () => supabase
@@ -280,17 +271,8 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // CRITICAL FIX: Try to get profile data with immediate fallback and debugging
+    // CRITICAL FIX: Try to get profile data with immediate fallback
     try {
-      // First, run debug check
-      const debugResult = await createTimeoutWrapper(
-        () => supabase.rpc('debug_user_access', { user_uuid: user.id }),
-        2000,
-        []
-      );
-      
-      console.log('🔍 User access debug in getCurrentUser:', debugResult);
-      
       const profileResult = await createTimeoutWrapper(
         () => supabase
           .from('users')
@@ -347,19 +329,6 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
     }
 
     console.log('👤 Updating profile for user:', user.id);
-
-    // CRITICAL FIX: Run debug check before update
-    try {
-      const debugResult = await createTimeoutWrapper(
-        () => supabase.rpc('debug_user_access', { user_uuid: user.id }),
-        2000,
-        []
-      );
-      
-      console.log('🔍 Pre-update debug check:', debugResult);
-    } catch (debugError) {
-      console.warn('⚠️ Debug check failed:', debugError);
-    }
 
     // Prepare the update data
     const updateData: any = {

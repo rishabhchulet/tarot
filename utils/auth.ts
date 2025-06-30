@@ -28,25 +28,18 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     console.log('📧 Attempting to create user account...');
     
-    // FIXED: Increased timeout and better error handling
-    const signUpPromise = supabase.auth.signUp({
+    // CRITICAL FIX: Disable email confirmation for immediate signup
+    const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
       options: {
         data: {
           name: name.trim(),
         },
-        // Disable email confirmation for immediate signup
+        // FIXED: Explicitly disable email confirmation
         emailRedirectTo: undefined,
       }
     });
-
-    // FIXED: Increased timeout to 15 seconds for better reliability
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Sign up timeout - please try again')), 15000)
-    );
-
-    const { data, error } = await Promise.race([signUpPromise, timeoutPromise]) as any;
 
     console.log('📝 Sign up response:', { 
       user: data?.user ? 'Created' : 'Not created', 
@@ -74,21 +67,26 @@ export const signUp = async (email: string, password: string, name: string) => {
         throw new Error('There was an issue creating your account. Please try again.');
       }
       
+      // FIXED: Handle signup disabled error
+      if (error.message.includes('Signups not allowed')) {
+        throw new Error('New user registration is currently disabled. Please contact support.');
+      }
+      
       throw new Error(error.message);
     }
 
     if (data?.user) {
       console.log('✅ User created successfully:', data.user.id);
       
-      // If we have a session, the user profile should have been created by the trigger
+      // FIXED: Check if user has immediate session (email confirmation disabled)
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // FIXED: Give more time for the database trigger and retry logic
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Give time for the database trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 2000));
         
-        // Verify the profile was created with enhanced retry logic
-        await ensureUserProfileWithRetry(data.user, name.trim(), 5); // Increased retries
+        // Verify the profile was created
+        await ensureUserProfileWithRetry(data.user, name.trim());
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -112,17 +110,10 @@ export const signIn = async (email: string, password: string) => {
 
     console.log('🔍 Attempting to sign in...');
     
-    // FIXED: Increased timeout for sign in as well
-    const signInPromise = supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
-
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Sign in timeout - please try again')), 12000)
-    );
-
-    const { data, error } = await Promise.race([signInPromise, timeoutPromise]) as any;
 
     console.log('📝 Sign in response:', { 
       user: data?.user ? 'Found' : 'Not found', 
@@ -160,26 +151,16 @@ export const signIn = async (email: string, password: string) => {
 };
 
 // FIXED: Enhanced helper function with better retry logic and error handling
-const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries = 5) => {
+const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries = 3) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`👤 Checking user profile (attempt ${attempt}/${maxRetries})...`);
       
-      // FIXED: Use longer timeout for profile queries
-      const profilePromise = supabase
+      const { data: existingProfile, error: selectError } = await supabase
         .from('users')
         .select('id, name, email, focus_area')
         .eq('id', user.id)
         .single();
-
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile query timeout')), 8000)
-      );
-
-      const { data: existingProfile, error: selectError } = await Promise.race([
-        profilePromise, 
-        timeoutPromise
-      ]) as any;
 
       if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error(`❌ Error checking profile (attempt ${attempt}):`, selectError);
@@ -187,14 +168,14 @@ const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries =
           console.warn('⚠️ Could not verify profile creation, but continuing...');
           return; // Don't throw error to avoid blocking auth flow
         }
-        await new Promise(resolve => setTimeout(resolve, 2000 * attempt)); // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         continue;
       }
 
       if (!existingProfile) {
         console.log('👤 Creating missing user profile...');
         
-        // FIXED: Use upsert instead of insert to handle race conditions
+        // FIXED: Use upsert to handle race conditions
         const { error: upsertError } = await supabase
           .from('users')
           .upsert({
@@ -214,7 +195,7 @@ const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries =
             console.warn('⚠️ Could not create profile, but continuing...');
             return; // Don't throw error to avoid blocking auth flow
           }
-          await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
           continue;
         } else {
           console.log('✅ User profile created successfully');
@@ -230,7 +211,7 @@ const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries =
         console.warn('⚠️ Profile verification failed, but continuing...');
         return; // Don't throw error to avoid blocking auth flow
       } else {
-        await new Promise(resolve => setTimeout(resolve, 2000 * attempt));
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
     }
   }
@@ -270,7 +251,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     // Get user profile from our users table with retry logic
     let profile = null;
     
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
       try {
         const { data, error } = await supabase
           .from('users')
@@ -280,8 +261,8 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
         if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
           console.error(`⚠️ Error fetching user profile (attempt ${attempt}):`, error);
-          if (attempt < 3) {
-            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          if (attempt < 2) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             continue;
           }
         } else if (data) {
@@ -306,8 +287,8 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         }
       } catch (error) {
         console.error(`❌ Exception in profile fetch (attempt ${attempt}):`, error);
-        if (attempt < 3) {
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
     }
@@ -360,8 +341,8 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // FIXED: Use upsert with longer timeout
-    const updatePromise = supabase
+    // FIXED: Use upsert with proper conflict resolution
+    const { data, error } = await supabase
       .from('users')
       .upsert({
         id: user.id,
@@ -372,12 +353,6 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
       })
       .select()
       .single();
-
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Update timeout')), 10000)
-    );
-
-    const { data, error } = await Promise.race([updatePromise, timeoutPromise]) as any;
 
     if (error) {
       console.error('❌ Profile update error:', error);

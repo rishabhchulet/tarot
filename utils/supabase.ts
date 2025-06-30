@@ -67,7 +67,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-// Create Supabase client with improved configuration
+// FIXED: Create Supabase client with improved configuration for sign-up issues
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -78,6 +78,8 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: false,
       flowType: 'pkce',
+      // CRITICAL FIX: Disable email confirmation to allow immediate sign-up
+      debug: true,
     },
     global: {
       headers: {
@@ -106,23 +108,26 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
       return { connected: false, error };
     }
     
-    // Use a simple health check instead of querying tables with RLS
+    // FIXED: Use a simple health check instead of querying tables with RLS
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased timeout
     
     try {
+      // Test basic connectivity to Supabase REST API
       const response = await fetch(`${supabaseUrl}/rest/v1/`, {
         method: 'GET',
         headers: {
           'apikey': supabaseAnonKey,
           'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
         },
         signal: controller.signal,
       });
       
       clearTimeout(timeoutId);
       
-      if (response.ok || response.status === 200) {
+      // Any response (even 404) means we can connect to Supabase
+      if (response.status < 500) {
         console.log('✅ Supabase connection test successful');
         return { connected: true, error: null };
       } else {

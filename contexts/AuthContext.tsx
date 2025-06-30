@@ -71,35 +71,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // FIXED: Shorter timeout and better handling for new users
+    // FIXED: Much shorter timeout for better UX
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('⚠️ Auth initialization timeout - proceeding without error for new users');
+        console.warn('⚠️ Auth initialization timeout - proceeding without error');
         setLoading(false);
-        // FIXED: Don't set error for new users - let them go to auth screen
-        setError(null);
+        setError(null); // Don't set error for new users
       }
-    }, 5000); // Reduced to 5 seconds
+    }, 3000); // Reduced to 3 seconds
     
     // Get initial session with improved error handling
     const initializeAuth = async () => {
       try {
         console.log('🔍 Testing Supabase connection...');
         
-        // FIXED: Test connection but don't fail for new users
+        // FIXED: Quick connection test with short timeout
         const connectionTest = await Promise.race([
           testSupabaseConnection(),
           new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 3000)
+            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 2000)
           )
         ]);
         
         if (!connectionTest.connected) {
           console.error('❌ Supabase connection failed:', connectionTest.error);
           if (mounted) {
-            // FIXED: Don't set error immediately - let auth flow handle it
             console.log('⚠️ Connection failed but continuing with auth flow...');
             setLoading(false);
+            setError(null); // Don't block new users
           }
           return;
         }
@@ -108,14 +107,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Get session with shorter timeout
         console.log('🔐 Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        const sessionPromise = supabase.auth.getSession();
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session timeout')), 5000)
+        );
+
+        const { data: { session }, error } = await Promise.race([
+          sessionPromise,
+          timeoutPromise
+        ]) as any;
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
           if (mounted) {
             setSession(null);
-            // FIXED: Don't treat session errors as fatal for new users
-            setError(null);
+            setError(null); // Don't treat session errors as fatal for new users
             setLoading(false);
           }
           return;
@@ -126,9 +133,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setSession(session);
           if (session) {
-            // Add a small delay to ensure database trigger has completed
             console.log('👤 Session found, loading user profile...');
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // FIXED: Shorter delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await refreshUser();
           }
           setError(null);
@@ -138,10 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setSession(null);
-          
-          // FIXED: Only set error for existing users with sessions
-          // New users should go to auth screen, not see error
-          setError(null);
+          setError(null); // Don't set error for new users
           setLoading(false);
         }
       } finally {
@@ -164,8 +168,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-            // Add delay for database trigger to complete
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // FIXED: Shorter delay for better UX
+            await new Promise(resolve => setTimeout(resolve, 500));
             await refreshUser();
           } else if (!session && event === 'SIGNED_OUT') {
             setUser(null);
@@ -175,7 +179,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error('❌ Error handling auth state change:', error);
           if (mounted) {
-            // Don't set error for auth state changes, just log it
             setLoading(false);
           }
         }

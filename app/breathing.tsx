@@ -11,7 +11,7 @@ import Animated, {
   withSequence 
 } from 'react-native-reanimated';
 
-export default function BreathScreen() {
+export default function BreathingScreen() {
   const [phase, setPhase] = useState<'prepare' | 'breathing' | 'complete'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
   const circleScale = useSharedValue(0.8);

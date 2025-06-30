@@ -57,7 +57,7 @@ export default function TutorialScreen() {
     }
     
     console.log('📱 Navigating to breathing exercise...');
-    router.replace('/onboarding/breath');
+    router.replace('/breathing');
   };
 
   const handleSkip = () => {

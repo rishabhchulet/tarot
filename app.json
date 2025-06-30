@@ -1,23 +1,23 @@
 {
   "expo": {
-    "name": "Daily Tarot Reflection",
-    "slug": "daily-tarot-reflection",
+    "name": "Daily Inner Reflection",
+    "slug": "daily-inner-reflection",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "dailytarot",
+    "scheme": "dailyinner",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.dailytarot.reflection"
+      "bundleIdentifier": "com.dailyinner.reflection"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#6B46C1"
       },
-      "package": "com.dailytarot.reflection"
+      "package": "com.dailyinner.reflection"
     },
     "web": {
       "bundler": "metro",

@@ -47,10 +47,10 @@ export default function AuthWelcomeScreen() {
           <Sparkles size={80} color="#F59E0B" strokeWidth={1.5} />
         </Animated.View>
         
-        <Text style={styles.title}>Daily Tarot{'\n'}Reflection</Text>
+        <Text style={styles.title}>Daily Inner{'\n'}Reflection</Text>
         
         <Text style={styles.subtitle}>
-          Connect with your inner wisdom through daily spiritual practice.
+          Connect directly with your inner wisdom through this daily mirror into yourself.
         </Text>
         
         <Text style={styles.description}>

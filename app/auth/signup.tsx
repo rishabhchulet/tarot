@@ -109,7 +109,7 @@ export default function SignUpScreen() {
           <CheckCircle size={64} color="#10B981" />
           <Text style={styles.successTitle}>Account Created!</Text>
           <Text style={styles.successMessage}>
-            Welcome to Daily Tarot Reflection! Let's set up your spiritual journey.
+            Welcome to Daily Inner Reflection! Let's set up your spiritual journey.
           </Text>
         </View>
       </LinearGradient>

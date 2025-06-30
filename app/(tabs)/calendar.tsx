@@ -65,7 +65,7 @@ export default function CalendarScreen() {
     >
       <View style={styles.header}>
         <Text style={styles.title}>Your Journey</Text>
-        <Text style={styles.subtitle}>Tracking your spiritual growth</Text>
+        <Text style={styles.subtitle}>Tracking your inner growth</Text>
         
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
@@ -88,7 +88,7 @@ export default function CalendarScreen() {
             <CalendarIcon size={64} color="#6B7280" strokeWidth={1.5} />
             <Text style={styles.emptyTitle}>Your journey begins</Text>
             <Text style={styles.emptyDescription}>
-              Start your daily practice to see your spiritual growth over time.
+              Start your daily practice to see your inner growth over time.
             </Text>
           </View>
         ) : (

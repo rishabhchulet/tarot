@@ -75,7 +75,7 @@ export default function SignInScreen() {
             <ArrowLeft size={24} color="#F3F4F6" />
           </Pressable>
           <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Continue your spiritual journey</Text>
+          <Text style={styles.subtitle}>Continue your inner journey</Text>
         </View>
 
         <View style={styles.form}>

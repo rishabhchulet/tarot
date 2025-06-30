@@ -66,7 +66,7 @@ export default function BreathScreen() {
           <>
             <Text style={styles.title}>Take a Deep Breath</Text>
             <Text style={styles.subtitle}>
-              Let's set your intention for this spiritual journey together.
+              Let's set your intention for this inner journey together.
             </Text>
             <Text style={styles.description}>
               Find a comfortable position and prepare to breathe deeply with me.

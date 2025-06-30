@@ -33,7 +33,7 @@ export default function JournalScreen() {
             <BookOpen size={64} color="#6B7280" strokeWidth={1.5} />
             <Text style={styles.emptyTitle}>No entries yet</Text>
             <Text style={styles.emptyDescription}>
-              Your daily reflections will appear here as you build your spiritual practice.
+              Your daily reflections will appear here as you build your inner practice.
             </Text>
           </View>
         ) : (

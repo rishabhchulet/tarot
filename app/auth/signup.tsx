@@ -109,7 +109,7 @@ export default function SignUpScreen() {
           <CheckCircle size={64} color="#10B981" />
           <Text style={styles.successTitle}>Account Created!</Text>
           <Text style={styles.successMessage}>
-            Welcome to Daily Inner Reflection! Let's set up your spiritual journey.
+            Welcome to Daily Inner Reflection! Let's set up your inner journey.
           </Text>
         </View>
       </LinearGradient>
@@ -127,7 +127,7 @@ export default function SignUpScreen() {
             <ArrowLeft size={24} color="#F3F4F6" />
           </Pressable>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Begin your spiritual journey</Text>
+          <Text style={styles.subtitle}>Begin your inner journey</Text>
         </View>
 
         <View style={styles.form}>

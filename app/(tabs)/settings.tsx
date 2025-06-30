@@ -211,7 +211,7 @@ export default function SettingsScreen() {
 
         <View style={styles.footer}>
           <Text style={styles.version}>Daily Inner Reflection v1.0</Text>
-          <Text style={styles.footerText}>Made with ♡ for your spiritual journey</Text>
+          <Text style={styles.footerText}>Made with ♡ for your inner journey</Text>
         </View>
       </ScrollView>
     </LinearGradient>

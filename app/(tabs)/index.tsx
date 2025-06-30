@@ -389,7 +389,7 @@ export default function TodayScreen() {
           <View style={styles.nextCardInfo}>
             <Text style={styles.nextCardTitle}>Tomorrow's Practice</Text>
             <Text style={styles.nextCardText}>
-              Return tomorrow for your next daily card and spiritual guidance.
+              Return tomorrow for your next daily card and inner guidance.
             </Text>
           </View>
         </ScrollView>

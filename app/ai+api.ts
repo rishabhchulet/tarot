@@ -87,9 +87,9 @@ async function handleCardInterpretation(data: {
 }, openai: OpenAI) {
   const { cardName, cardKeywords, hexagramName, hexagramNumber, focusArea, userContext } = data;
 
-  const prompt = `You are a wise and compassionate spiritual guide specializing in tarot and I Ching interpretations. 
+  const prompt = `You are a wise and compassionate inner guide specializing in tarot and I Ching interpretations. 
 
-Today's spiritual combination:
+Today's inner combination:
 - Tarot Card: ${cardName}
 - Keywords: ${cardKeywords.join(', ')}
 - I Ching Hexagram: ${hexagramName} (#${hexagramNumber})
@@ -99,7 +99,7 @@ ${userContext ? `- Current Context: ${userContext}` : ''}
 Create a personalized, insightful interpretation that:
 1. Connects the tarot card and I Ching hexagram meaningfully
 2. Relates to the user's focus area (if provided)
-3. Offers practical spiritual guidance for today
+3. Offers practical inner guidance for today
 4. Is warm, encouraging, and empowering
 5. Avoids generic fortune-telling language
 
@@ -111,7 +111,7 @@ Keep the response between 150-250 words, written in a conversational, supportive
       messages: [
         {
           role: 'system',
-          content: 'You are a compassionate spiritual guide who provides personalized, insightful interpretations of tarot and I Ching combinations. Your responses are warm, practical, and empowering.'
+          content: 'You are a compassionate inner guide who provides personalized, insightful interpretations of tarot and I Ching combinations. Your responses are warm, practical, and empowering.'
         },
         {
           role: 'user',
@@ -143,9 +143,9 @@ async function handleReflectionPrompts(data: {
 }, openai: OpenAI) {
   const { cardName, cardKeywords, hexagramName, focusArea, previousEntries } = data;
 
-  const prompt = `You are a thoughtful spiritual mentor creating deeply personal reflection questions that connect to real life experiences.
+  const prompt = `You are a thoughtful inner mentor creating deeply personal reflection questions that connect to real life experiences.
 
-Today's spiritual draw:
+Today's inner draw:
 - Tarot Card: ${cardName}
 - Keywords: ${cardKeywords.join(', ')}
 - I Ching Hexagram: ${hexagramName}
@@ -157,7 +157,7 @@ Generate 3 deeply personal, life-focused reflection questions that:
 2. Ask about real life situations, relationships, choices, and personal experiences
 3. Use language like "Where in your life..." "How are you being called..." "What in your current situation..."
 4. Focus on personal growth, relationships, life decisions, and authentic living
-5. Are specific to human experience, not abstract spiritual concepts
+5. Are specific to human experience, not abstract inner concepts
 6. Follow this pattern: 2 main reflection questions + 1 "return to throughout the day" question
 
 Examples of the style:
@@ -173,7 +173,7 @@ Format as a JSON array of exactly 3 strings. Make them personal, life-focused, a
       messages: [
         {
           role: 'system',
-          content: 'You are a spiritual mentor who creates deeply personal, life-focused reflection questions. Always respond with valid JSON containing exactly 3 questions.'
+          content: 'You are an inner mentor who creates deeply personal, life-focused reflection questions. Always respond with valid JSON containing exactly 3 questions.'
         },
         {
           role: 'user',
@@ -221,19 +221,19 @@ async function handlePersonalizedGuidance(data: {
 }, openai: OpenAI) {
   const { cardName, hexagramName, focusArea, timeOfDay, mood } = data;
 
-  const prompt = `You are a gentle spiritual companion offering personalized daily guidance.
+  const prompt = `You are a gentle inner companion offering personalized daily guidance.
 
 Current moment:
 - Tarot Card: ${cardName}
 - I Ching Hexagram: ${hexagramName}
-- Focus Area: ${focusArea || 'general spiritual growth'}
+- Focus Area: ${focusArea || 'general inner growth'}
 - Time: ${timeOfDay}
 ${mood ? `- Current mood/energy: ${mood}` : ''}
 
-Provide a brief, personalized spiritual message (50-80 words) that:
+Provide a brief, personalized inner message (50-80 words) that:
 1. Acknowledges their current energy and time of day
 2. Offers gentle guidance based on the card and hexagram
-3. Includes a simple, actionable suggestion for their ${focusArea || 'spiritual practice'}
+3. Includes a simple, actionable suggestion for their ${focusArea || 'inner practice'}
 4. Is encouraging and supportive
 
 Write in a warm, friend-like tone as if you're checking in on them personally.`;
@@ -244,7 +244,7 @@ Write in a warm, friend-like tone as if you're checking in on them personally.`;
       messages: [
         {
           role: 'system',
-          content: 'You are a caring spiritual friend who offers gentle, personalized guidance. Your messages are brief, warm, and actionable.'
+          content: 'You are a caring inner friend who offers gentle, personalized guidance. Your messages are brief, warm, and actionable.'
         },
         {
           role: 'user',

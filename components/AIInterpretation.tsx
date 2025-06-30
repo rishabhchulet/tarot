@@ -100,7 +100,7 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     const primaryKeyword = card.keywords[0] || 'wisdom';
     const secondaryKeyword = card.keywords[1] || 'growth';
     const thirdKeyword = card.keywords[2] || 'insight';
-    const focusArea = user?.focusArea || 'spiritual journey';
+    const focusArea = user?.focusArea || 'inner journey';
     
     return `${card.name} speaks to ${primaryKeyword.toLowerCase()}, ${secondaryKeyword.toLowerCase()}, and ${thirdKeyword.toLowerCase()}—inviting deep reflection on your ${focusArea}. ${hexagram.name} converges with this energy, encouraging you to trust your inner guidance as you navigate this transformative moment with clarity and purpose.`;
   };
@@ -110,7 +110,7 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
       <View style={styles.container}>
         <View style={styles.header}>
           <Brain size={16} color="#F59E0B" />
-          <Text style={styles.title}>Spiritual Insight</Text>
+          <Text style={styles.title}>Inner Insight</Text>
         </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#F59E0B" />
@@ -124,13 +124,13 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     <View style={styles.container}>
       <View style={styles.header}>
         <Sparkles size={16} color="#F59E0B" />
-        <Text style={styles.title}>Spiritual Insight</Text>
+        <Text style={styles.title}>Inner Insight</Text>
       </View>
       <Text style={styles.interpretation}>
         {interpretation || createFallbackInsight()}
       </Text>
       {error && (
-        <Text style={styles.fallbackNote}>✨ Personalized for your spiritual journey</Text>
+        <Text style={styles.fallbackNote}>✨ Personalized for your inner journey</Text>
       )}
     </View>
   );

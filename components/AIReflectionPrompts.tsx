@@ -52,7 +52,7 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
         setError(aiError);
         // Fallback prompts
         setPrompts([
-          `How does the energy of ${card.name} guide your spiritual journey today?`,
+          `How does the energy of ${card.name} guide your inner journey today?`,
           `What wisdom from ${hexagram.name} can you apply to your current challenges?`,
           `How can you embody the qualities of ${card.keywords[0]?.toLowerCase()} in your daily life?`
         ]);
@@ -65,7 +65,7 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
       setPrompts([
         `What message does ${card.name} have for you today?`,
         `How can ${hexagram.name} guide your current path?`,
-        `What insights emerge when you reflect on today's spiritual combination?`
+        `What insights emerge when you reflect on today's inner combination?`
       ]);
     } finally {
       setLoading(false);
@@ -132,7 +132,7 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
       </View>
 
       <Text style={styles.footerText}>
-        ✨ Questions personalized for your {user?.focusArea || 'spiritual journey'}
+        ✨ Questions personalized for your {user?.focusArea || 'inner journey'}
       </Text>
     </View>
   );

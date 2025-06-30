@@ -8,8 +8,8 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const QUIZ_OPTIONS = [
   {
-    id: 'spiritual',
-    title: 'Spiritual Development',
+    id: 'inner',
+    title: 'Inner Development',
     icon: Heart,
     description: 'Connecting with your inner wisdom and higher self',
   },

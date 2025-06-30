@@ -82,6 +82,13 @@ export const signUp = async (email: string, password: string, name: string) => {
       
       if (data.session) {
         console.log('✅ User signed in immediately with session');
+        
+        // CRITICAL FIX: Ensure user profile exists after signup
+        try {
+          await ensureUserProfileExists(data.user, name.trim());
+        } catch (profileError) {
+          console.warn('⚠️ Profile creation had issues, but continuing:', profileError);
+        }
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -139,12 +146,100 @@ export const signIn = async (email: string, password: string) => {
 
     if (data?.user && data?.session) {
       console.log('✅ Sign in successful for user:', data.user.id);
+      
+      // Try to ensure user profile exists
+      try {
+        await ensureUserProfileExists(data.user);
+      } catch (profileError) {
+        console.warn('⚠️ Profile check had issues, but continuing:', profileError);
+      }
     }
 
     return { user: data?.user, error: null };
   } catch (error: any) {
     console.error('❌ Sign in error:', error);
     return { user: null, error: error.message || 'An unexpected error occurred during sign in' };
+  }
+};
+
+// CRITICAL FIX: Enhanced profile creation with debugging
+const ensureUserProfileExists = async (user: any, name?: string) => {
+  try {
+    console.log('👤 Ensuring user profile exists for:', user.id);
+    
+    // First, test database access
+    const testResult = await createTimeoutWrapper(
+      () => supabase.rpc('test_database_access'),
+      3000,
+      []
+    );
+    
+    console.log('🔍 Database access test:', testResult);
+    
+    // Try to get existing profile with debugging
+    const debugResult = await createTimeoutWrapper(
+      () => supabase.rpc('debug_user_access', { user_uuid: user.id }),
+      3000,
+      []
+    );
+    
+    console.log('🔍 User access debug:', debugResult);
+    
+    // Check if profile exists
+    const { data: existingProfile, error: selectError } = await createTimeoutWrapper(
+      () => supabase
+        .from('users')
+        .select('id, name, email, focus_area')
+        .eq('id', user.id)
+        .single(),
+      3000,
+      { data: null, error: { code: 'PGRST116' } }
+    );
+
+    if (selectError && selectError.code !== 'PGRST116') {
+      console.error('❌ Error checking profile:', selectError);
+      
+      // Try using the safe creation function
+      const safeResult = await createTimeoutWrapper(
+        () => supabase.rpc('create_user_profile_safe', {
+          user_id: user.id,
+          user_email: user.email,
+          user_name: name || user.user_metadata?.name || 'User'
+        }),
+        5000,
+        [{ success: false, message: 'Timeout' }]
+      );
+      
+      console.log('🔧 Safe profile creation result:', safeResult);
+      return;
+    }
+
+    if (!existingProfile) {
+      console.log('👤 Creating missing user profile...');
+      
+      // Use the safe creation function
+      const safeResult = await createTimeoutWrapper(
+        () => supabase.rpc('create_user_profile_safe', {
+          user_id: user.id,
+          user_email: user.email,
+          user_name: name || user.user_metadata?.name || 'User'
+        }),
+        5000,
+        [{ success: false, message: 'Timeout' }]
+      );
+      
+      console.log('🔧 Safe profile creation result:', safeResult);
+      
+      if (safeResult && safeResult.length > 0 && safeResult[0].success) {
+        console.log('✅ User profile created successfully');
+      } else {
+        console.error('❌ Failed to create user profile:', safeResult);
+      }
+    } else {
+      console.log('✅ User profile already exists');
+    }
+  } catch (error) {
+    console.error('❌ Error in profile check:', error);
   }
 };
 
@@ -185,25 +280,40 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // CRITICAL FIX: Try to get profile data with immediate fallback
-    const profileResult = await createTimeoutWrapper(
-      () => supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single(),
-      1500, // Very short timeout
-      null // Fallback to null if timeout
-    );
+    // CRITICAL FIX: Try to get profile data with immediate fallback and debugging
+    try {
+      // First, run debug check
+      const debugResult = await createTimeoutWrapper(
+        () => supabase.rpc('debug_user_access', { user_uuid: user.id }),
+        2000,
+        []
+      );
+      
+      console.log('🔍 User access debug in getCurrentUser:', debugResult);
+      
+      const profileResult = await createTimeoutWrapper(
+        () => supabase
+          .from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single(),
+        2000, // Very short timeout
+        null // Fallback to null if timeout
+      );
 
-    if (profileResult && profileResult.data && !profileResult.error) {
-      console.log('✅ User profile found:', profileResult.data.name);
-      return {
-        id: profileResult.data.id,
-        email: profileResult.data.email,
-        name: profileResult.data.name,
-        focusArea: profileResult.data.focus_area || undefined,
-      };
+      if (profileResult && profileResult.data && !profileResult.error) {
+        console.log('✅ User profile found:', profileResult.data.name);
+        return {
+          id: profileResult.data.id,
+          email: profileResult.data.email,
+          name: profileResult.data.name,
+          focusArea: profileResult.data.focus_area || undefined,
+        };
+      } else {
+        console.warn('⚠️ Profile fetch failed or timed out:', profileResult?.error);
+      }
+    } catch (profileError) {
+      console.warn('⚠️ Profile fetch exception:', profileError);
     }
 
     // CRITICAL FIX: Always return basic auth info as fallback
@@ -237,6 +347,19 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
     }
 
     console.log('👤 Updating profile for user:', user.id);
+
+    // CRITICAL FIX: Run debug check before update
+    try {
+      const debugResult = await createTimeoutWrapper(
+        () => supabase.rpc('debug_user_access', { user_uuid: user.id }),
+        2000,
+        []
+      );
+      
+      console.log('🔍 Pre-update debug check:', debugResult);
+    } catch (debugError) {
+      console.warn('⚠️ Debug check failed:', debugError);
+    }
 
     // Prepare the update data
     const updateData: any = {
@@ -330,5 +453,24 @@ export const resetPassword = async (email: string) => {
   } catch (error: any) {
     console.error('❌ Reset password error:', error);
     return { error: error.message || 'An unexpected error occurred while resetting password' };
+  }
+};
+
+// CRITICAL FIX: Add a function to test and debug database access
+export const testDatabaseAccess = async () => {
+  try {
+    console.log('🔍 Testing database access...');
+    
+    const result = await createTimeoutWrapper(
+      () => supabase.rpc('test_database_access'),
+      5000,
+      []
+    );
+    
+    console.log('📊 Database access test results:', result);
+    return result;
+  } catch (error) {
+    console.error('❌ Database access test failed:', error);
+    return [];
   }
 };

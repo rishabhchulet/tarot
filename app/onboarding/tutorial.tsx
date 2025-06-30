@@ -20,7 +20,7 @@ const TUTORIAL_STEPS = [
   {
     icon: Heart,
     title: 'Reflect & Connect',
-    description: 'Read the card\'s message and discover what it means for your current journey and growth.',
+    description: 'Reveal the pull and reflect on the symbols and meanings to better understand your life, as you connect with yourself each day.',
   },
   {
     icon: PenTool,

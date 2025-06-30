@@ -47,11 +47,11 @@ export default function QuizScreen() {
     try {
       console.log('💾 Updating user profile with focus area...');
       
-      // CRITICAL FIX: Add timeout wrapper for the entire operation
+      // CRITICAL FIX: Increased timeout wrapper to 25 seconds for the entire operation
       const updateWithTimeout = new Promise(async (resolve, reject) => {
         const timeoutId = setTimeout(() => {
           reject(new Error('Profile update operation timeout'));
-        }, 15000); // 15 seconds total timeout
+        }, 25000); // 25 seconds total timeout
         
         try {
           const result = await updateUserProfile({ focusArea: selectedOption });

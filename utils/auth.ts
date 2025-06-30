@@ -248,9 +248,9 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    // CRITICAL FIX: Increased timeout to 8 seconds
+    // CRITICAL FIX: Increased timeout to 15 seconds
     const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth user check timeout')), 8000);
+      setTimeout(() => reject(new Error('Auth user check timeout')), 15000);
     });
     
     const authPromise = supabase.auth.getUser();
@@ -270,7 +270,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     // Get user profile from our users table with increased timeout
     try {
       const profileTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 8000);
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 15000);
       });
       
       const profilePromise = supabase
@@ -318,9 +318,9 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
     console.log('🔄 Starting user profile update...', updates);
     
-    // CRITICAL FIX: Increased timeout for auth check
+    // CRITICAL FIX: Increased timeout for auth check to 15 seconds
     const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth check timeout')), 8000);
+      setTimeout(() => reject(new Error('Auth check timeout')), 15000);
     });
     
     const authPromise = supabase.auth.getUser();
@@ -351,9 +351,9 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // CRITICAL FIX: Increased timeout for database update
+    // CRITICAL FIX: Increased timeout for database update to 20 seconds
     const updateTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Profile update timeout')), 10000); // 10 seconds for update
+      setTimeout(() => reject(new Error('Profile update timeout')), 20000);
     });
 
     const updatePromise = supabase

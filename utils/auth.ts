@@ -28,7 +28,7 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     console.log('📧 Attempting to create user account...');
     
-    // CRITICAL FIX: Use timeout wrapper for sign up
+    // CRITICAL FIX: Use longer timeout for sign up
     const result = await createTimeoutWrapper(
       () => supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -39,7 +39,7 @@ export const signUp = async (email: string, password: string, name: string) => {
           },
         }
       }),
-      8000 // 8 second timeout for sign up
+      15000 // 15 second timeout for sign up
     );
 
     const { data, error } = result;
@@ -83,12 +83,14 @@ export const signUp = async (email: string, password: string, name: string) => {
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // CRITICAL FIX: Ensure user profile exists after signup
-        try {
-          await ensureUserProfileExists(data.user, name.trim());
-        } catch (profileError) {
-          console.warn('⚠️ Profile creation had issues, but continuing:', profileError);
-        }
+        // CRITICAL FIX: Try to ensure profile exists but don't block
+        setTimeout(async () => {
+          try {
+            await ensureUserProfileExists(data.user, name.trim());
+          } catch (profileError) {
+            console.warn('⚠️ Background profile creation had issues:', profileError);
+          }
+        }, 1000);
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -112,13 +114,13 @@ export const signIn = async (email: string, password: string) => {
 
     console.log('🔍 Attempting to sign in...');
     
-    // CRITICAL FIX: Use timeout wrapper for sign in
+    // CRITICAL FIX: Use longer timeout for sign in
     const result = await createTimeoutWrapper(
       () => supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       }),
-      6000 // 6 second timeout for sign in
+      10000 // 10 second timeout for sign in
     );
 
     const { data, error } = result;
@@ -147,12 +149,14 @@ export const signIn = async (email: string, password: string) => {
     if (data?.user && data?.session) {
       console.log('✅ Sign in successful for user:', data.user.id);
       
-      // Try to ensure user profile exists
-      try {
-        await ensureUserProfileExists(data.user);
-      } catch (profileError) {
-        console.warn('⚠️ Profile check had issues, but continuing:', profileError);
-      }
+      // Try to ensure user profile exists in background
+      setTimeout(async () => {
+        try {
+          await ensureUserProfileExists(data.user);
+        } catch (profileError) {
+          console.warn('⚠️ Background profile check had issues:', profileError);
+        }
+      }, 500);
     }
 
     return { user: data?.user, error: null };
@@ -162,75 +166,32 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// CRITICAL FIX: Enhanced profile creation with debugging
+// CRITICAL FIX: Enhanced profile creation with much longer timeouts
 const ensureUserProfileExists = async (user: any, name?: string) => {
   try {
     console.log('👤 Ensuring user profile exists for:', user.id);
     
-    // First, test database access
-    const testResult = await createTimeoutWrapper(
-      () => supabase.rpc('test_database_access'),
-      3000,
-      []
+    // CRITICAL FIX: Use the new database function with longer timeout
+    const result = await createTimeoutWrapper(
+      () => supabase.rpc('ensure_user_profile_exists', {
+        check_user_id: user.id
+      }),
+      12000, // 12 second timeout
+      [{ success: false, message: 'Timeout', user_data: {} }]
     );
     
-    console.log('🔍 Database access test:', testResult);
+    console.log('🔧 Profile creation result:', result);
     
-    // Check if profile exists
-    const { data: existingProfile, error: selectError } = await createTimeoutWrapper(
-      () => supabase
-        .from('users')
-        .select('id, name, email, focus_area')
-        .eq('id', user.id)
-        .single(),
-      3000,
-      { data: null, error: { code: 'PGRST116' } }
-    );
-
-    if (selectError && selectError.code !== 'PGRST116') {
-      console.error('❌ Error checking profile:', selectError);
-      
-      // Try using the safe creation function
-      const safeResult = await createTimeoutWrapper(
-        () => supabase.rpc('create_user_profile_safe', {
-          user_id: user.id,
-          user_email: user.email,
-          user_name: name || user.user_metadata?.name || 'User'
-        }),
-        5000,
-        [{ success: false, message: 'Timeout' }]
-      );
-      
-      console.log('🔧 Safe profile creation result:', safeResult);
-      return;
-    }
-
-    if (!existingProfile) {
-      console.log('👤 Creating missing user profile...');
-      
-      // Use the safe creation function
-      const safeResult = await createTimeoutWrapper(
-        () => supabase.rpc('create_user_profile_safe', {
-          user_id: user.id,
-          user_email: user.email,
-          user_name: name || user.user_metadata?.name || 'User'
-        }),
-        5000,
-        [{ success: false, message: 'Timeout' }]
-      );
-      
-      console.log('🔧 Safe profile creation result:', safeResult);
-      
-      if (safeResult && safeResult.length > 0 && safeResult[0].success) {
-        console.log('✅ User profile created successfully');
+    if (result && result.length > 0) {
+      const profileResult = result[0];
+      if (profileResult.success) {
+        console.log('✅ User profile ensured successfully');
       } else {
-        console.error('❌ Failed to create user profile:', safeResult);
+        console.warn('⚠️ Profile creation had issues:', profileResult.message);
       }
-    } else {
-      console.log('✅ User profile already exists');
     }
   } catch (error) {
-    console.error('❌ Error in profile check:', error);
+    console.error('❌ Error ensuring profile exists:', error);
   }
 };
 
@@ -256,10 +217,10 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    // CRITICAL FIX: Use timeout wrapper with very short timeout and immediate fallback
+    // CRITICAL FIX: Use timeout wrapper with longer timeout
     const authResult = await createTimeoutWrapper(
       () => supabase.auth.getUser(),
-      2000 // 2 second timeout
+      5000 // 5 second timeout
     );
     
     const { data: { user } } = authResult;
@@ -271,7 +232,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // CRITICAL FIX: Try to get profile data with immediate fallback
+    // CRITICAL FIX: Try to get profile data with longer timeout
     try {
       const profileResult = await createTimeoutWrapper(
         () => supabase
@@ -279,7 +240,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
           .select('*')
           .eq('id', user.id)
           .single(),
-        2000, // Very short timeout
+        5000, // 5 second timeout
         null // Fallback to null if timeout
       );
 
@@ -316,10 +277,10 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
     console.log('🔄 Starting user profile update...', updates);
     
-    // CRITICAL FIX: Use timeout wrapper for auth check
+    // CRITICAL FIX: Use timeout wrapper for auth check with longer timeout
     const authResult = await createTimeoutWrapper(
       () => supabase.auth.getUser(),
-      2000 // 2 second timeout
+      5000 // 5 second timeout
     );
     
     const { data: { user } } = authResult;
@@ -345,7 +306,7 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // CRITICAL FIX: Use timeout wrapper for database update with fallback
+    // CRITICAL FIX: Use timeout wrapper for database update with much longer timeout
     const updateResult = await createTimeoutWrapper(
       () => supabase
         .from('users')
@@ -358,7 +319,7 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
         })
         .select()
         .single(),
-      4000, // 4 second timeout
+      10000, // 10 second timeout
       { data: null, error: null } // Fallback to success if timeout
     );
 
@@ -432,7 +393,7 @@ export const testDatabaseAccess = async () => {
     
     const result = await createTimeoutWrapper(
       () => supabase.rpc('test_database_access'),
-      5000,
+      8000, // 8 second timeout
       []
     );
     

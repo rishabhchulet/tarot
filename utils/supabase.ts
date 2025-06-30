@@ -67,7 +67,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-// CRITICAL FIX: Create Supabase client with much more aggressive timeout settings
+// CRITICAL FIX: Create Supabase client with much longer timeouts
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -83,10 +83,10 @@ export const supabase = createClient(
       headers: {
         'X-Client-Info': 'daily-tarot-reflection',
       },
-      // CRITICAL FIX: Add aggressive timeout settings
+      // CRITICAL FIX: Increase timeout to 15 seconds for all requests
       fetch: (url, options = {}) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for all requests
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
         
         return fetch(url, {
           ...options,
@@ -107,10 +107,10 @@ export const supabase = createClient(
   }
 );
 
-// CRITICAL FIX: Create a wrapper for database operations with aggressive timeouts
+// CRITICAL FIX: Create a wrapper for database operations with much longer timeouts
 export const createTimeoutWrapper = <T>(
   operation: () => Promise<T>,
-  timeoutMs: number = 3000,
+  timeoutMs: number = 10000, // Increased default to 10 seconds
   fallbackValue?: T
 ): Promise<T> => {
   return new Promise((resolve, reject) => {
@@ -151,7 +151,7 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
       return { connected: false, error };
     }
     
-    // CRITICAL FIX: Use a very simple health check with 2 second timeout
+    // CRITICAL FIX: Use a very simple health check with 5 second timeout
     const result = await createTimeoutWrapper(
       async () => {
         const response = await fetch(`${supabaseUrl}/rest/v1/`, {
@@ -170,7 +170,7 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       },
-      2000, // 2 second timeout
+      5000, // 5 second timeout
       false // No fallback, we want to know if it fails
     );
     

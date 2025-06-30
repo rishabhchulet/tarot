@@ -15,6 +15,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.log('Please ensure these are set in your .env file:');
   console.log('EXPO_PUBLIC_SUPABASE_URL=your_supabase_url');
   console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
+  throw new Error('Missing required Supabase environment variables. Please check your .env file.');
 }
 
 // Custom storage adapter for Expo SecureStore with better error handling
@@ -68,8 +69,8 @@ const ExpoSecureStoreAdapter = {
 };
 
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       storage: ExpoSecureStoreAdapter,
@@ -127,6 +128,7 @@ export interface Database {
           voice_memo_path: string | null;
           created_at: string;
           updated_at: string;
+          daily_question: string | null;
         };
         Insert: {
           id?: string;
@@ -140,6 +142,7 @@ export interface Database {
           voice_memo_path?: string | null;
           created_at?: string;
           updated_at?: string;
+          daily_question?: string | null;
         };
         Update: {
           id?: string;
@@ -152,6 +155,7 @@ export interface Database {
           reflection?: string;
           voice_memo_path?: string | null;
           updated_at?: string;
+          daily_question?: string | null;
         };
       };
       subscriptions: {

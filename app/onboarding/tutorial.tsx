@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Eye, Sparkles, Heart, PenTool, Bell } from 'lucide-react-native';
-import { startFreeTrial } from '@/utils/database';
 
 const { width } = Dimensions.get('window');
 
@@ -49,25 +48,17 @@ export default function TutorialScreen() {
     }
   };
 
-  const handleComplete = async () => {
-    console.log('🎉 Tutorial complete, starting free trial and navigating to main app...');
+  const handleComplete = () => {
+    console.log('🎉 Tutorial complete, navigating to breathing exercise...');
     setLoading(true);
     
-    try {
-      console.log('💾 Starting free trial...');
-      await startFreeTrial();
-      console.log('✅ Free trial started successfully');
-    } catch (error) {
-      console.error('❌ Error starting free trial:', error);
-    }
-    
-    console.log('📱 Navigating to main app...');
-    router.replace('/(tabs)');
+    // Navigate to breathing exercise
+    router.push('/breathing');
   };
 
   const handleSkip = () => {
-    console.log('⏭️ Tutorial skipped, going to main app...');
-    handleComplete();
+    console.log('⏭️ Tutorial skipped, going to breathing exercise...');
+    router.push('/breathing');
   };
 
   const currentTutorial = TUTORIAL_STEPS[currentStep];

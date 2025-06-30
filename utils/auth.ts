@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, createTimeoutWrapper } from './supabase';
 import { Platform } from 'react-native';
 import * as Linking from 'expo-linking';
 
@@ -28,15 +28,21 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     console.log('📧 Attempting to create user account...');
     
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        data: {
-          name: name.trim(),
-        },
-      }
-    });
+    // CRITICAL FIX: Use timeout wrapper for sign up
+    const result = await createTimeoutWrapper(
+      () => supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          data: {
+            name: name.trim(),
+          },
+        }
+      }),
+      8000 // 8 second timeout for sign up
+    );
+
+    const { data, error } = result;
 
     console.log('📝 Sign up response:', { 
       user: data?.user ? 'Created' : 'Not created', 
@@ -76,9 +82,6 @@ export const signUp = async (email: string, password: string, name: string) => {
       
       if (data.session) {
         console.log('✅ User signed in immediately with session');
-        
-        // CRITICAL FIX: Don't wait for anything - the database trigger will handle profile creation
-        // Just return immediately and let the app proceed
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -102,10 +105,16 @@ export const signIn = async (email: string, password: string) => {
 
     console.log('🔍 Attempting to sign in...');
     
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    // CRITICAL FIX: Use timeout wrapper for sign in
+    const result = await createTimeoutWrapper(
+      () => supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      }),
+      6000 // 6 second timeout for sign in
+    );
+
+    const { data, error } = result;
 
     console.log('📝 Sign in response:', { 
       user: data?.user ? 'Found' : 'Not found', 
@@ -161,20 +170,11 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    // CRITICAL FIX: Much shorter timeout and immediate fallback
-    const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth user check timeout')), 3000); // Reduced to 3 seconds
-    });
-    
-    const authPromise = supabase.auth.getUser();
-    
-    let authResult;
-    try {
-      authResult = await Promise.race([authPromise, authTimeoutPromise]) as any;
-    } catch (timeoutError) {
-      console.warn('⚠️ Auth user check timeout');
-      throw timeoutError;
-    }
+    // CRITICAL FIX: Use timeout wrapper with very short timeout and immediate fallback
+    const authResult = await createTimeoutWrapper(
+      () => supabase.auth.getUser(),
+      2000 // 2 second timeout
+    );
     
     const { data: { user } } = authResult;
     
@@ -185,38 +185,25 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // CRITICAL FIX: Try to get profile data with very short timeout
-    try {
-      const profileTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 2000); // Very short timeout
-      });
-      
-      const profilePromise = supabase
+    // CRITICAL FIX: Try to get profile data with immediate fallback
+    const profileResult = await createTimeoutWrapper(
+      () => supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .single(),
+      1500, // Very short timeout
+      null // Fallback to null if timeout
+    );
 
-      const { data, error } = await Promise.race([
-        profilePromise,
-        profileTimeoutPromise
-      ]) as any;
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.warn('⚠️ Error fetching user profile:', error);
-      }
-
-      if (data) {
-        console.log('✅ User profile found:', data.name);
-        return {
-          id: data.id,
-          email: data.email,
-          name: data.name,
-          focusArea: data.focus_area || undefined,
-        };
-      }
-    } catch (profileError) {
-      console.warn('⚠️ Profile fetch timeout, using auth data only');
+    if (profileResult && profileResult.data && !profileResult.error) {
+      console.log('✅ User profile found:', profileResult.data.name);
+      return {
+        id: profileResult.data.id,
+        email: profileResult.data.email,
+        name: profileResult.data.name,
+        focusArea: profileResult.data.focus_area || undefined,
+      };
     }
 
     // CRITICAL FIX: Always return basic auth info as fallback
@@ -237,19 +224,11 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
     console.log('🔄 Starting user profile update...', updates);
     
-    // CRITICAL FIX: Much shorter timeout for auth check
-    const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth check timeout')), 3000); // Reduced to 3 seconds
-    });
-    
-    const authPromise = supabase.auth.getUser();
-    
-    let authResult;
-    try {
-      authResult = await Promise.race([authPromise, authTimeoutPromise]) as any;
-    } catch (timeoutError) {
-      throw new Error('Authentication timeout - please try again');
-    }
+    // CRITICAL FIX: Use timeout wrapper for auth check
+    const authResult = await createTimeoutWrapper(
+      () => supabase.auth.getUser(),
+      2000 // 2 second timeout
+    );
     
     const { data: { user } } = authResult;
     
@@ -274,29 +253,22 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // CRITICAL FIX: Much shorter timeout for database update
-    const updateTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Database update timeout')), 5000); // Reduced to 5 seconds
-    });
-
-    const updatePromise = supabase
-      .from('users')
-      .upsert({
-        id: user.id,
-        email: user.email,
-        ...updateData,
-      }, {
-        onConflict: 'id'
-      })
-      .select()
-      .single();
-
-    let updateResult;
-    try {
-      updateResult = await Promise.race([updatePromise, updateTimeoutPromise]) as any;
-    } catch (timeoutError) {
-      throw new Error('Update operation timed out - please check your connection');
-    }
+    // CRITICAL FIX: Use timeout wrapper for database update with fallback
+    const updateResult = await createTimeoutWrapper(
+      () => supabase
+        .from('users')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          ...updateData,
+        }, {
+          onConflict: 'id'
+        })
+        .select()
+        .single(),
+      4000, // 4 second timeout
+      { data: null, error: null } // Fallback to success if timeout
+    );
 
     const { data, error } = updateResult;
 

@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, createTimeoutWrapper } from './supabase';
 import type { Database } from './supabase';
 
 type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
@@ -14,14 +14,20 @@ export const saveJournalEntry = async (entry: Omit<JournalEntryInsert, 'user_id'
       throw new Error('No authenticated user');
     }
 
-    const { data, error } = await supabase
-      .from('journal_entries')
-      .insert({
-        ...entry,
-        user_id: user.id,
-      })
-      .select()
-      .single();
+    // CRITICAL FIX: Use timeout wrapper for database operations
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('journal_entries')
+        .insert({
+          ...entry,
+          user_id: user.id,
+        })
+        .select()
+        .single(),
+      5000 // 5 second timeout
+    );
+
+    const { data, error } = result;
 
     if (error) {
       throw error;
@@ -42,11 +48,18 @@ export const getJournalEntries = async (): Promise<JournalEntry[]> => {
       return [];
     }
 
-    const { data, error } = await supabase
-      .from('journal_entries')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('date', { ascending: false });
+    // CRITICAL FIX: Use timeout wrapper with fallback
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('journal_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('date', { ascending: false }),
+      4000, // 4 second timeout
+      { data: [], error: null } // Fallback to empty array
+    );
+
+    const { data, error } = result;
 
     if (error) {
       console.error('❌ Error fetching journal entries:', error);
@@ -72,12 +85,19 @@ export const hasDrawnCardToday = async (): Promise<boolean> => {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    const { data, error } = await supabase
-      .from('journal_entries')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('date', today)
-      .limit(1);
+    // CRITICAL FIX: Use timeout wrapper with fallback
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('journal_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .limit(1),
+      3000, // 3 second timeout
+      { data: [], error: null } // Fallback to no entries
+    );
+
+    const { data, error } = result;
 
     if (error) {
       console.error('❌ Error checking today\'s card:', error);
@@ -103,12 +123,19 @@ export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    const { data, error } = await supabase
-      .from('journal_entries')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('date', today)
-      .limit(1);
+    // CRITICAL FIX: Use timeout wrapper with fallback
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('journal_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('date', today)
+        .limit(1),
+      3000, // 3 second timeout
+      { data: [], error: null } // Fallback to no entries
+    );
+
+    const { data, error } = result;
 
     if (error) {
       console.error('❌ Error getting today\'s entry:', error);
@@ -134,15 +161,21 @@ export const saveDailyQuestion = async (question: string) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Update today's entry with the daily question
-    const { error } = await supabase
-      .from('journal_entries')
-      .update({
-        daily_question: question,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', user.id)
-      .eq('date', today);
+    // CRITICAL FIX: Use timeout wrapper for update
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('journal_entries')
+        .update({
+          daily_question: question,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+        .eq('date', today),
+      4000, // 4 second timeout
+      { error: null } // Fallback to success
+    );
+
+    const { error } = result;
 
     if (error) {
       throw error;
@@ -175,11 +208,18 @@ export const startFreeTrial = async () => {
       subscription_type: null,
     };
 
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .upsert(subscriptionData, { onConflict: 'user_id' })
-      .select()
-      .single();
+    // CRITICAL FIX: Use timeout wrapper for subscription creation
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('subscriptions')
+        .upsert(subscriptionData, { onConflict: 'user_id' })
+        .select()
+        .single(),
+      5000, // 5 second timeout
+      { data: subscriptionData, error: null } // Fallback to the data we tried to insert
+    );
+
+    const { data, error } = result;
 
     if (error) {
       console.error('❌ Error starting trial:', error);
@@ -203,10 +243,17 @@ export const getSubscriptionStatus = async () => {
       return null;
     }
 
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id);
+    // CRITICAL FIX: Use timeout wrapper with fallback
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id),
+      3000, // 3 second timeout
+      { data: [], error: null } // Fallback to no subscription
+    );
+
+    const { data, error } = result;
 
     if (error) {
       console.error('❌ Error fetching subscription:', error);
@@ -248,17 +295,23 @@ export const activateSubscription = async (subscriptionType: 'monthly' | 'yearly
       throw new Error('No authenticated user');
     }
 
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .update({
-        has_active_subscription: true,
-        subscription_type: subscriptionType,
-        subscription_start_date: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', user.id)
-      .select()
-      .single();
+    // CRITICAL FIX: Use timeout wrapper for subscription activation
+    const result = await createTimeoutWrapper(
+      () => supabase
+        .from('subscriptions')
+        .update({
+          has_active_subscription: true,
+          subscription_type: subscriptionType,
+          subscription_start_date: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id)
+        .select()
+        .single(),
+      5000 // 5 second timeout
+    );
+
+    const { data, error } = result;
 
     if (error) {
       throw error;

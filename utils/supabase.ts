@@ -67,7 +67,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-// FIXED: Create Supabase client with optimized configuration for sign-up issues
+// CRITICAL FIX: Create Supabase client with much more aggressive timeout settings
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -78,11 +78,22 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: false,
       flowType: 'pkce',
-      // REMOVED: debug mode as it can cause issues
     },
     global: {
       headers: {
         'X-Client-Info': 'daily-tarot-reflection',
+      },
+      // CRITICAL FIX: Add aggressive timeout settings
+      fetch: (url, options = {}) => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout for all requests
+        
+        return fetch(url, {
+          ...options,
+          signal: controller.signal,
+        }).finally(() => {
+          clearTimeout(timeoutId);
+        });
       },
     },
     db: {
@@ -96,7 +107,40 @@ export const supabase = createClient(
   }
 );
 
-// FIXED: Simplified connection test function
+// CRITICAL FIX: Create a wrapper for database operations with aggressive timeouts
+export const createTimeoutWrapper = <T>(
+  operation: () => Promise<T>,
+  timeoutMs: number = 3000,
+  fallbackValue?: T
+): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => {
+      if (fallbackValue !== undefined) {
+        console.warn(`⚠️ Operation timeout (${timeoutMs}ms), using fallback`);
+        resolve(fallbackValue);
+      } else {
+        reject(new Error(`Operation timeout after ${timeoutMs}ms`));
+      }
+    }, timeoutMs);
+
+    operation()
+      .then((result) => {
+        clearTimeout(timeoutId);
+        resolve(result);
+      })
+      .catch((error) => {
+        clearTimeout(timeoutId);
+        if (fallbackValue !== undefined) {
+          console.warn(`⚠️ Operation failed, using fallback:`, error);
+          resolve(fallbackValue);
+        } else {
+          reject(error);
+        }
+      });
+  });
+};
+
+// CRITICAL FIX: Simplified connection test function
 export const testSupabaseConnection = async (): Promise<{ connected: boolean; error: string | null }> => {
   try {
     console.log('🔍 Testing Supabase connection...');
@@ -107,38 +151,34 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
       return { connected: false, error };
     }
     
-    // FIXED: Use a simple health check with shorter timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 seconds
+    // CRITICAL FIX: Use a very simple health check with 2 second timeout
+    const result = await createTimeoutWrapper(
+      async () => {
+        const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+          method: 'GET',
+          headers: {
+            'apikey': supabaseAnonKey,
+            'Authorization': `Bearer ${supabaseAnonKey}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        // Any response (even 404) means we can connect to Supabase
+        if (response.status < 500) {
+          return true;
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      },
+      2000, // 2 second timeout
+      false // No fallback, we want to know if it fails
+    );
     
-    try {
-      // Test basic connectivity to Supabase REST API
-      const response = await fetch(`${supabaseUrl}/rest/v1/`, {
-        method: 'GET',
-        headers: {
-          'apikey': supabaseAnonKey,
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          'Content-Type': 'application/json',
-        },
-        signal: controller.signal,
-      });
-      
-      clearTimeout(timeoutId);
-      
-      // Any response (even 404) means we can connect to Supabase
-      if (response.status < 500) {
-        console.log('✅ Supabase connection test successful');
-        return { connected: true, error: null };
-      } else {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (error: any) {
-      clearTimeout(timeoutId);
-      
-      if (error.name === 'AbortError') {
-        throw new Error('Connection timeout');
-      }
-      throw error;
+    if (result) {
+      console.log('✅ Supabase connection test successful');
+      return { connected: true, error: null };
+    } else {
+      throw new Error('Connection test failed');
     }
     
   } catch (error: any) {

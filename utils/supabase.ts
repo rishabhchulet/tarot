@@ -86,7 +86,7 @@ export const supabase = createClient(
       fetch: (url, options = {}) => {
         // Add timeout to all requests
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
         
         return fetch(url, {
           ...options,
@@ -107,7 +107,7 @@ export const supabase = createClient(
   }
 );
 
-// Enhanced connection test function with better timeout handling and retry logic
+// Enhanced connection test function with better error handling
 export const testSupabaseConnection = async (): Promise<{ connected: boolean; error: string | null }> => {
   try {
     console.log('🔍 Testing Supabase connection...');
@@ -118,76 +118,49 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
       return { connected: false, error };
     }
     
-    // Test with retry logic
-    let lastError = '';
-    const maxRetries = 2;
-    
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      try {
-        console.log(`🔄 Connection attempt ${attempt}/${maxRetries}...`);
-        
-        // Create a more robust connection test with shorter timeout per attempt
-        const connectionPromise = supabase
-          .from('users')
-          .select('count')
-          .limit(1)
-          .then(result => {
-            // Even if the query fails due to RLS, it means we can connect to Supabase
-            console.log('✅ Supabase connection test successful');
-            return { connected: true, error: null };
-          })
-          .catch(error => {
-            // Check if it's a connection error vs an auth/RLS error
-            if (error.message?.includes('JWT') || error.message?.includes('RLS') || error.message?.includes('policy')) {
-              // These errors mean we connected successfully but hit auth/RLS restrictions
-              console.log('✅ Supabase connection test successful (auth/RLS restriction is expected)');
-              return { connected: true, error: null };
-            }
-            
-            console.error(`❌ Supabase connection test failed (attempt ${attempt}):`, error);
-            throw error;
-          });
-        
-        // Shorter timeout per attempt (5 seconds)
-        const timeoutPromise = new Promise<{ connected: boolean; error: string }>((resolve) => 
-          setTimeout(() => resolve({ connected: false, error: `Connection timeout (attempt ${attempt})` }), 5000)
-        );
-        
-        const result = await Promise.race([connectionPromise, timeoutPromise]);
-        
-        if (result.connected) {
-          return result;
-        }
-        
-        lastError = result.error;
-        
-        // Wait before retry (except on last attempt)
-        if (attempt < maxRetries) {
-          console.log(`⏳ Waiting before retry...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-        
-      } catch (error: any) {
-        lastError = error.message || 'Connection failed';
-        console.error(`❌ Attempt ${attempt} failed:`, lastError);
-        
-        // Wait before retry (except on last attempt)
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+    // Use a simple health check instead of querying tables with RLS
+    const healthCheckPromise = fetch(`${supabaseUrl}/rest/v1/`, {
+      method: 'GET',
+      headers: {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+    }).then(response => {
+      if (response.ok || response.status === 200) {
+        console.log('✅ Supabase connection test successful');
+        return { connected: true, error: null };
+      } else {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    }
+    }).catch(error => {
+      console.error('❌ Supabase connection test failed:', error);
+      throw error;
+    });
     
-    // All attempts failed
-    console.error('❌ All connection attempts failed');
-    return { 
-      connected: false, 
-      error: lastError || 'Connection failed after multiple attempts'
-    };
+    // 8 second timeout for the health check
+    const timeoutPromise = new Promise<{ connected: boolean; error: string }>((resolve) => 
+      setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 8000)
+    );
+    
+    const result = await Promise.race([healthCheckPromise, timeoutPromise]);
+    return result;
     
   } catch (error: any) {
     console.error('❌ Supabase connection test error:', error);
-    return { connected: false, error: error.message || 'Connection failed' };
+    
+    // Provide more specific error messages
+    let errorMessage = 'Connection failed';
+    if (error.name === 'AbortError') {
+      errorMessage = 'Connection timeout';
+    } else if (error.message?.includes('fetch')) {
+      errorMessage = 'Network error - check your internet connection';
+    } else if (error.message?.includes('CORS')) {
+      errorMessage = 'CORS error - check Supabase configuration';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { connected: false, error: errorMessage };
   }
 };
 

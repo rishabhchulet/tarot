@@ -57,12 +57,12 @@ export default function QuizScreen() {
       console.log('🔄 Refreshing user data...');
       await refreshUser();
       
-      console.log('📱 Navigating to tutorial...');
-      router.push('/onboarding/tutorial');
+      console.log('📱 Navigating to intro screen...');
+      router.push('/onboarding/intro');
     } catch (error) {
       console.error('💥 Error in quiz continue:', error);
       // Continue anyway to not block the user
-      router.push('/onboarding/tutorial');
+      router.push('/onboarding/intro');
     } finally {
       setLoading(false);
     }

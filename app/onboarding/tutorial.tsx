@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Car as Card, Heart, PenTool, Bell } from 'lucide-react-native';
-import { startFreeTrial } from '@/utils/database';
 
 const { width } = Dimensions.get('window');
 
@@ -44,19 +43,9 @@ export default function TutorialScreen() {
     }
   };
 
-  const handleComplete = async () => {
-    console.log('🎉 Tutorial complete, starting free trial and going to breathing...');
+  const handleComplete = () => {
+    console.log('🎉 Tutorial complete, navigating to breathing exercise...');
     setLoading(true);
-    
-    try {
-      console.log('💾 Starting free trial...');
-      await startFreeTrial();
-      console.log('✅ Free trial started successfully');
-    } catch (error) {
-      console.error('❌ Error starting free trial:', error);
-    }
-    
-    console.log('📱 Navigating to breathing exercise...');
     router.replace('/breathing');
   };
 

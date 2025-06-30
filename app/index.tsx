@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
+import { Sparkles, CircleAlert as AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -70,8 +70,8 @@ export default function IndexScreen() {
           router.replace('/auth');
         }
       } else if (error && !loading) {
-        console.log('❌ Auth error detected, showing error state...');
-        // Don't auto-redirect on error, let user see the error and refresh
+        console.log('❌ Auth error detected, showing improved error state...');
+        // Don't auto-redirect on error, let user see the error and take action
       }
     }, 500); // Increased delay to ensure proper state loading
 
@@ -91,23 +91,70 @@ export default function IndexScreen() {
     }
   };
 
-  // Show error state if there's an authentication error
+  const handleGoToAuth = () => {
+    console.log('🔐 User chose to go to auth manually...');
+    router.replace('/auth');
+  };
+
+  // Show improved error state if there's an authentication error
   if (error && !loading) {
+    const isConnectionError = error.includes('timeout') || error.includes('connection') || error.includes('network');
+    
     return (
       <LinearGradient
         colors={['#1F2937', '#374151', '#6B46C1']}
         style={styles.container}
       >
         <View style={styles.content}>
-          <AlertCircle size={60} color="#EF4444" />
-          <Text style={styles.errorTitle}>Connection Issue</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.errorSubtext}>Please check your internet connection</Text>
+          {isConnectionError ? (
+            <WifiOff size={60} color="#EF4444" />
+          ) : (
+            <AlertCircle size={60} color="#EF4444" />
+          )}
           
-          <View style={styles.refreshButton} onTouchEnd={handleRefresh}>
-            <RefreshCw size={20} color="#F59E0B" />
-            <Text style={styles.refreshText}>Refresh</Text>
+          <Text style={styles.errorTitle}>
+            {isConnectionError ? 'Connection Issue' : 'Something went wrong'}
+          </Text>
+          
+          <Text style={styles.errorText}>
+            {isConnectionError 
+              ? 'Unable to connect to our servers. Please check your internet connection and try again.'
+              : error
+            }
+          </Text>
+          
+          {isConnectionError && (
+            <View style={styles.connectionTips}>
+              <Text style={styles.tipsTitle}>Try these steps:</Text>
+              <Text style={styles.tipText}>• Check your internet connection</Text>
+              <Text style={styles.tipText}>• Refresh the page</Text>
+              <Text style={styles.tipText}>• Try again in a few moments</Text>
+            </View>
+          )}
+          
+          <View style={styles.errorActions}>
+            <Pressable style={styles.refreshButton} onPress={handleRefresh}>
+              <LinearGradient
+                colors={['#3B82F6', '#1D4ED8']}
+                style={styles.buttonGradient}
+              >
+                <RefreshCw size={20} color="#FFFFFF" />
+                <Text style={styles.buttonText}>Refresh</Text>
+              </LinearGradient>
+            </Pressable>
+            
+            {!isConnectionError && (
+              <Pressable style={styles.authButton} onPress={handleGoToAuth}>
+                <View style={styles.outlineButton}>
+                  <Text style={styles.outlineButtonText}>Continue to Sign In</Text>
+                </View>
+              </Pressable>
+            )}
           </View>
+          
+          <Text style={styles.supportText}>
+            Still having trouble? Contact support at support@dailyinner.com
+          </Text>
         </View>
       </LinearGradient>
     );
@@ -124,6 +171,12 @@ export default function IndexScreen() {
           <Sparkles size={80} color="#F59E0B" strokeWidth={1.5} />
         </Animated.View>
         <Text style={styles.loadingText}>Connecting to your inner wisdom...</Text>
+        
+        {/* Show connection status */}
+        <View style={styles.connectionStatus}>
+          <Wifi size={16} color="#9CA3AF" />
+          <Text style={styles.connectionText}>Establishing secure connection...</Text>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -147,6 +200,18 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#D1D5DB',
     textAlign: 'center',
+    marginBottom: 20,
+  },
+  connectionStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    opacity: 0.7,
+  },
+  connectionText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
   },
   errorTitle: {
     fontSize: 24,
@@ -161,31 +226,71 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#F3F4F6',
     textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+    maxWidth: 320,
+  },
+  connectionTips: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  tipsTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F3F4F6',
     marginBottom: 8,
   },
-  errorSubtext: {
+  tipText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    maxWidth: 280,
-    lineHeight: 20,
+    color: '#D1D5DB',
+    marginBottom: 4,
+  },
+  errorActions: {
+    gap: 12,
+    alignItems: 'center',
     marginBottom: 24,
   },
   refreshButton: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  buttonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: '#F59E0B',
+    paddingHorizontal: 24,
     gap: 8,
   },
-  refreshText: {
+  buttonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  authButton: {
+    marginTop: 8,
+  },
+  outlineButton: {
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  outlineButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
+  },
+  supportText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });

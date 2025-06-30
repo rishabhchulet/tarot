@@ -71,25 +71,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // Set a longer timeout to prevent premature timeout
+    // Set a reasonable timeout to prevent indefinite loading
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('⚠️ Auth initialization timeout, proceeding without auth');
+        console.warn('⚠️ Auth initialization timeout, proceeding with error state');
         setLoading(false);
-        setError('Connection timeout - please check your internet connection and try refreshing the page');
+        setError('Connection timeout - please check your internet connection');
       }
-    }, 20000); // Increased to 20 seconds
+    }, 12000); // Reduced to 12 seconds for better UX
     
-    // Get initial session with error handling
+    // Get initial session with improved error handling
     const initializeAuth = async () => {
       try {
         console.log('🔍 Testing Supabase connection...');
         
-        // Test connection first with longer timeout
+        // Test connection first with retry logic
         const connectionTest = await Promise.race([
           testSupabaseConnection(),
           new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 10000) // Increased to 10 seconds
+            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 8000) // Reduced timeout
           )
         ]);
         
@@ -104,10 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('✅ Supabase connection successful');
         
-        // Get session with longer timeout
+        // Get session with timeout
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 10000) // Increased to 10 seconds
+          setTimeout(() => reject(new Error('Session timeout')), 6000) // Reduced timeout
         );
         
         const { data: { session }, error } = await Promise.race([
@@ -141,7 +141,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setSession(null);
-          setError('Failed to initialize - please check your internet connection and refresh the page');
+          
+          // Provide more specific error messages
+          let errorMessage = 'Failed to initialize - please check your internet connection';
+          if (error.message?.includes('timeout')) {
+            errorMessage = 'Connection timeout - please check your internet connection';
+          } else if (error.message?.includes('network')) {
+            errorMessage = 'Network error - please check your internet connection';
+          } else if (error.message?.includes('fetch')) {
+            errorMessage = 'Unable to connect to servers - please check your internet connection';
+          }
+          
+          setError(errorMessage);
           setLoading(false);
         }
       } finally {

@@ -516,7 +516,7 @@ export default function TodayScreen() {
                 {/* Button content */}
                 <View style={styles.buttonContent}>
                   <Zap size={20} color="#FFFFFF" />
-                  <Text style={styles.pullButtonText}>Draw Your Daily Card</Text>
+                  <Text style={styles.pullButtonText}>Reveal your message</Text>
                   <Sparkles size={16} color="#FFFFFF" />
                 </View>
               </LinearGradient>

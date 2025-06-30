@@ -25,7 +25,7 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // CRITICAL FIX: Much faster routing with better logic
+    // CRITICAL FIX: Better routing logic with proper timing
     const navigationTimeout = setTimeout(() => {
       console.log('🔍 Routing check:', { 
         hasSession: !!session, 
@@ -57,14 +57,14 @@ export default function IndexScreen() {
               router.replace('/(tabs)');
             }
           } else if (session && !user) {
-            // CRITICAL FIX: If we have session but no user, wait a bit longer
+            // CRITICAL FIX: If we have session but no user, wait a bit longer but with limit
             console.log('⚠️ Session exists but no user data - waiting briefly...');
             
-            // Wait a short time for user data to load, then proceed
+            // Wait a short time for user data to load, then proceed anyway
             setTimeout(() => {
-              console.log('⏰ Timeout reached, proceeding to onboarding...');
+              console.log('⏰ Timeout reached, proceeding to onboarding with session...');
               router.replace('/onboarding/quiz');
-            }, 2000);
+            }, 3000); // Wait 3 seconds max
             
             return; // Don't navigate immediately
           } else {
@@ -78,7 +78,7 @@ export default function IndexScreen() {
           router.replace('/auth');
         }
       }
-    }, 500); // Slightly longer timeout to allow user data to load
+    }, 1000); // Wait 1 second for initial load
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error]);

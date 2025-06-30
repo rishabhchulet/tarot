@@ -24,9 +24,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔄 Refreshing user data...');
       
-      // CRITICAL FIX: Add timeout to prevent hanging
+      // CRITICAL FIX: Increase timeout and add better fallback
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('User refresh timeout')), 5000);
+        setTimeout(() => reject(new Error('User refresh timeout')), 8000); // Increased to 8 seconds
       });
       
       const userPromise = getCurrentUser();
@@ -44,15 +44,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('❌ Error refreshing user:', error);
       
-      // CRITICAL FIX: Don't set user to null if it's just a timeout
-      // Keep existing user data if we have it
-      if (error.message?.includes('timeout') && user) {
-        console.log('⚠️ User refresh timeout, keeping existing user data');
-        return;
+      // CRITICAL FIX: If timeout, try to get basic user info from session
+      if (error.message?.includes('timeout')) {
+        console.log('⚠️ User refresh timeout, trying fallback...');
+        
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            // Create basic user object from auth data
+            const fallbackUser: AuthUser = {
+              id: authUser.id,
+              email: authUser.email || '',
+              name: authUser.user_metadata?.name || 'User',
+              focusArea: undefined
+            };
+            
+            console.log('✅ Using fallback user data:', fallbackUser);
+            setUser(fallbackUser);
+            return;
+          }
+        } catch (fallbackError) {
+          console.error('❌ Fallback user fetch failed:', fallbackError);
+        }
       }
       
-      setUser(null);
-      // Don't set error here as it might be a temporary issue
+      // Only set user to null if we don't have existing user data
+      if (!user) {
+        setUser(null);
+      }
     }
   };
 
@@ -89,23 +108,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // CRITICAL FIX: Much shorter timeout and better error handling
+    // CRITICAL FIX: Longer timeout for better UX
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('⚠️ Auth initialization timeout - proceeding');
         setLoading(false);
         setError(null);
       }
-    }, 3000); // 3 seconds max
+    }, 5000); // Increased to 5 seconds
     
     // Get initial session with better error handling
     const initializeAuth = async () => {
       try {
         console.log('🔍 Getting initial session...');
         
-        // CRITICAL FIX: Add timeout to session check
+        // CRITICAL FIX: Longer timeout for session check
         const sessionTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session check timeout')), 3000);
+          setTimeout(() => reject(new Error('Session check timeout')), 5000);
         });
         
         const sessionPromise = supabase.auth.getSession();
@@ -119,7 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('❌ Error getting initial session:', error);
           if (mounted) {
             setSession(null);
-            setError(null); // Don't treat session errors as fatal
+            setError(null);
             setLoading(false);
           }
           return;
@@ -131,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           if (session) {
             console.log('👤 Session found, loading user profile...');
-            // CRITICAL FIX: Don't await this - let it happen in background
+            // CRITICAL FIX: Load user data but don't block on it
             refreshUser().finally(() => {
               if (mounted) {
                 setLoading(false);
@@ -146,7 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setSession(null);
-          setError(null); // Don't set error for new users
+          setError(null);
           setLoading(false);
         }
       } finally {
@@ -169,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-            // CRITICAL FIX: Don't await this - let it happen in background
+            // CRITICAL FIX: Load user data but don't block
             refreshUser().finally(() => {
               if (mounted) {
                 setLoading(false);

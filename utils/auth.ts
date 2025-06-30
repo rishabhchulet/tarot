@@ -160,14 +160,14 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// CRITICAL FIX: Simplified helper function with timeout
+// CRITICAL FIX: Increased timeouts and better error handling
 const ensureUserProfileExists = async (user: any, name?: string) => {
   try {
     console.log('👤 Checking if user profile exists...');
     
-    // Add timeout to prevent hanging
+    // CRITICAL FIX: Increased timeout to 8 seconds
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Profile check timeout')), 3000);
+      setTimeout(() => reject(new Error('Profile check timeout')), 8000);
     });
     
     const profilePromise = supabase
@@ -189,9 +189,9 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
     if (!existingProfile) {
       console.log('👤 Creating missing user profile...');
       
-      // Use upsert to handle race conditions with timeout
+      // CRITICAL FIX: Increased timeout for profile creation
       const upsertTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile creation timeout')), 3000);
+        setTimeout(() => reject(new Error('Profile creation timeout')), 8000);
       });
       
       const upsertPromise = supabase
@@ -248,9 +248,9 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    // CRITICAL FIX: Add timeout to prevent hanging
+    // CRITICAL FIX: Increased timeout to 8 seconds
     const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth user check timeout')), 3000);
+      setTimeout(() => reject(new Error('Auth user check timeout')), 8000);
     });
     
     const authPromise = supabase.auth.getUser();
@@ -267,10 +267,10 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // Get user profile from our users table with timeout
+    // Get user profile from our users table with increased timeout
     try {
       const profileTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 3000);
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 8000);
       });
       
       const profilePromise = supabase
@@ -318,7 +318,17 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
     console.log('🔄 Starting user profile update...', updates);
     
-    const { data: { user } } = await supabase.auth.getUser();
+    // CRITICAL FIX: Increased timeout for auth check
+    const authTimeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Auth check timeout')), 8000);
+    });
+    
+    const authPromise = supabase.auth.getUser();
+    
+    const { data: { user } } = await Promise.race([
+      authPromise,
+      authTimeoutPromise
+    ]) as any;
     
     if (!user) {
       throw new Error('No authenticated user found');
@@ -341,8 +351,12 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // Use upsert with proper conflict resolution
-    const { data, error } = await supabase
+    // CRITICAL FIX: Increased timeout for database update
+    const updateTimeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Profile update timeout')), 10000); // 10 seconds for update
+    });
+
+    const updatePromise = supabase
       .from('users')
       .upsert({
         id: user.id,
@@ -353,6 +367,11 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
       })
       .select()
       .single();
+
+    const { data, error } = await Promise.race([
+      updatePromise,
+      updateTimeoutPromise
+    ]) as any;
 
     if (error) {
       console.error('❌ Profile update error:', error);

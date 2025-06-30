@@ -46,50 +46,86 @@ export default function QuizScreen() {
     
     try {
       console.log('💾 Updating user profile with focus area...');
-      const { error } = await updateUserProfile({ focusArea: selectedOption });
+      
+      // CRITICAL FIX: Add timeout wrapper for the entire operation
+      const updateWithTimeout = new Promise(async (resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          reject(new Error('Profile update operation timeout'));
+        }, 15000); // 15 seconds total timeout
+        
+        try {
+          const result = await updateUserProfile({ focusArea: selectedOption });
+          clearTimeout(timeoutId);
+          resolve(result);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          reject(error);
+        }
+      });
+      
+      const { error } = await updateWithTimeout as any;
       
       if (error) {
         console.error('❌ Error updating focus area:', error);
-        Alert.alert(
-          'Update Failed',
-          'There was an issue saving your preference. Would you like to continue anyway?',
-          [
-            { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
-            { 
-              text: 'Continue', 
-              onPress: () => {
-                console.log('📱 Continuing despite error...');
-                router.replace('/onboarding/intro');
+        
+        // CRITICAL FIX: Better error handling with user choice
+        if (error.includes('timeout')) {
+          Alert.alert(
+            'Connection Slow',
+            'The update is taking longer than expected. Would you like to continue anyway? You can change this setting later.',
+            [
+              { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
+              { 
+                text: 'Continue', 
+                onPress: () => {
+                  console.log('📱 Continuing despite timeout...');
+                  router.replace('/onboarding/intro');
+                }
               }
-            }
-          ]
-        );
+            ]
+          );
+        } else {
+          Alert.alert(
+            'Update Failed',
+            'There was an issue saving your preference. Would you like to continue anyway?',
+            [
+              { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
+              { 
+                text: 'Continue', 
+                onPress: () => {
+                  console.log('📱 Continuing despite error...');
+                  router.replace('/onboarding/intro');
+                }
+              }
+            ]
+          );
+        }
         return;
       }
 
       console.log('✅ Focus area updated successfully');
-      console.log('🔄 Refreshing user data...');
       
-      // Try to refresh user data, but don't block if it fails
-      try {
-        await refreshUser();
-        console.log('✅ User data refreshed');
-      } catch (refreshError) {
-        console.warn('⚠️ User refresh failed, but continuing:', refreshError);
-      }
-      
+      // CRITICAL FIX: Don't wait for user refresh - do it in background
       console.log('📱 Navigating to intro screen...');
       router.replace('/onboarding/intro');
       
-    } catch (error) {
+      // Refresh user data in background
+      setTimeout(() => {
+        refreshUser().catch(error => {
+          console.warn('⚠️ Background user refresh failed:', error);
+        });
+      }, 100);
+      
+    } catch (error: any) {
       console.error('💥 Error in quiz continue:', error);
+      setLoading(false);
       
       // Show user-friendly error and option to continue
       Alert.alert(
         'Connection Issue',
         'There was a problem saving your preference. You can change this later in settings.',
         [
-          { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
+          { text: 'Try Again', style: 'cancel' },
           { 
             text: 'Continue', 
             onPress: () => {
@@ -99,11 +135,6 @@ export default function QuizScreen() {
           }
         ]
       );
-    } finally {
-      // Only set loading to false if we're not navigating
-      if (!router.canGoBack()) {
-        setLoading(false);
-      }
     }
   };
 

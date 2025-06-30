@@ -14,8 +14,8 @@ const TUTORIAL_STEPS = [
   },
   {
     icon: Sparkles,
-    title: 'Daily Card Pull',
-    description: 'Each day, take a breath and pull a card that speaks to your soul. Let your intuition guide you.',
+    title: 'Daily Inner Message',
+    description: 'Each day, you will connect to your heart and pull a message. It will reflect to you a highly synchronistic message. Let your intuition guide you.',
   },
   {
     icon: Heart,

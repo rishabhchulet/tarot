@@ -2,11 +2,16 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Car as Card, Heart, PenTool, Bell } from 'lucide-react-native';
+import { Eye, Car as Card, Heart, PenTool, Bell } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
 const TUTORIAL_STEPS = [
+  {
+    icon: Eye,
+    title: 'You are connecting to your inner wisdom.',
+    description: 'This is a tool that assists you in receiving direct inner messages from yourself.\n\nIt uses a mix of ancient tools, modalities, and teachings including:\n\nTarot • I Ching • Symbols',
+  },
   {
     icon: Card,
     title: 'Daily Card Pull',
@@ -144,6 +149,7 @@ const styles = StyleSheet.create({
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 20,
+    lineHeight: 36,
   },
   description: {
     fontSize: 16,
@@ -151,7 +157,7 @@ const styles = StyleSheet.create({
     color: '#D1D5DB',
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 300,
+    maxWidth: 320,
   },
   buttonContainer: {
     alignItems: 'center',

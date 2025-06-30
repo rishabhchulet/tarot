@@ -47,11 +47,11 @@ export default function QuizScreen() {
     try {
       console.log('💾 Updating user profile with focus area...');
       
-      // CRITICAL FIX: Increased timeout wrapper to 25 seconds for the entire operation
+      // CRITICAL FIX: Much shorter timeout and better error handling
       const updateWithTimeout = new Promise(async (resolve, reject) => {
         const timeoutId = setTimeout(() => {
           reject(new Error('Profile update operation timeout'));
-        }, 25000); // 25 seconds total timeout
+        }, 8000); // Reduced to 8 seconds
         
         try {
           const result = await updateUserProfile({ focusArea: selectedOption });
@@ -63,58 +63,64 @@ export default function QuizScreen() {
         }
       });
       
-      const { error } = await updateWithTimeout as any;
+      let updateResult;
+      try {
+        updateResult = await updateWithTimeout as any;
+      } catch (timeoutError) {
+        console.warn('⚠️ Profile update timeout, proceeding anyway...');
+        
+        // CRITICAL FIX: If timeout, just proceed - the update might still work in background
+        Alert.alert(
+          'Slow Connection',
+          'The update is taking longer than expected. We\'ll continue and you can change this setting later if needed.',
+          [
+            { 
+              text: 'Continue', 
+              onPress: () => {
+                console.log('📱 Continuing despite timeout...');
+                router.replace('/onboarding/intro');
+              }
+            }
+          ]
+        );
+        return;
+      }
+      
+      const { error } = updateResult;
       
       if (error) {
         console.error('❌ Error updating focus area:', error);
         
-        // CRITICAL FIX: Better error handling with user choice
-        if (error.includes('timeout')) {
-          Alert.alert(
-            'Connection Slow',
-            'The update is taking longer than expected. Would you like to continue anyway? You can change this setting later.',
-            [
-              { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
-              { 
-                text: 'Continue', 
-                onPress: () => {
-                  console.log('📱 Continuing despite timeout...');
-                  router.replace('/onboarding/intro');
-                }
+        // CRITICAL FIX: For any error, offer to continue
+        Alert.alert(
+          'Update Issue',
+          'There was an issue saving your preference. You can change this later in settings. Continue anyway?',
+          [
+            { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
+            { 
+              text: 'Continue', 
+              onPress: () => {
+                console.log('📱 Continuing despite error...');
+                router.replace('/onboarding/intro');
               }
-            ]
-          );
-        } else {
-          Alert.alert(
-            'Update Failed',
-            'There was an issue saving your preference. Would you like to continue anyway?',
-            [
-              { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
-              { 
-                text: 'Continue', 
-                onPress: () => {
-                  console.log('📱 Continuing despite error...');
-                  router.replace('/onboarding/intro');
-                }
-              }
-            ]
-          );
-        }
+            }
+          ]
+        );
         return;
       }
 
       console.log('✅ Focus area updated successfully');
       
-      // CRITICAL FIX: Don't wait for user refresh - do it in background
+      // CRITICAL FIX: Navigate immediately, refresh user in background
       console.log('📱 Navigating to intro screen...');
       router.replace('/onboarding/intro');
       
-      // Refresh user data in background
+      // Refresh user data in background without blocking
       setTimeout(() => {
         refreshUser().catch(error => {
           console.warn('⚠️ Background user refresh failed:', error);
         });
-      }, 100);
+      }, 500);
       
     } catch (error: any) {
       console.error('💥 Error in quiz continue:', error);

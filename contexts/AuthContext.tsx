@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase, testSupabaseConnection } from '@/utils/supabase';
+import { supabase } from '@/utils/supabase';
 import { getCurrentUser, type AuthUser } from '@/utils/auth';
 import type { Session } from '@supabase/supabase-js';
 
@@ -24,16 +24,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔄 Refreshing user data...');
       
-      // CRITICAL FIX: Increase timeout and add better fallback
+      // CRITICAL FIX: Use a much shorter timeout and better fallback strategy
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('User refresh timeout')), 8000); // Increased to 8 seconds
+        setTimeout(() => reject(new Error('User refresh timeout')), 3000); // Reduced to 3 seconds
       });
       
       const userPromise = getCurrentUser();
       
-      const currentUser = await Promise.race([userPromise, timeoutPromise]) as AuthUser | null;
+      let currentUser: AuthUser | null = null;
       
-      console.log('👤 Refreshed user:', { 
+      try {
+        currentUser = await Promise.race([userPromise, timeoutPromise]) as AuthUser | null;
+      } catch (timeoutError) {
+        console.warn('⚠️ User refresh timeout, using session fallback...');
+        
+        // CRITICAL FIX: Immediate fallback to session data
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            currentUser = {
+              id: authUser.id,
+              email: authUser.email || '',
+              name: authUser.user_metadata?.name || 'User',
+              focusArea: undefined // Will be loaded later
+            };
+            console.log('✅ Using session fallback user data');
+          }
+        } catch (fallbackError) {
+          console.error('❌ Session fallback failed:', fallbackError);
+          throw timeoutError; // Re-throw original timeout error
+        }
+      }
+      
+      console.log('👤 User data result:', { 
         id: currentUser?.id, 
         name: currentUser?.name, 
         focusArea: currentUser?.focusArea 
@@ -41,34 +64,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       setUser(currentUser);
       setError(null);
+      
+      // CRITICAL FIX: Try to load full profile data in background without blocking
+      if (currentUser && !currentUser.focusArea) {
+        setTimeout(async () => {
+          try {
+            console.log('🔄 Background profile fetch...');
+            const { data } = await supabase
+              .from('users')
+              .select('focus_area, name')
+              .eq('id', currentUser.id)
+              .single();
+            
+            if (data) {
+              setUser(prev => prev ? {
+                ...prev,
+                name: data.name || prev.name,
+                focusArea: data.focus_area || undefined
+              } : null);
+              console.log('✅ Background profile update successful');
+            }
+          } catch (bgError) {
+            console.warn('⚠️ Background profile fetch failed:', bgError);
+          }
+        }, 500);
+      }
+      
     } catch (error: any) {
       console.error('❌ Error refreshing user:', error);
       
-      // CRITICAL FIX: If timeout, try to get basic user info from session
-      if (error.message?.includes('timeout')) {
-        console.log('⚠️ User refresh timeout, trying fallback...');
-        
-        try {
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          if (authUser) {
-            // Create basic user object from auth data
-            const fallbackUser: AuthUser = {
-              id: authUser.id,
-              email: authUser.email || '',
-              name: authUser.user_metadata?.name || 'User',
-              focusArea: undefined
-            };
-            
-            console.log('✅ Using fallback user data:', fallbackUser);
-            setUser(fallbackUser);
-            return;
-          }
-        } catch (fallbackError) {
-          console.error('❌ Fallback user fetch failed:', fallbackError);
-        }
-      }
-      
-      // Only set user to null if we don't have existing user data
+      // Only clear user if we don't have existing data
       if (!user) {
         setUser(null);
       }
@@ -108,31 +133,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // CRITICAL FIX: Longer timeout for better UX
+    // CRITICAL FIX: Much shorter timeout for faster UX
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('⚠️ Auth initialization timeout - proceeding');
         setLoading(false);
         setError(null);
       }
-    }, 5000); // Increased to 5 seconds
+    }, 2000); // Reduced to 2 seconds
     
-    // Get initial session with better error handling
+    // Get initial session with aggressive timeout
     const initializeAuth = async () => {
       try {
         console.log('🔍 Getting initial session...');
         
-        // CRITICAL FIX: Longer timeout for session check
+        // CRITICAL FIX: Very short timeout for session check
         const sessionTimeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Session check timeout')), 5000);
+          setTimeout(() => reject(new Error('Session check timeout')), 2000);
         });
         
         const sessionPromise = supabase.auth.getSession();
         
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise, 
-          sessionTimeoutPromise
-        ]) as any;
+        let sessionResult;
+        try {
+          sessionResult = await Promise.race([sessionPromise, sessionTimeoutPromise]) as any;
+        } catch (timeoutError) {
+          console.warn('⚠️ Session check timeout, proceeding without session');
+          if (mounted) {
+            setSession(null);
+            setLoading(false);
+            setError(null);
+          }
+          return;
+        }
+        
+        const { data: { session }, error } = sessionResult;
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
@@ -150,12 +185,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           if (session) {
             console.log('👤 Session found, loading user profile...');
-            // CRITICAL FIX: Load user data but don't block on it
-            refreshUser().finally(() => {
+            // CRITICAL FIX: Don't wait for user data - load it in background
+            setLoading(false); // Set loading false immediately
+            
+            // Load user data in background
+            setTimeout(() => {
               if (mounted) {
-                setLoading(false);
+                refreshUser();
               }
-            });
+            }, 100);
           } else {
             setLoading(false);
           }
@@ -188,12 +226,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-            // CRITICAL FIX: Load user data but don't block
-            refreshUser().finally(() => {
+            // CRITICAL FIX: Don't block on user data loading
+            setLoading(false);
+            
+            // Load user data in background
+            setTimeout(() => {
               if (mounted) {
-                setLoading(false);
+                refreshUser();
               }
-            });
+            }, 100);
           } else if (!session && event === 'SIGNED_OUT') {
             setUser(null);
             setLoading(false);

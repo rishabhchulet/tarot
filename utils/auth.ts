@@ -77,18 +77,8 @@ export const signUp = async (email: string, password: string, name: string) => {
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // CRITICAL FIX: Don't wait for profile creation - let it happen in background
-        // The trigger function will handle profile creation
-        try {
-          // Quick attempt to ensure profile exists, but don't block on it
-          setTimeout(() => {
-            ensureUserProfileExists(data.user, name.trim()).catch(error => {
-              console.warn('⚠️ Background profile creation had issues:', error);
-            });
-          }, 100);
-        } catch (error) {
-          console.warn('⚠️ Profile creation scheduling failed:', error);
-        }
+        // CRITICAL FIX: Don't wait for anything - the database trigger will handle profile creation
+        // Just return immediately and let the app proceed
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -140,89 +130,12 @@ export const signIn = async (email: string, password: string) => {
 
     if (data?.user && data?.session) {
       console.log('✅ Sign in successful for user:', data.user.id);
-      
-      // Try to ensure user profile exists, but don't fail if it doesn't work
-      try {
-        setTimeout(() => {
-          ensureUserProfileExists(data.user).catch(error => {
-            console.warn('⚠️ Background profile check had issues:', error);
-          });
-        }, 100);
-      } catch (profileError) {
-        console.warn('⚠️ Profile check scheduling failed:', profileError);
-      }
     }
 
     return { user: data?.user, error: null };
   } catch (error: any) {
     console.error('❌ Sign in error:', error);
     return { user: null, error: error.message || 'An unexpected error occurred during sign in' };
-  }
-};
-
-// CRITICAL FIX: Increased timeouts and better error handling
-const ensureUserProfileExists = async (user: any, name?: string) => {
-  try {
-    console.log('👤 Checking if user profile exists...');
-    
-    // CRITICAL FIX: Increased timeout to 8 seconds
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Profile check timeout')), 8000);
-    });
-    
-    const profilePromise = supabase
-      .from('users')
-      .select('id, name, email, focus_area')
-      .eq('id', user.id)
-      .single();
-
-    const { data: existingProfile, error: selectError } = await Promise.race([
-      profilePromise,
-      timeoutPromise
-    ]) as any;
-
-    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
-      console.error('❌ Error checking profile:', selectError);
-      return; // Don't throw error to avoid blocking auth flow
-    }
-
-    if (!existingProfile) {
-      console.log('👤 Creating missing user profile...');
-      
-      // CRITICAL FIX: Increased timeout for profile creation
-      const upsertTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile creation timeout')), 8000);
-      });
-      
-      const upsertPromise = supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          email: user.email,
-          name: name || user.user_metadata?.name || 'User',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'id'
-        });
-
-      const { error: upsertError } = await Promise.race([
-        upsertPromise,
-        upsertTimeoutPromise
-      ]) as any;
-
-      if (upsertError) {
-        console.error('❌ Error creating user profile:', upsertError);
-        // Don't throw error to avoid blocking auth flow
-      } else {
-        console.log('✅ User profile created successfully');
-      }
-    } else {
-      console.log('✅ User profile already exists');
-    }
-  } catch (error: any) {
-    console.error('❌ Error in profile check:', error);
-    // Don't throw error to avoid blocking auth flow
   }
 };
 
@@ -248,17 +161,22 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    // CRITICAL FIX: Increased timeout to 15 seconds
+    // CRITICAL FIX: Much shorter timeout and immediate fallback
     const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth user check timeout')), 15000);
+      setTimeout(() => reject(new Error('Auth user check timeout')), 3000); // Reduced to 3 seconds
     });
     
     const authPromise = supabase.auth.getUser();
     
-    const { data: { user } } = await Promise.race([
-      authPromise,
-      authTimeoutPromise
-    ]) as any;
+    let authResult;
+    try {
+      authResult = await Promise.race([authPromise, authTimeoutPromise]) as any;
+    } catch (timeoutError) {
+      console.warn('⚠️ Auth user check timeout');
+      throw timeoutError;
+    }
+    
+    const { data: { user } } = authResult;
     
     if (!user) {
       console.log('ℹ️ No authenticated user found');
@@ -267,10 +185,10 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // Get user profile from our users table with increased timeout
+    // CRITICAL FIX: Try to get profile data with very short timeout
     try {
       const profileTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), 15000);
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 2000); // Very short timeout
       });
       
       const profilePromise = supabase
@@ -285,7 +203,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       ]) as any;
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('⚠️ Error fetching user profile:', error);
+        console.warn('⚠️ Error fetching user profile:', error);
       }
 
       if (data) {
@@ -297,16 +215,17 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
           focusArea: data.focus_area || undefined,
         };
       }
-    } catch (error: any) {
-      console.error('❌ Exception in profile fetch:', error);
+    } catch (profileError) {
+      console.warn('⚠️ Profile fetch timeout, using auth data only');
     }
 
-    // Fallback to basic auth info if profile doesn't exist
-    console.log('👤 No user profile found, returning basic auth info');
+    // CRITICAL FIX: Always return basic auth info as fallback
+    console.log('👤 Using basic auth info as fallback');
     return {
       id: user.id,
       email: user.email || '',
       name: user.user_metadata?.name || 'User',
+      focusArea: undefined
     };
   } catch (error: any) {
     console.error('❌ Error getting current user:', error);
@@ -318,17 +237,21 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
     console.log('🔄 Starting user profile update...', updates);
     
-    // CRITICAL FIX: Increased timeout for auth check to 15 seconds
+    // CRITICAL FIX: Much shorter timeout for auth check
     const authTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Auth check timeout')), 15000);
+      setTimeout(() => reject(new Error('Auth check timeout')), 3000); // Reduced to 3 seconds
     });
     
     const authPromise = supabase.auth.getUser();
     
-    const { data: { user } } = await Promise.race([
-      authPromise,
-      authTimeoutPromise
-    ]) as any;
+    let authResult;
+    try {
+      authResult = await Promise.race([authPromise, authTimeoutPromise]) as any;
+    } catch (timeoutError) {
+      throw new Error('Authentication timeout - please try again');
+    }
+    
+    const { data: { user } } = authResult;
     
     if (!user) {
       throw new Error('No authenticated user found');
@@ -351,9 +274,9 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // CRITICAL FIX: Increased timeout for database update to 20 seconds
+    // CRITICAL FIX: Much shorter timeout for database update
     const updateTimeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Profile update timeout')), 20000);
+      setTimeout(() => reject(new Error('Database update timeout')), 5000); // Reduced to 5 seconds
     });
 
     const updatePromise = supabase
@@ -368,10 +291,14 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
       .select()
       .single();
 
-    const { data, error } = await Promise.race([
-      updatePromise,
-      updateTimeoutPromise
-    ]) as any;
+    let updateResult;
+    try {
+      updateResult = await Promise.race([updatePromise, updateTimeoutPromise]) as any;
+    } catch (timeoutError) {
+      throw new Error('Update operation timed out - please check your connection');
+    }
+
+    const { data, error } = updateResult;
 
     if (error) {
       console.error('❌ Profile update error:', error);

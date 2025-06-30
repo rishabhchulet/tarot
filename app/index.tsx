@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, AlertCircle } from 'lucide-react-native';
+import { Sparkles, CircleAlert as AlertCircle } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 

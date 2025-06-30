@@ -68,8 +68,10 @@ export default function SignUpScreen() {
       if (error) {
         console.error('❌ Sign up failed:', error);
         setError(error);
-        setLoading(false);
-      } else if (user) {
+        return;
+      } 
+      
+      if (user) {
         console.log('✅ Sign up successful');
         
         if (session) {
@@ -84,7 +86,6 @@ export default function SignUpScreen() {
         } else {
           // User needs to confirm email
           setSuccess(true);
-          setLoading(false);
           
           setTimeout(() => {
             console.log('📱 Navigating to sign in...');
@@ -94,11 +95,11 @@ export default function SignUpScreen() {
       } else {
         console.error('❓ Unexpected sign up result: no user and no error');
         setError('An unexpected error occurred. Please try again.');
-        setLoading(false);
       }
     } catch (error) {
       console.error('💥 Unexpected error during sign up:', error);
       setError('An unexpected error occurred. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
@@ -127,8 +128,8 @@ export default function SignUpScreen() {
     >
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#F3F4F6" />
+          <Pressable style={styles.backButton} onPress={() => router.back()} disabled={loading}>
+            <ArrowLeft size={24} color={loading ? "#6B7280" : "#F3F4F6"} />
           </Pressable>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Begin your inner journey</Text>
@@ -145,7 +146,7 @@ export default function SignUpScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Full Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, loading && styles.inputDisabled]}
               value={name}
               onChangeText={setName}
               placeholder="Enter your full name"
@@ -162,7 +163,7 @@ export default function SignUpScreen() {
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Email</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, loading && styles.inputDisabled]}
               value={email}
               onChangeText={setEmail}
               placeholder="Enter your email"
@@ -179,7 +180,7 @@ export default function SignUpScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordContainer}>
+            <View style={[styles.passwordContainer, loading && styles.inputDisabled]}>
               <TextInput
                 style={styles.passwordInput}
                 value={password}
@@ -203,9 +204,9 @@ export default function SignUpScreen() {
                 disabled={loading}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color="#9CA3AF" />
+                  <EyeOff size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
                 ) : (
-                  <Eye size={20} color="#9CA3AF" />
+                  <Eye size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
                 )}
               </Pressable>
             </View>
@@ -213,7 +214,7 @@ export default function SignUpScreen() {
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Confirm Password</Text>
-            <View style={styles.passwordContainer}>
+            <View style={[styles.passwordContainer, loading && styles.inputDisabled]}>
               <TextInput
                 style={styles.passwordInput}
                 value={confirmPassword}
@@ -237,9 +238,9 @@ export default function SignUpScreen() {
                 disabled={loading}
               >
                 {showConfirmPassword ? (
-                  <EyeOff size={20} color="#9CA3AF" />
+                  <EyeOff size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
                 ) : (
-                  <Eye size={20} color="#9CA3AF" />
+                  <Eye size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
                 )}
               </Pressable>
             </View>
@@ -271,8 +272,8 @@ export default function SignUpScreen() {
             accessibilityRole="button"
             disabled={loading}
           >
-            <Text style={styles.signInLinkText}>
-              Already have an account? <Text style={styles.linkHighlight}>Sign In</Text>
+            <Text style={[styles.signInLinkText, loading && styles.linkDisabled]}>
+              Already have an account? <Text style={[styles.linkHighlight, loading && styles.linkDisabled]}>Sign In</Text>
             </Text>
           </Pressable>
         </View>
@@ -374,6 +375,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
   },
+  inputDisabled: {
+    opacity: 0.6,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -425,5 +430,8 @@ const styles = StyleSheet.create({
   linkHighlight: {
     color: '#F59E0B',
     fontFamily: 'Inter-SemiBold',
+  },
+  linkDisabled: {
+    color: '#6B7280',
   },
 });

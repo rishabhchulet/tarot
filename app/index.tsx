@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { Sparkles, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -70,10 +70,10 @@ export default function IndexScreen() {
           router.replace('/auth');
         }
       } else if (error && !loading) {
-        console.log('❌ Auth error detected, redirecting to auth...');
-        router.replace('/auth');
+        console.log('❌ Auth error detected, showing error state...');
+        // Don't auto-redirect on error, let user see the error and refresh
       }
-    }, 100); // Small delay to ensure proper state loading
+    }, 500); // Increased delay to ensure proper state loading
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error]);
@@ -83,6 +83,13 @@ export default function IndexScreen() {
       transform: [{ rotate: `${sparkleRotation.value}deg` }],
     };
   });
+
+  const handleRefresh = () => {
+    console.log('🔄 User requested refresh, reloading page...');
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  };
 
   // Show error state if there's an authentication error
   if (error && !loading) {
@@ -95,7 +102,12 @@ export default function IndexScreen() {
           <AlertCircle size={60} color="#EF4444" />
           <Text style={styles.errorTitle}>Connection Issue</Text>
           <Text style={styles.errorText}>{error}</Text>
-          <Text style={styles.errorSubtext}>Please check your internet connection and refresh the page</Text>
+          <Text style={styles.errorSubtext}>Please check your internet connection</Text>
+          
+          <View style={styles.refreshButton} onTouchEnd={handleRefresh}>
+            <RefreshCw size={20} color="#F59E0B" />
+            <Text style={styles.refreshText}>Refresh</Text>
+          </View>
         </View>
       </LinearGradient>
     );
@@ -158,5 +170,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 280,
     lineHeight: 20,
+    marginBottom: 24,
+  },
+  refreshButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+    gap: 8,
+  },
+  refreshText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
   },
 });

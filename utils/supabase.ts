@@ -83,18 +83,6 @@ export const supabase = createClient(
       headers: {
         'X-Client-Info': 'daily-tarot-reflection',
       },
-      fetch: (url, options = {}) => {
-        // Add timeout to all requests
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
-        return fetch(url, {
-          ...options,
-          signal: controller.signal,
-        }).finally(() => {
-          clearTimeout(timeoutId);
-        });
-      },
     },
     db: {
       schema: 'public',
@@ -119,40 +107,44 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
     }
     
     // Use a simple health check instead of querying tables with RLS
-    const healthCheckPromise = fetch(`${supabaseUrl}/rest/v1/`, {
-      method: 'GET',
-      headers: {
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`,
-      },
-    }).then(response => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    try {
+      const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+        method: 'GET',
+        headers: {
+          'apikey': supabaseAnonKey,
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+      
       if (response.ok || response.status === 200) {
         console.log('✅ Supabase connection test successful');
         return { connected: true, error: null };
       } else {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    }).catch(error => {
-      console.error('❌ Supabase connection test failed:', error);
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      if (error.name === 'AbortError') {
+        throw new Error('Connection timeout');
+      }
       throw error;
-    });
-    
-    // 8 second timeout for the health check
-    const timeoutPromise = new Promise<{ connected: boolean; error: string }>((resolve) => 
-      setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 8000)
-    );
-    
-    const result = await Promise.race([healthCheckPromise, timeoutPromise]);
-    return result;
+    }
     
   } catch (error: any) {
     console.error('❌ Supabase connection test error:', error);
     
     // Provide more specific error messages
     let errorMessage = 'Connection failed';
-    if (error.name === 'AbortError') {
+    if (error.name === 'AbortError' || error.message?.includes('timeout')) {
       errorMessage = 'Connection timeout';
-    } else if (error.message?.includes('fetch')) {
+    } else if (error.message?.includes('fetch') || error.message?.includes('network')) {
       errorMessage = 'Network error - check your internet connection';
     } else if (error.message?.includes('CORS')) {
       errorMessage = 'CORS error - check Supabase configuration';

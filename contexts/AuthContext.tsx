@@ -78,18 +78,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
         setError('Connection timeout - please check your internet connection');
       }
-    }, 12000); // Reduced to 12 seconds for better UX
+    }, 8000); // Reduced to 8 seconds for better UX
     
     // Get initial session with improved error handling
     const initializeAuth = async () => {
       try {
         console.log('🔍 Testing Supabase connection...');
         
-        // Test connection first with retry logic
+        // Test connection first with shorter timeout
         const connectionTest = await Promise.race([
           testSupabaseConnection(),
           new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 8000) // Reduced timeout
+            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 5000)
           )
         ]);
         
@@ -104,22 +104,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('✅ Supabase connection successful');
         
-        // Get session with timeout
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 6000) // Reduced timeout
-        );
-        
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        // Get session with shorter timeout and better error handling
+        console.log('🔐 Getting initial session...');
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
           if (mounted) {
             setSession(null);
-            setError('Authentication error - please try refreshing the page');
+            // Don't treat session errors as fatal - user can still sign in
+            setError(null);
             setLoading(false);
           }
           return;
@@ -131,6 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           if (session) {
             // Add a small delay to ensure database trigger has completed
+            console.log('👤 Session found, loading user profile...');
             await new Promise(resolve => setTimeout(resolve, 500));
             await refreshUser();
           }

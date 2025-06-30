@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { MessageCircle, Lightbulb } from 'lucide-react-native';
 import { getAIReflectionPrompts, extractRecentThemes } from '@/utils/ai';
@@ -36,17 +36,21 @@ export function DynamicReflectionQuestions({
   const [shadowQuestion, setShadowQuestion] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // NEW: Use ref to track if daily question has been sent to prevent loops
+  const dailyQuestionSentRef = useRef(false);
 
   useEffect(() => {
     console.log('🎯 DynamicReflectionQuestions mounted, generating questions...');
     generateQuestions();
   }, [card.name, hexagram.name]);
 
-  // NEW: Send daily question to parent when it's set
+  // FIXED: Only send daily question once when it's first set
   useEffect(() => {
-    if (shadowQuestion && onDailyQuestionReceived) {
-      console.log('📤 Sending daily question to parent:', shadowQuestion);
+    if (shadowQuestion && onDailyQuestionReceived && !dailyQuestionSentRef.current) {
+      console.log('📤 Sending daily question to parent (first time):', shadowQuestion);
       onDailyQuestionReceived(shadowQuestion);
+      dailyQuestionSentRef.current = true; // Mark as sent to prevent loops
     }
   }, [shadowQuestion, onDailyQuestionReceived]);
 
@@ -74,6 +78,9 @@ export function DynamicReflectionQuestions({
     console.log('🤔 Generating personal reflection questions...');
     setLoading(true);
     setError(null);
+    
+    // Reset the daily question sent flag when generating new questions
+    dailyQuestionSentRef.current = false;
 
     try {
       // Get recent journal entries for context

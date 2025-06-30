@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Save, Mic, Square, Play, Pause } from 'lucide-react-native';
 import { saveJournalEntry, saveDailyQuestion } from '@/utils/database';
@@ -94,10 +94,13 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
     }
   };
 
-  // NEW: Handle daily question from DynamicReflectionQuestions
+  // FIXED: Handle daily question from DynamicReflectionQuestions with proper state management
   const handleDailyQuestionReceived = (question: string) => {
-    console.log('📝 Daily question received:', question);
-    setDailyQuestion(question);
+    console.log('📝 Daily question received in ReflectionPrompt:', question);
+    // Only update if it's different to prevent unnecessary re-renders
+    if (question !== dailyQuestion) {
+      setDailyQuestion(question);
+    }
   };
 
   const handleSave = async () => {
@@ -134,7 +137,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         return;
       }
 
-      // NEW: Save the daily question if we have one
+      // FIXED: Save the daily question if we have one (only once)
       if (dailyQuestion) {
         console.log('💾 Saving daily question...');
         await saveDailyQuestion(dailyQuestion);
@@ -170,7 +173,12 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView 
+      style={styles.scrollContainer}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       {/* Compact Spiritual Messages Header */}
       <View style={styles.messagesHeader}>
         <View style={styles.messageCard}>
@@ -184,7 +192,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         </View>
       </View>
 
-      {/* Enhanced Dynamic Questions - No scrolling needed */}
+      {/* Enhanced Dynamic Questions - Now properly contained */}
       <DynamicReflectionQuestions
         card={card}
         hexagram={hexagram}
@@ -263,17 +271,20 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
           </Text>
         </LinearGradient>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  // FIXED: Proper scrollable container
+  scrollContainer: {
     flex: 1,
     width: '100%',
-    height: screenHeight - 140, // Account for tab bar
+  },
+  scrollContent: {
     paddingHorizontal: 20,
     paddingVertical: 8,
+    paddingBottom: 40, // Extra padding at bottom for save button
   },
   
   // Ultra Compact Messages Header
@@ -409,8 +420,7 @@ const styles = StyleSheet.create({
   saveButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    marginTop: 'auto',
-    marginBottom: 8,
+    marginTop: 16,
   },
   saveButtonDisabled: {
     opacity: 0.6,

@@ -25,7 +25,7 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // CRITICAL FIX: Faster routing with better logic
+    // CRITICAL FIX: Much faster routing with better logic
     const navigationTimeout = setTimeout(() => {
       console.log('🔍 Routing check:', { 
         hasSession: !!session, 
@@ -56,8 +56,19 @@ export default function IndexScreen() {
               console.log('✅ User has completed onboarding - going to main app...');
               router.replace('/(tabs)');
             }
+          } else if (session && !user) {
+            // CRITICAL FIX: If we have session but no user, wait a bit longer
+            console.log('⚠️ Session exists but no user data - waiting briefly...');
+            
+            // Wait a short time for user data to load, then proceed
+            setTimeout(() => {
+              console.log('⏰ Timeout reached, proceeding to onboarding...');
+              router.replace('/onboarding/quiz');
+            }, 2000);
+            
+            return; // Don't navigate immediately
           } else {
-            // FIXED: No session means new user - go to auth
+            // No session means new user - go to auth
             console.log('🔐 No session found - redirecting to auth (new user)...');
             router.replace('/auth');
           }
@@ -67,7 +78,7 @@ export default function IndexScreen() {
           router.replace('/auth');
         }
       }
-    }, 100); // Much faster timeout
+    }, 500); // Slightly longer timeout to allow user data to load
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error]);
@@ -162,12 +173,16 @@ export default function IndexScreen() {
         <Animated.View style={[styles.iconContainer, animatedSparkleStyle]}>
           <Sparkles size={80} color="#F59E0B" strokeWidth={1.5} />
         </Animated.View>
-        <Text style={styles.loadingText}>Connecting to your inner wisdom...</Text>
+        <Text style={styles.loadingText}>
+          {session && !user ? 'Setting up your profile...' : 'Connecting to your inner wisdom...'}
+        </Text>
         
         {/* Show connection status */}
         <View style={styles.connectionStatus}>
           <Wifi size={16} color="#9CA3AF" />
-          <Text style={styles.connectionText}>Establishing secure connection...</Text>
+          <Text style={styles.connectionText}>
+            {session && !user ? 'Loading your data...' : 'Establishing secure connection...'}
+          </Text>
         </View>
       </View>
     </LinearGradient>

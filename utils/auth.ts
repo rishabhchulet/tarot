@@ -28,7 +28,6 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     console.log('📧 Attempting to create user account...');
     
-    // CRITICAL FIX: Use a much simpler approach without complex timeout handling
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
@@ -75,18 +74,20 @@ export const signUp = async (email: string, password: string, name: string) => {
     if (data?.user) {
       console.log('✅ User created successfully:', data.user.id);
       
-      // FIXED: Simple approach - if we have a session, user is ready
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // Give a moment for the database trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Try to ensure profile exists, but don't fail if it doesn't work
+        // CRITICAL FIX: Don't wait for profile creation - let it happen in background
+        // The trigger function will handle profile creation
         try {
-          await ensureUserProfileExists(data.user, name.trim());
-        } catch (profileError) {
-          console.warn('⚠️ Profile creation had issues, but continuing:', profileError);
+          // Quick attempt to ensure profile exists, but don't block on it
+          setTimeout(() => {
+            ensureUserProfileExists(data.user, name.trim()).catch(error => {
+              console.warn('⚠️ Background profile creation had issues:', error);
+            });
+          }, 100);
+        } catch (error) {
+          console.warn('⚠️ Profile creation scheduling failed:', error);
         }
       } else {
         console.log('ℹ️ User created but needs email confirmation');
@@ -142,9 +143,13 @@ export const signIn = async (email: string, password: string) => {
       
       // Try to ensure user profile exists, but don't fail if it doesn't work
       try {
-        await ensureUserProfileExists(data.user);
+        setTimeout(() => {
+          ensureUserProfileExists(data.user).catch(error => {
+            console.warn('⚠️ Background profile check had issues:', error);
+          });
+        }, 100);
       } catch (profileError) {
-        console.warn('⚠️ Profile check had issues, but continuing:', profileError);
+        console.warn('⚠️ Profile check scheduling failed:', profileError);
       }
     }
 
@@ -155,16 +160,26 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// FIXED: Simplified helper function without complex retry logic
+// CRITICAL FIX: Simplified helper function with timeout
 const ensureUserProfileExists = async (user: any, name?: string) => {
   try {
     console.log('👤 Checking if user profile exists...');
     
-    const { data: existingProfile, error: selectError } = await supabase
+    // Add timeout to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Profile check timeout')), 3000);
+    });
+    
+    const profilePromise = supabase
       .from('users')
       .select('id, name, email, focus_area')
       .eq('id', user.id)
       .single();
+
+    const { data: existingProfile, error: selectError } = await Promise.race([
+      profilePromise,
+      timeoutPromise
+    ]) as any;
 
     if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
       console.error('❌ Error checking profile:', selectError);
@@ -174,8 +189,12 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
     if (!existingProfile) {
       console.log('👤 Creating missing user profile...');
       
-      // Use upsert to handle race conditions
-      const { error: upsertError } = await supabase
+      // Use upsert to handle race conditions with timeout
+      const upsertTimeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile creation timeout')), 3000);
+      });
+      
+      const upsertPromise = supabase
         .from('users')
         .upsert({
           id: user.id,
@@ -187,6 +206,11 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
           onConflict: 'id'
         });
 
+      const { error: upsertError } = await Promise.race([
+        upsertPromise,
+        upsertTimeoutPromise
+      ]) as any;
+
       if (upsertError) {
         console.error('❌ Error creating user profile:', upsertError);
         // Don't throw error to avoid blocking auth flow
@@ -196,7 +220,7 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
     } else {
       console.log('✅ User profile already exists');
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error in profile check:', error);
     // Don't throw error to avoid blocking auth flow
   }
@@ -224,7 +248,17 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    const { data: { user } } = await supabase.auth.getUser();
+    // CRITICAL FIX: Add timeout to prevent hanging
+    const authTimeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Auth user check timeout')), 3000);
+    });
+    
+    const authPromise = supabase.auth.getUser();
+    
+    const { data: { user } } = await Promise.race([
+      authPromise,
+      authTimeoutPromise
+    ]) as any;
     
     if (!user) {
       console.log('ℹ️ No authenticated user found');
@@ -233,19 +267,29 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // Get user profile from our users table
+    // Get user profile from our users table with timeout
     try {
-      const { data, error } = await supabase
+      const profileTimeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 3000);
+      });
+      
+      const profilePromise = supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
         .single();
+
+      const { data, error } = await Promise.race([
+        profilePromise,
+        profileTimeoutPromise
+      ]) as any;
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         console.error('⚠️ Error fetching user profile:', error);
       }
 
       if (data) {
+        console.log('✅ User profile found:', data.name);
         return {
           id: data.id,
           email: data.email,
@@ -253,7 +297,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
           focusArea: data.focus_area || undefined,
         };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Exception in profile fetch:', error);
     }
 
@@ -264,7 +308,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
       email: user.email || '',
       name: user.user_metadata?.name || 'User',
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error getting current user:', error);
     return null;
   }

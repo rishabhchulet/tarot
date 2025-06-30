@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
   },
   placeholder: {
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     textAlign: 'center',
   },
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#9CA3AF',
     textAlign: 'center',
   },
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
   },
   cardName: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F59E0B',
     textAlign: 'center',
   },
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 22,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F59E0B',
     textAlign: 'center',
     lineHeight: 32,
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   decorativeSymbol: {
     fontSize: 18,
     color: '#8B5CF6',
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
   },
   
   // Guidance section
@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
   },
   guidanceTitle: {
     fontSize: 18,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     marginBottom: 16,
     textAlign: 'center',
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   },
   keywordsTitle: {
     fontSize: 16,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     marginBottom: 16,
   },

@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     marginBottom: 8,
   },
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     marginBottom: 16,
   },

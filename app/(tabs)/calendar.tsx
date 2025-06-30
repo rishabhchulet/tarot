@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     marginBottom: 8,
   },
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 28,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     marginTop: 8,
     marginBottom: 4,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#9CA3AF',
     marginTop: 20,
     marginBottom: 12,
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   monthTitle: {
     fontSize: 20,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     marginBottom: 16,
   },
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   },
   entryCardName: {
     fontSize: 16,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     marginBottom: 4,
   },

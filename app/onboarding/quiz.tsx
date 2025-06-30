@@ -149,14 +149,14 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 20,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
     marginBottom: 16,
   },
   title: {
     fontSize: 28,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 16,

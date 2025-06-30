@@ -26,7 +26,7 @@ const TUTORIAL_STEPS = [
   {
     icon: Bell,
     title: 'Daily Reminders',
-    description: 'Set a gentle reminder so you never miss your moment of daily spiritual connection.',
+    description: 'Set a gentle reminder so you never miss your moment of daily inner connection.',
   },
 ];
 
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 20,

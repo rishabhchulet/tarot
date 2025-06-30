@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 32,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 20,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   breathingText: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 16,

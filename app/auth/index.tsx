@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 36,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-ExtraBold',
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 24,

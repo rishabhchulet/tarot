@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
 
 const FOCUS_AREAS = [
-  { id: 'spiritual', title: 'Spiritual Development', icon: Heart },
+  { id: 'inner', title: 'Inner Development', icon: Heart },
   { id: 'relationships', title: 'Relationships', icon: User },
   { id: 'money', title: 'Money & Resources', icon: Mail },
   { id: 'health', title: 'Physical & Mental Health', icon: Heart },
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
   },
   placeholder: {

@@ -33,7 +33,6 @@
     "expo-symbols": "~0.4.3",
     "expo-system-ui": "~5.0.5",
     "expo-web-browser": "~14.1.5",
-    "@expo-google-fonts/cormorant-garamond": "^0.2.3",
     "@expo-google-fonts/inter": "^0.2.3",
     "lucide-react-native": "^0.475.0",
     "openai": "^4.67.3",

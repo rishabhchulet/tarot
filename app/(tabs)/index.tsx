@@ -552,7 +552,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     textAlign: 'center',
   },
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontSize: 28,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     marginBottom: 8,
     textShadowColor: 'rgba(245, 158, 11, 0.3)',
@@ -688,7 +688,7 @@ const styles = StyleSheet.create({
   },
   intentionQuestion: {
     fontSize: 20,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
     lineHeight: 28,
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
   runeSymbol: {
     fontSize: 16,
     color: '#8B5CF6',
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
   },
   
   // Enhanced button
@@ -750,7 +750,7 @@ const styles = StyleSheet.create({
   // Enhanced mystical footer with better visibility
   mysticalFooter: {
     fontSize: 16,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     marginTop: 24,
     fontStyle: 'italic',
@@ -773,7 +773,7 @@ const styles = StyleSheet.create({
   },
   completedTitle: {
     fontSize: 28,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#10B981',
     marginBottom: 8,
     textAlign: 'center',
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
   },
   cardName: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F59E0B',
     marginBottom: 16,
     textAlign: 'center',
@@ -863,7 +863,7 @@ const styles = StyleSheet.create({
   },
   nextCardTitle: {
     fontSize: 18,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F3F4F6',
     marginBottom: 8,
   },

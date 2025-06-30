@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Eye, Sparkles, Heart, PenTool, Bell } from 'lucide-react-native';
+import { startFreeTrial } from '@/utils/database';
 
 const { width } = Dimensions.get('window');
 
@@ -48,14 +49,24 @@ export default function TutorialScreen() {
     }
   };
 
-  const handleComplete = () => {
-    console.log('🎉 Tutorial complete, navigating to breathing exercise...');
+  const handleComplete = async () => {
+    console.log('🎉 Tutorial complete, starting free trial and navigating to main app...');
     setLoading(true);
-    router.replace('/breathing');
+    
+    try {
+      console.log('💾 Starting free trial...');
+      await startFreeTrial();
+      console.log('✅ Free trial started successfully');
+    } catch (error) {
+      console.error('❌ Error starting free trial:', error);
+    }
+    
+    console.log('📱 Navigating to main app...');
+    router.replace('/(tabs)');
   };
 
   const handleSkip = () => {
-    console.log('⏭️ Tutorial skipped, going to breathing exercise...');
+    console.log('⏭️ Tutorial skipped, going to main app...');
     handleComplete();
   };
 
@@ -99,7 +110,7 @@ export default function TutorialScreen() {
             style={styles.buttonGradient}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Setting up...' : currentStep === TUTORIAL_STEPS.length - 1 ? 'Continue' : 'Next'}
+              {loading ? 'Setting up...' : currentStep === TUTORIAL_STEPS.length - 1 ? 'Start My Journey' : 'Next'}
             </Text>
           </LinearGradient>
         </Pressable>

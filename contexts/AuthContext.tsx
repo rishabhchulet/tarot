@@ -105,12 +105,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('✅ Supabase connection successful');
         
-        // Get session with shorter timeout
+        // Get session with longer timeout
         console.log('🔐 Getting initial session...');
         
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 5000)
+          setTimeout(() => reject(new Error('Session timeout')), 15000)
         );
 
         const { data: { session }, error } = await Promise.race([

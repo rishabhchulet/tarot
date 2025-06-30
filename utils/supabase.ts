@@ -15,9 +15,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.log('Please ensure these are set in your .env file:');
   console.log('EXPO_PUBLIC_SUPABASE_URL=your_supabase_url');
   console.log('EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key');
-  
-  // Don't throw error immediately, let the app try to work with fallbacks
-  console.warn('⚠️ App will continue but database features may not work');
 }
 
 // Custom storage adapter for Expo SecureStore with better error handling
@@ -70,7 +67,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-// Create Supabase client with fallback values
+// Create Supabase client with improved configuration
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -80,13 +77,13 @@ export const supabase = createClient(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
+      flowType: 'pkce',
     },
     global: {
       headers: {
         'X-Client-Info': 'daily-tarot-reflection',
       },
     },
-    // Add retry logic for network issues
     db: {
       schema: 'public',
     },
@@ -98,20 +95,24 @@ export const supabase = createClient(
   }
 );
 
-// Test connection function
-export const testSupabaseConnection = async () => {
+// Enhanced connection test function
+export const testSupabaseConnection = async (): Promise<{ connected: boolean; error: string | null }> => {
   try {
     console.log('🔍 Testing Supabase connection...');
     
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase configuration');
+    if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
+      const error = 'Missing or invalid Supabase configuration';
+      console.error('❌', error);
+      return { connected: false, error };
     }
     
-    // Simple query to test connection
-    const { data, error } = await supabase
-      .from('users')
-      .select('count')
-      .limit(1);
+    // Test with a simple query that doesn't require authentication
+    const { data, error } = await Promise.race([
+      supabase.from('users').select('count').limit(1),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout')), 5000)
+      )
+    ]) as any;
     
     if (error) {
       console.error('❌ Supabase connection test failed:', error);
@@ -122,7 +123,7 @@ export const testSupabaseConnection = async () => {
     return { connected: true, error: null };
   } catch (error: any) {
     console.error('❌ Supabase connection test error:', error);
-    return { connected: false, error: error.message };
+    return { connected: false, error: error.message || 'Connection failed' };
   }
 };
 

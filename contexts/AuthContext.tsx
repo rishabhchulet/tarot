@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
         setError('Connection timeout - please refresh the page');
       }
-    }, 10000); // 10 second timeout
+    }, 15000); // 15 second timeout (increased from 10)
     
     // Get initial session with error handling
     const initializeAuth = async () => {
@@ -115,6 +115,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setSession(session);
           if (session) {
+            // Add a small delay to ensure database trigger has completed
+            await new Promise(resolve => setTimeout(resolve, 500));
             await refreshUser();
           }
           setError(null);
@@ -146,9 +148,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setError(null);
           
-          if (session) {
+          if (session && event === 'SIGNED_IN') {
+            // Add delay for database trigger to complete
+            await new Promise(resolve => setTimeout(resolve, 1000));
             await refreshUser();
-          } else {
+          } else if (!session) {
             setUser(null);
           }
           

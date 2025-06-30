@@ -62,7 +62,7 @@ export const signUp = async (email: string, password: string, name: string) => {
         throw new Error('Password must be at least 6 characters long.');
       }
 
-      if (error.message.includes('Database error')) {
+      if (error.message.includes('Database error') || error.message.includes('relation')) {
         throw new Error('There was an issue creating your account. Please try again.');
       }
       
@@ -75,6 +75,9 @@ export const signUp = async (email: string, password: string, name: string) => {
       // If we have a session, the user profile should have been created by the trigger
       if (data.session) {
         console.log('✅ User signed in immediately with session');
+        
+        // Give the database trigger time to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
         // Verify the profile was created with retry logic
         await ensureUserProfileWithRetry(data.user, name.trim());
@@ -141,21 +144,30 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// Enhanced helper function with retry logic
-const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries = 3) => {
+// Enhanced helper function with retry logic and better error handling
+const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries = 5) => {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       console.log(`👤 Checking user profile (attempt ${attempt}/${maxRetries})...`);
       
-      const { data: existingProfile } = await supabase
+      const { data: existingProfile, error: selectError } = await supabase
         .from('users')
-        .select('id')
+        .select('id, name, email, focus_area')
         .eq('id', user.id)
         .single();
 
+      if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error(`❌ Error checking profile (attempt ${attempt}):`, selectError);
+        if (attempt === maxRetries) {
+          throw selectError;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        continue;
+      }
+
       if (!existingProfile) {
         console.log('👤 Creating missing user profile...');
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('users')
           .insert({
             id: user.id,
@@ -163,12 +175,18 @@ const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries =
             name: name || user.user_metadata?.name || 'User',
           });
 
-        if (error) {
-          console.error(`❌ Error creating user profile (attempt ${attempt}):`, error);
-          if (attempt === maxRetries) {
-            throw error;
+        if (insertError) {
+          console.error(`❌ Error creating user profile (attempt ${attempt}):`, insertError);
+          
+          // If it's a unique constraint violation, the profile might have been created by another process
+          if (insertError.code === '23505') {
+            console.log('ℹ️ Profile already exists (created by another process)');
+            break;
           }
-          // Wait before retry
+          
+          if (attempt === maxRetries) {
+            throw insertError;
+          }
           await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
           continue;
         } else {
@@ -183,8 +201,8 @@ const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries =
       console.error(`❌ Error in profile check (attempt ${attempt}):`, error);
       if (attempt === maxRetries) {
         console.error('❌ Failed to ensure user profile after all retries');
+        // Don't throw error to avoid blocking auth flow
       } else {
-        // Wait before retry
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
     }
@@ -222,9 +240,6 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // Ensure profile exists with retry
-    await ensureUserProfileWithRetry(user);
-
     // Get user profile from our users table with retry logic
     let profile = null;
     let lastError = null;
@@ -237,16 +252,32 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
           .eq('id', user.id)
           .single();
 
-        if (error) {
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
           lastError = error;
           console.error(`⚠️ Error fetching user profile (attempt ${attempt}):`, error);
           if (attempt < 3) {
             await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
             continue;
           }
-        } else {
+        } else if (data) {
           profile = data;
           break;
+        } else {
+          // No profile found, try to create one
+          console.log('👤 No profile found, attempting to create...');
+          await ensureUserProfileWithRetry(user);
+          
+          // Try to fetch again
+          const { data: newData } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (newData) {
+            profile = newData;
+            break;
+          }
         }
       } catch (error) {
         lastError = error;

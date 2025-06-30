@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
@@ -68,20 +68,24 @@ export default function SignUpScreen() {
       if (error) {
         console.error('❌ Sign up failed:', error);
         setError(error);
+        setLoading(false);
       } else if (user) {
         console.log('✅ Sign up successful');
         
         if (session) {
           // User is immediately signed in (no email confirmation required)
           setSuccess(true);
+          
+          // Show success briefly then navigate
           setTimeout(() => {
             console.log('📱 Navigating to onboarding...');
-            // Navigate to onboarding instead of main app
             router.replace('/onboarding/quiz');
           }, 1500);
         } else {
           // User needs to confirm email
           setSuccess(true);
+          setLoading(false);
+          
           setTimeout(() => {
             console.log('📱 Navigating to sign in...');
             router.replace('/auth/signin');
@@ -90,11 +94,11 @@ export default function SignUpScreen() {
       } else {
         console.error('❓ Unexpected sign up result: no user and no error');
         setError('An unexpected error occurred. Please try again.');
+        setLoading(false);
       }
     } catch (error) {
       console.error('💥 Unexpected error during sign up:', error);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -151,6 +155,7 @@ export default function SignUpScreen() {
               accessible={true}
               accessibilityLabel="Full name input"
               accessibilityHint="Enter your full name"
+              editable={!loading}
             />
           </View>
 
@@ -168,6 +173,7 @@ export default function SignUpScreen() {
               accessible={true}
               accessibilityLabel="Email input"
               accessibilityHint="Enter your email address"
+              editable={!loading}
             />
           </View>
 
@@ -186,6 +192,7 @@ export default function SignUpScreen() {
                 accessible={true}
                 accessibilityLabel="Password input"
                 accessibilityHint="Enter your password"
+                editable={!loading}
               />
               <Pressable
                 style={styles.eyeButton}
@@ -193,6 +200,7 @@ export default function SignUpScreen() {
                 accessible={true}
                 accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                 accessibilityRole="button"
+                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOff size={20} color="#9CA3AF" />
@@ -218,6 +226,7 @@ export default function SignUpScreen() {
                 accessible={true}
                 accessibilityLabel="Confirm password input"
                 accessibilityHint="Re-enter your password"
+                editable={!loading}
               />
               <Pressable
                 style={styles.eyeButton}
@@ -225,6 +234,7 @@ export default function SignUpScreen() {
                 accessible={true}
                 accessibilityLabel={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 accessibilityRole="button"
+                disabled={loading}
               >
                 {showConfirmPassword ? (
                   <EyeOff size={20} color="#9CA3AF" />
@@ -259,6 +269,7 @@ export default function SignUpScreen() {
             accessible={true}
             accessibilityLabel="Go to sign in"
             accessibilityRole="button"
+            disabled={loading}
           >
             <Text style={styles.signInLinkText}>
               Already have an account? <Text style={styles.linkHighlight}>Sign In</Text>

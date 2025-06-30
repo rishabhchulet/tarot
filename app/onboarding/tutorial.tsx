@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Eye, Car as Card, Heart, PenTool, Bell } from 'lucide-react-native';
+import { Eye, Sparkles, Heart, PenTool, Bell } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -13,7 +13,7 @@ const TUTORIAL_STEPS = [
     description: 'This is a tool that assists you in receiving direct inner messages from yourself.\n\nIt uses a mix of ancient tools, modalities, and teachings including:\n\nTarot • I Ching • Symbols',
   },
   {
-    icon: Card,
+    icon: Sparkles,
     title: 'Daily Card Pull',
     description: 'Each day, take a breath and pull a card that speaks to your soul. Let your intuition guide you.',
   },

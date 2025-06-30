@@ -75,11 +75,11 @@ export default function QuizScreen() {
     >
       <View style={styles.content}>
         <Text style={styles.greeting}>
-          Welcome, {user?.name || 'friend'}! 
+          Welcome, {user?.name || 'friend'}
         </Text>
-        <Text style={styles.title}>What matters most to you right now?</Text>
+        <Text style={styles.title}>First, What Matters to You Right Now?</Text>
         <Text style={styles.subtitle}>
-          Your answer will help me provide more personalized guidance.
+          Just choose what resonates, you can always change this later.
         </Text>
         
         <View style={styles.optionsContainer}>

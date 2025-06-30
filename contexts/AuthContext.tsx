@@ -71,32 +71,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // Set a timeout to prevent infinite loading
+    // Set a longer timeout to prevent premature timeout
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('⚠️ Auth initialization timeout, proceeding without auth');
         setLoading(false);
-        setError('Connection timeout - please check your internet connection');
+        setError('Connection timeout - please check your internet connection and try refreshing the page');
       }
-    }, 10000); // 10 second timeout
+    }, 20000); // Increased to 20 seconds
     
     // Get initial session with error handling
     const initializeAuth = async () => {
       try {
         console.log('🔍 Testing Supabase connection...');
         
-        // Test connection first with shorter timeout
+        // Test connection first with longer timeout
         const connectionTest = await Promise.race([
           testSupabaseConnection(),
           new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 3000)
+            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 10000) // Increased to 10 seconds
           )
         ]);
         
         if (!connectionTest.connected) {
           console.error('❌ Supabase connection failed:', connectionTest.error);
           if (mounted) {
-            setError('Database connection failed - please check your internet connection');
+            setError(`Database connection failed: ${connectionTest.error}`);
             setLoading(false);
           }
           return;
@@ -104,10 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('✅ Supabase connection successful');
         
-        // Get session with timeout
+        // Get session with longer timeout
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 5000)
+          setTimeout(() => reject(new Error('Session timeout')), 10000) // Increased to 10 seconds
         );
         
         const { data: { session }, error } = await Promise.race([
@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('❌ Error getting initial session:', error);
           if (mounted) {
             setSession(null);
-            setError('Authentication error');
+            setError('Authentication error - please try refreshing the page');
             setLoading(false);
           }
           return;
@@ -141,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setSession(null);
-          setError('Failed to initialize - please refresh the page');
+          setError('Failed to initialize - please check your internet connection and refresh the page');
           setLoading(false);
         }
       } finally {

@@ -64,7 +64,7 @@ export default function AuthWelcomeScreen() {
             colors={['#F59E0B', '#D97706']}
             style={styles.buttonGradient}
           >
-            <Text style={styles.primaryButtonText}>Create Account</Text>
+            <Text style={styles.primaryButtonText}>Get Started</Text>
           </LinearGradient>
         </Pressable>
         

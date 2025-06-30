@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Car as Card, BookOpen, Settings, Calendar } from 'lucide-react-native';
+import { BookOpen, Calendar, Settings, Sparkles } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -27,7 +27,7 @@ export default function TabLayout() {
         options={{
           title: 'Today',
           tabBarIcon: ({ size, color }) => (
-            <Card size={size} color={color} strokeWidth={2} />
+            <Sparkles size={size} color={color} strokeWidth={2} />
           ),
         }}
       />

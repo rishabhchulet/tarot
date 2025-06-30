@@ -85,11 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         console.log('🔍 Testing Supabase connection...');
         
-        // FIXED: Quick connection test with short timeout
+        // FIXED: Increased connection test timeout from 2000ms to 5000ms
         const connectionTest = await Promise.race([
           testSupabaseConnection(),
           new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 2000)
+            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 5000)
           )
         ]);
         
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         const sessionPromise = supabase.auth.getSession();
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 15000)
+          setTimeout(() => reject(new Error('Session timeout')), 20000) // FIXED: Increased from 15000ms to 20000ms
         );
 
         const { data: { session }, error } = await Promise.race([

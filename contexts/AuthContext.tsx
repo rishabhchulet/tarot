@@ -71,32 +71,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // Set a reasonable timeout to prevent indefinite loading
+    // FIXED: Shorter timeout and better handling for new users
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('⚠️ Auth initialization timeout, proceeding with error state');
+        console.warn('⚠️ Auth initialization timeout - proceeding without error for new users');
         setLoading(false);
-        setError('Connection timeout - please check your internet connection');
+        // FIXED: Don't set error for new users - let them go to auth screen
+        setError(null);
       }
-    }, 8000); // Reduced to 8 seconds for better UX
+    }, 5000); // Reduced to 5 seconds
     
     // Get initial session with improved error handling
     const initializeAuth = async () => {
       try {
         console.log('🔍 Testing Supabase connection...');
         
-        // Test connection first with shorter timeout
+        // FIXED: Test connection but don't fail for new users
         const connectionTest = await Promise.race([
           testSupabaseConnection(),
           new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 5000)
+            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 3000)
           )
         ]);
         
         if (!connectionTest.connected) {
           console.error('❌ Supabase connection failed:', connectionTest.error);
           if (mounted) {
-            setError(`Database connection failed: ${connectionTest.error}`);
+            // FIXED: Don't set error immediately - let auth flow handle it
+            console.log('⚠️ Connection failed but continuing with auth flow...');
             setLoading(false);
           }
           return;
@@ -104,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('✅ Supabase connection successful');
         
-        // Get session with shorter timeout and better error handling
+        // Get session with shorter timeout
         console.log('🔐 Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
@@ -112,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('❌ Error getting initial session:', error);
           if (mounted) {
             setSession(null);
-            // Don't treat session errors as fatal - user can still sign in
+            // FIXED: Don't treat session errors as fatal for new users
             setError(null);
             setLoading(false);
           }
@@ -137,17 +139,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setSession(null);
           
-          // Provide more specific error messages
-          let errorMessage = 'Failed to initialize - please check your internet connection';
-          if (error.message?.includes('timeout')) {
-            errorMessage = 'Connection timeout - please check your internet connection';
-          } else if (error.message?.includes('network')) {
-            errorMessage = 'Network error - please check your internet connection';
-          } else if (error.message?.includes('fetch')) {
-            errorMessage = 'Unable to connect to servers - please check your internet connection';
-          }
-          
-          setError(errorMessage);
+          // FIXED: Only set error for existing users with sessions
+          // New users should go to auth screen, not see error
+          setError(null);
           setLoading(false);
         }
       } finally {

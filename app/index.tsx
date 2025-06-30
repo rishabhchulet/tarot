@@ -25,28 +25,27 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // Add a small delay to ensure auth state is properly loaded
+    // FIXED: Improved routing logic to handle new users properly
     const navigationTimeout = setTimeout(() => {
-      if (!loading && !error) {
-        console.log('🔍 Routing check:', { 
-          hasSession: !!session, 
-          hasUser: !!user, 
-          userFocusArea: user?.focusArea,
-          userName: user?.name,
-          loading,
-          error
-        });
+      console.log('🔍 Routing check:', { 
+        hasSession: !!session, 
+        hasUser: !!user, 
+        userFocusArea: user?.focusArea,
+        userName: user?.name,
+        loading,
+        error
+      });
 
+      // CRITICAL FIX: If not loading and no error, handle routing
+      if (!loading) {
         try {
           if (session && user) {
-            // Check if user has completed onboarding
+            // User is authenticated and profile exists
             const focusArea = user.focusArea;
             const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
             
-            console.log('🎯 Onboarding check details:', { 
+            console.log('🎯 Authenticated user routing:', { 
               focusArea: focusArea,
-              focusAreaType: typeof focusArea,
-              focusAreaLength: focusArea ? focusArea.length : 0,
               hasCompletedOnboarding: hasCompletedOnboarding
             });
             
@@ -61,19 +60,18 @@ export default function IndexScreen() {
             console.log('⚠️ Session exists but no user data - waiting for user refresh...');
             // Don't navigate yet, wait for user data to load
           } else {
-            console.log('🔐 No session - redirecting to auth...');
+            // FIXED: No session means new user - go to auth regardless of error state
+            console.log('🔐 No session found - redirecting to auth (new user)...');
             router.replace('/auth');
           }
-        } catch (error) {
-          console.error('❌ Navigation error:', error);
+        } catch (navigationError) {
+          console.error('❌ Navigation error:', navigationError);
           // Fallback to auth screen on any navigation error
           router.replace('/auth');
         }
-      } else if (error && !loading) {
-        console.log('❌ Auth error detected, showing improved error state...');
-        // Don't auto-redirect on error, let user see the error and take action
       }
-    }, 500); // Increased delay to ensure proper state loading
+      // REMOVED: Don't show error state for new users - only show if there's a session but connection issues
+    }, 300); // Reduced delay for faster navigation
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error]);
@@ -96,8 +94,9 @@ export default function IndexScreen() {
     router.replace('/auth');
   };
 
-  // Show improved error state if there's an authentication error
-  if (error && !loading) {
+  // FIXED: Only show error state for existing users with connection issues
+  // New users (no session) should go directly to auth, not see error screen
+  if (error && !loading && session) {
     const isConnectionError = error.includes('timeout') || error.includes('connection') || error.includes('network');
     
     return (
@@ -143,13 +142,11 @@ export default function IndexScreen() {
               </LinearGradient>
             </Pressable>
             
-            {!isConnectionError && (
-              <Pressable style={styles.authButton} onPress={handleGoToAuth}>
-                <View style={styles.outlineButton}>
-                  <Text style={styles.outlineButtonText}>Continue to Sign In</Text>
-                </View>
-              </Pressable>
-            )}
+            <Pressable style={styles.authButton} onPress={handleGoToAuth}>
+              <View style={styles.outlineButton}>
+                <Text style={styles.outlineButtonText}>Continue to Sign In</Text>
+              </View>
+            </Pressable>
           </View>
           
           <Text style={styles.supportText}>

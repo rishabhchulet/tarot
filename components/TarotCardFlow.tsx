@@ -182,7 +182,7 @@ export function TarotCardFlow() {
         style={styles.cardTouchArea} 
         onPress={handleRevealCard}
         accessible={true}
-        accessibilityLabel="Tap to reveal your tarot card"
+        accessibilityLabel="Tap to reveal your message"
         accessibilityRole="button"
       >
         <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
@@ -207,7 +207,7 @@ export function TarotCardFlow() {
               
               {/* FIXED: Tap hint positioned properly and not blocking touch */}
               <View style={styles.tapHintOverlay}>
-                <Text style={styles.tapHint}>✨ Tap to reveal your destiny ✨</Text>
+                <Text style={styles.tapHint}>✨ Tap to reveal your message ✨</Text>
               </View>
             </View>
           </LinearGradient>
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
   },
   tapHint: {
     fontSize: 14, // REDUCED: Smaller font (was 16)
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
   },
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   },
   cardName: {
     fontSize: 22, // REDUCED: Slightly smaller (was 26)
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F59E0B',
     textAlign: 'center',
     textShadowColor: 'rgba(245, 158, 11, 0.4)',
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   },
   ichingTitle: {
     fontSize: 16, // REDUCED: Smaller font (was 18)
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
     marginBottom: 12, // REDUCED: Less margin (was 16)
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
   },
   ichingName: {
     fontSize: 18, // REDUCED: Smaller font (was 20)
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
   },
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
   },
   ichingEssence: {
     fontSize: 14, // REDUCED: Smaller font (was 16)
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
     fontStyle: 'italic',
@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
   },
   keywordsTitle: {
     fontSize: 28, // REDUCED: Smaller title (was 32)
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     marginBottom: 8, // REDUCED: Less space (was 12)
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
   },
   keywordSectionTitle: {
     fontSize: 18, // REDUCED: Smaller section titles (was 22)
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
     lineHeight: 22, // REDUCED: Tighter line height
@@ -763,14 +763,14 @@ const styles = StyleSheet.create({
   },
   essenceTitle: {
     fontSize: 16, // REDUCED: Smaller title (was 20)
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     color: '#D1D5DB',
     marginBottom: 10, // REDUCED: Less space (was 16)
     textAlign: 'center',
   },
   essenceText: {
     fontSize: 20, // REDUCED: Smaller essence text (was 24)
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     fontStyle: 'italic',

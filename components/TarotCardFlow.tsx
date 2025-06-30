@@ -69,6 +69,8 @@ export function TarotCardFlow() {
 
   const handleReflectionComplete = () => {
     console.log('Reflection completed');
+    // This will be handled by the ReflectionPrompt component
+    // which navigates back to the main app
   };
 
   const frontAnimatedStyle = useAnimatedStyle(() => {

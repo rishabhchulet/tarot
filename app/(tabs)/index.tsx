@@ -84,6 +84,7 @@ export default function TodayScreen() {
   const { user } = useAuth();
   const [hasDrawnToday, setHasDrawnToday] = useState(false);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [showCardFlow, setShowCardFlow] = useState(false); // NEW: Track card flow state
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -263,10 +264,9 @@ export default function TodayScreen() {
   };
 
   const handleDrawComplete = () => {
+    console.log('🎴 Draw animation complete, starting card flow...');
     setIsDrawing(false);
-    setHasDrawnToday(true);
-    // Refresh today's entry
-    checkTodaysStatus();
+    setShowCardFlow(true); // NEW: Show the card flow instead of checking status
   };
 
   const handleViewTodaysQuestion = () => {
@@ -325,6 +325,18 @@ export default function TodayScreen() {
         style={styles.container}
       >
         <MagicalCardDraw onComplete={handleDrawComplete} />
+      </LinearGradient>
+    );
+  }
+
+  // NEW: Show card flow after animation completes
+  if (showCardFlow) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <TarotCardFlow />
       </LinearGradient>
     );
   }

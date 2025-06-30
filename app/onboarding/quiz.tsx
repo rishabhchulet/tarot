@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Heart, DollarSign, Brain, Users } from 'lucide-react-native';
@@ -50,21 +50,60 @@ export default function QuizScreen() {
       
       if (error) {
         console.error('❌ Error updating focus area:', error);
-      } else {
-        console.log('✅ Focus area updated successfully');
+        Alert.alert(
+          'Update Failed',
+          'There was an issue saving your preference. Would you like to continue anyway?',
+          [
+            { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
+            { 
+              text: 'Continue', 
+              onPress: () => {
+                console.log('📱 Continuing despite error...');
+                router.push('/onboarding/intro');
+              }
+            }
+          ]
+        );
+        return;
       }
 
+      console.log('✅ Focus area updated successfully');
       console.log('🔄 Refreshing user data...');
-      await refreshUser();
+      
+      // Try to refresh user data, but don't block if it fails
+      try {
+        await refreshUser();
+        console.log('✅ User data refreshed');
+      } catch (refreshError) {
+        console.warn('⚠️ User refresh failed, but continuing:', refreshError);
+      }
       
       console.log('📱 Navigating to intro screen...');
       router.push('/onboarding/intro');
+      
     } catch (error) {
       console.error('💥 Error in quiz continue:', error);
-      // Continue anyway to not block the user
-      router.push('/onboarding/intro');
+      
+      // Show user-friendly error and option to continue
+      Alert.alert(
+        'Connection Issue',
+        'There was a problem saving your preference. You can change this later in settings.',
+        [
+          { text: 'Try Again', style: 'cancel', onPress: () => setLoading(false) },
+          { 
+            text: 'Continue', 
+            onPress: () => {
+              console.log('📱 Continuing despite error...');
+              router.push('/onboarding/intro');
+            }
+          }
+        ]
+      );
     } finally {
-      setLoading(false);
+      // Only set loading to false if we're not navigating
+      if (!router.canGoBack()) {
+        setLoading(false);
+      }
     }
   };
 
@@ -95,6 +134,7 @@ export default function QuizScreen() {
                   console.log('🎯 Option selected:', option.id);
                   setSelectedOption(option.id);
                 }}
+                disabled={loading}
               >
                 <View style={styles.optionContent}>
                   <View style={[styles.iconContainer, isSelected && styles.iconContainerSelected]}>

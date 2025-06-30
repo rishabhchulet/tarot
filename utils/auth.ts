@@ -280,31 +280,89 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
 export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
+    console.log('🔄 Starting user profile update...', updates);
+    
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      throw new Error('No authenticated user');
+      throw new Error('No authenticated user found');
     }
 
-    const { error } = await supabase
-      .from('users')
-      .update({
-        name: updates.name,
-        focus_area: updates.focusArea,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', user.id);
+    console.log('👤 Updating profile for user:', user.id);
 
-    if (error) {
-      console.error('❌ Error updating user profile:', error);
-      throw error;
+    // Prepare the update data
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (updates.name !== undefined) {
+      updateData.name = updates.name;
     }
 
-    console.log('✅ User profile updated successfully');
-    return { error: null };
+    if (updates.focusArea !== undefined) {
+      updateData.focus_area = updates.focusArea;
+    }
+
+    console.log('📝 Update data:', updateData);
+
+    // Perform the update with retry logic
+    let lastError = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        console.log(`💾 Attempting profile update (attempt ${attempt}/3)...`);
+        
+        const { data, error } = await supabase
+          .from('users')
+          .update(updateData)
+          .eq('id', user.id)
+          .select()
+          .single();
+
+        if (error) {
+          lastError = error;
+          console.error(`❌ Profile update error (attempt ${attempt}):`, error);
+          
+          // If it's a connection error, retry
+          if (error.message.includes('network') || error.message.includes('timeout') || attempt < 3) {
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            continue;
+          } else {
+            throw error;
+          }
+        } else {
+          console.log('✅ User profile updated successfully:', data);
+          return { error: null, data };
+        }
+      } catch (error: any) {
+        lastError = error;
+        console.error(`❌ Exception in profile update (attempt ${attempt}):`, error);
+        
+        if (attempt < 3) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+
+    // If we get here, all attempts failed
+    throw lastError || new Error('Failed to update profile after multiple attempts');
+
   } catch (error: any) {
     console.error('❌ Update profile error:', error);
-    return { error: error.message || 'An unexpected error occurred while updating profile' };
+    
+    // Provide more specific error messages
+    let errorMessage = 'An unexpected error occurred while updating profile';
+    
+    if (error.message.includes('network')) {
+      errorMessage = 'Network connection issue. Please check your internet connection and try again.';
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Request timed out. Please try again.';
+    } else if (error.message.includes('No authenticated user')) {
+      errorMessage = 'Please sign in again to update your profile.';
+    } else if (error.message) {
+      errorMessage = error.message;
+    }
+    
+    return { error: errorMessage };
   }
 };
 

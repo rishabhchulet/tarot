@@ -28,7 +28,7 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     console.log('📧 Attempting to create user account...');
     
-    // CRITICAL FIX: Disable email confirmation for immediate signup
+    // CRITICAL FIX: Use a much simpler approach without complex timeout handling
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
       password,
@@ -36,8 +36,6 @@ export const signUp = async (email: string, password: string, name: string) => {
         data: {
           name: name.trim(),
         },
-        // FIXED: Explicitly disable email confirmation
-        emailRedirectTo: undefined,
       }
     });
 
@@ -63,13 +61,12 @@ export const signUp = async (email: string, password: string, name: string) => {
         throw new Error('Password must be at least 6 characters long.');
       }
 
+      if (error.message.includes('Signups not allowed') || error.message.includes('signup')) {
+        throw new Error('New user registration is currently disabled. Please contact support.');
+      }
+
       if (error.message.includes('Database error') || error.message.includes('relation')) {
         throw new Error('There was an issue creating your account. Please try again.');
-      }
-      
-      // FIXED: Handle signup disabled error
-      if (error.message.includes('Signups not allowed')) {
-        throw new Error('New user registration is currently disabled. Please contact support.');
       }
       
       throw new Error(error.message);
@@ -78,15 +75,19 @@ export const signUp = async (email: string, password: string, name: string) => {
     if (data?.user) {
       console.log('✅ User created successfully:', data.user.id);
       
-      // FIXED: Check if user has immediate session (email confirmation disabled)
+      // FIXED: Simple approach - if we have a session, user is ready
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // Give time for the database trigger to create the profile
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Give a moment for the database trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Verify the profile was created
-        await ensureUserProfileWithRetry(data.user, name.trim());
+        // Try to ensure profile exists, but don't fail if it doesn't work
+        try {
+          await ensureUserProfileExists(data.user, name.trim());
+        } catch (profileError) {
+          console.warn('⚠️ Profile creation had issues, but continuing:', profileError);
+        }
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -139,8 +140,12 @@ export const signIn = async (email: string, password: string) => {
     if (data?.user && data?.session) {
       console.log('✅ Sign in successful for user:', data.user.id);
       
-      // Ensure user profile exists
-      await ensureUserProfileWithRetry(data.user);
+      // Try to ensure user profile exists, but don't fail if it doesn't work
+      try {
+        await ensureUserProfileExists(data.user);
+      } catch (profileError) {
+        console.warn('⚠️ Profile check had issues, but continuing:', profileError);
+      }
     }
 
     return { user: data?.user, error: null };
@@ -150,70 +155,50 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// FIXED: Enhanced helper function with better retry logic and error handling
-const ensureUserProfileWithRetry = async (user: any, name?: string, maxRetries = 3) => {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      console.log(`👤 Checking user profile (attempt ${attempt}/${maxRetries})...`);
-      
-      const { data: existingProfile, error: selectError } = await supabase
-        .from('users')
-        .select('id, name, email, focus_area')
-        .eq('id', user.id)
-        .single();
+// FIXED: Simplified helper function without complex retry logic
+const ensureUserProfileExists = async (user: any, name?: string) => {
+  try {
+    console.log('👤 Checking if user profile exists...');
+    
+    const { data: existingProfile, error: selectError } = await supabase
+      .from('users')
+      .select('id, name, email, focus_area')
+      .eq('id', user.id)
+      .single();
 
-      if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error(`❌ Error checking profile (attempt ${attempt}):`, selectError);
-        if (attempt === maxRetries) {
-          console.warn('⚠️ Could not verify profile creation, but continuing...');
-          return; // Don't throw error to avoid blocking auth flow
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        continue;
-      }
-
-      if (!existingProfile) {
-        console.log('👤 Creating missing user profile...');
-        
-        // FIXED: Use upsert to handle race conditions
-        const { error: upsertError } = await supabase
-          .from('users')
-          .upsert({
-            id: user.id,
-            email: user.email,
-            name: name || user.user_metadata?.name || 'User',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'id'
-          });
-
-        if (upsertError) {
-          console.error(`❌ Error creating user profile (attempt ${attempt}):`, upsertError);
-          
-          if (attempt === maxRetries) {
-            console.warn('⚠️ Could not create profile, but continuing...');
-            return; // Don't throw error to avoid blocking auth flow
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          continue;
-        } else {
-          console.log('✅ User profile created successfully');
-          break;
-        }
-      } else {
-        console.log('✅ User profile already exists');
-        break;
-      }
-    } catch (error) {
-      console.error(`❌ Error in profile check (attempt ${attempt}):`, error);
-      if (attempt === maxRetries) {
-        console.warn('⚠️ Profile verification failed, but continuing...');
-        return; // Don't throw error to avoid blocking auth flow
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-      }
+    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('❌ Error checking profile:', selectError);
+      return; // Don't throw error to avoid blocking auth flow
     }
+
+    if (!existingProfile) {
+      console.log('👤 Creating missing user profile...');
+      
+      // Use upsert to handle race conditions
+      const { error: upsertError } = await supabase
+        .from('users')
+        .upsert({
+          id: user.id,
+          email: user.email,
+          name: name || user.user_metadata?.name || 'User',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'id'
+        });
+
+      if (upsertError) {
+        console.error('❌ Error creating user profile:', upsertError);
+        // Don't throw error to avoid blocking auth flow
+      } else {
+        console.log('✅ User profile created successfully');
+      }
+    } else {
+      console.log('✅ User profile already exists');
+    }
+  } catch (error) {
+    console.error('❌ Error in profile check:', error);
+    // Don't throw error to avoid blocking auth flow
   }
 };
 
@@ -248,65 +233,36 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // Get user profile from our users table with retry logic
-    let profile = null;
-    
-    for (let attempt = 1; attempt <= 2; attempt++) {
-      try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+    // Get user profile from our users table
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-          console.error(`⚠️ Error fetching user profile (attempt ${attempt}):`, error);
-          if (attempt < 2) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            continue;
-          }
-        } else if (data) {
-          profile = data;
-          break;
-        } else {
-          // No profile found, try to create one
-          console.log('👤 No profile found, attempting to create...');
-          await ensureUserProfileWithRetry(user);
-          
-          // Try to fetch again
-          const { data: newData } = await supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single();
-          
-          if (newData) {
-            profile = newData;
-            break;
-          }
-        }
-      } catch (error) {
-        console.error(`❌ Exception in profile fetch (attempt ${attempt}):`, error);
-        if (attempt < 2) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('⚠️ Error fetching user profile:', error);
       }
+
+      if (data) {
+        return {
+          id: data.id,
+          email: data.email,
+          name: data.name,
+          focusArea: data.focus_area || undefined,
+        };
+      }
+    } catch (error) {
+      console.error('❌ Exception in profile fetch:', error);
     }
 
-    if (!profile) {
-      console.log('👤 No user profile found, returning basic auth info');
-      return {
-        id: user.id,
-        email: user.email || '',
-        name: user.user_metadata?.name || 'User',
-      };
-    }
-
+    // Fallback to basic auth info if profile doesn't exist
+    console.log('👤 No user profile found, returning basic auth info');
     return {
-      id: profile.id,
-      email: profile.email,
-      name: profile.name,
-      focusArea: profile.focus_area || undefined,
+      id: user.id,
+      email: user.email || '',
+      name: user.user_metadata?.name || 'User',
     };
   } catch (error) {
     console.error('❌ Error getting current user:', error);
@@ -341,7 +297,7 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // FIXED: Use upsert with proper conflict resolution
+    // Use upsert with proper conflict resolution
     const { data, error } = await supabase
       .from('users')
       .upsert({

@@ -67,7 +67,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-// FIXED: Create Supabase client with improved configuration for sign-up issues
+// FIXED: Create Supabase client with optimized configuration for sign-up issues
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -78,8 +78,7 @@ export const supabase = createClient(
       persistSession: true,
       detectSessionInUrl: false,
       flowType: 'pkce',
-      // CRITICAL FIX: Disable email confirmation to allow immediate sign-up
-      debug: true,
+      // REMOVED: debug mode as it can cause issues
     },
     global: {
       headers: {
@@ -97,7 +96,7 @@ export const supabase = createClient(
   }
 );
 
-// Enhanced connection test function with better error handling
+// FIXED: Simplified connection test function
 export const testSupabaseConnection = async (): Promise<{ connected: boolean; error: string | null }> => {
   try {
     console.log('🔍 Testing Supabase connection...');
@@ -108,9 +107,9 @@ export const testSupabaseConnection = async (): Promise<{ connected: boolean; er
       return { connected: false, error };
     }
     
-    // FIXED: Use a simple health check instead of querying tables with RLS
+    // FIXED: Use a simple health check with shorter timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // Increased timeout
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 seconds
     
     try {
       // Test basic connectivity to Supabase REST API

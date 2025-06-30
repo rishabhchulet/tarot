@@ -71,52 +71,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // FIXED: Much shorter timeout for better UX
+    // FIXED: Shorter timeout for better UX - don't block new users
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('⚠️ Auth initialization timeout - proceeding without error');
+        console.warn('⚠️ Auth initialization timeout - proceeding without blocking');
         setLoading(false);
         setError(null); // Don't set error for new users
       }
-    }, 3000); // Reduced to 3 seconds
+    }, 2000); // Reduced to 2 seconds
     
-    // Get initial session with improved error handling
+    // Get initial session with simplified error handling
     const initializeAuth = async () => {
       try {
-        console.log('🔍 Testing Supabase connection...');
+        console.log('🔍 Getting initial session...');
         
-        // FIXED: Increased connection test timeout from 2000ms to 5000ms
-        const connectionTest = await Promise.race([
-          testSupabaseConnection(),
-          new Promise<{ connected: boolean; error: string }>((resolve) => 
-            setTimeout(() => resolve({ connected: false, error: 'Connection timeout' }), 5000)
-          )
-        ]);
-        
-        if (!connectionTest.connected) {
-          console.error('❌ Supabase connection failed:', connectionTest.error);
-          if (mounted) {
-            console.log('⚠️ Connection failed but continuing with auth flow...');
-            setLoading(false);
-            setError(null); // Don't block new users
-          }
-          return;
-        }
-        
-        console.log('✅ Supabase connection successful');
-        
-        // Get session with longer timeout
-        console.log('🔐 Getting initial session...');
-        
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session timeout')), 20000) // FIXED: Increased from 15000ms to 20000ms
-        );
-
-        const { data: { session }, error } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
+        // FIXED: Skip connection test for faster initialization
+        // Just try to get the session directly
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
@@ -134,8 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           if (session) {
             console.log('👤 Session found, loading user profile...');
-            // FIXED: Shorter delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // FIXED: No delay - load user immediately
             await refreshUser();
           }
           setError(null);
@@ -157,7 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Listen for auth changes with error handling
+    // Listen for auth changes with simplified error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
@@ -168,8 +138,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-            // FIXED: Shorter delay for better UX
-            await new Promise(resolve => setTimeout(resolve, 500));
+            // FIXED: No delay - refresh user immediately
             await refreshUser();
           } else if (!session && event === 'SIGNED_OUT') {
             setUser(null);

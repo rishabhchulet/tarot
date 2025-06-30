@@ -153,10 +153,9 @@ export default function SignUpScreen() {
               placeholderTextColor="#9CA3AF"
               autoCapitalize="words"
               autoCorrect={false}
-              accessible={true}
-              accessibilityLabel="Full name input"
-              accessibilityHint="Enter your full name"
               editable={!loading}
+              accessibilityLabel="Full name"
+              accessibilityHint="Enter your full name"
             />
           </View>
 
@@ -171,10 +170,9 @@ export default function SignUpScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
-              accessible={true}
-              accessibilityLabel="Email input"
-              accessibilityHint="Enter your email address"
               editable={!loading}
+              accessibilityLabel="Email address"
+              accessibilityHint="Enter your email address"
             />
           </View>
 
@@ -190,18 +188,16 @@ export default function SignUpScreen() {
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
-                accessible={true}
-                accessibilityLabel="Password input"
-                accessibilityHint="Enter your password"
                 editable={!loading}
+                accessibilityLabel="Password"
+                accessibilityHint="Enter your password"
               />
               <Pressable
                 style={styles.eyeButton}
                 onPress={() => setShowPassword(!showPassword)}
-                accessible={true}
+                disabled={loading}
                 accessibilityLabel={showPassword ? "Hide password" : "Show password"}
                 accessibilityRole="button"
-                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOff size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
@@ -224,18 +220,16 @@ export default function SignUpScreen() {
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
-                accessible={true}
-                accessibilityLabel="Confirm password input"
-                accessibilityHint="Re-enter your password"
                 editable={!loading}
+                accessibilityLabel="Confirm password"
+                accessibilityHint="Re-enter your password"
               />
               <Pressable
                 style={styles.eyeButton}
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                accessible={true}
+                disabled={loading}
                 accessibilityLabel={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                 accessibilityRole="button"
-                disabled={loading}
               >
                 {showConfirmPassword ? (
                   <EyeOff size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
@@ -250,7 +244,6 @@ export default function SignUpScreen() {
             style={[styles.signUpButton, loading && styles.buttonDisabled]}
             onPress={handleSignUp}
             disabled={loading}
-            accessible={true}
             accessibilityLabel={loading ? "Creating account" : "Create account"}
             accessibilityRole="button"
           >
@@ -267,10 +260,9 @@ export default function SignUpScreen() {
           <Pressable 
             style={styles.signInLink} 
             onPress={() => router.push('/auth/signin')}
-            accessible={true}
+            disabled={loading}
             accessibilityLabel="Go to sign in"
             accessibilityRole="button"
-            disabled={loading}
           >
             <Text style={[styles.signInLinkText, loading && styles.linkDisabled]}>
               Already have an account? <Text style={[styles.linkHighlight, loading && styles.linkDisabled]}>Sign In</Text>

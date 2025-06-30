@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '@/utils/supabase';
+import { supabase, testSupabaseConnection } from '@/utils/supabase';
 import { getCurrentUser, type AuthUser } from '@/utils/auth';
 import type { Session } from '@supabase/supabase-js';
 
@@ -7,6 +7,7 @@ interface AuthContextType {
   user: AuthUser | null;
   session: Session | null;
   loading: boolean;
+  error: string | null;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refreshUser = async () => {
     try {
@@ -28,9 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         focusArea: currentUser?.focusArea 
       });
       setUser(currentUser);
+      setError(null);
     } catch (error) {
       console.error('❌ Error refreshing user:', error);
       setUser(null);
+      setError('Failed to load user data');
     }
   };
 
@@ -41,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Clear local state first
       setUser(null);
       setSession(null);
+      setError(null);
       
       // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
@@ -64,16 +69,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.log('🚀 AuthContext initializing...');
     
     let mounted = true;
+    let initializationTimeout: NodeJS.Timeout;
+    
+    // Set a timeout to prevent infinite loading
+    initializationTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('⚠️ Auth initialization timeout, proceeding without auth');
+        setLoading(false);
+        setError('Connection timeout - please refresh the page');
+      }
+    }, 10000); // 10 second timeout
     
     // Get initial session with error handling
     const initializeAuth = async () => {
       try {
+        console.log('🔍 Testing Supabase connection...');
+        
+        // Test connection first
+        const connectionTest = await testSupabaseConnection();
+        if (!connectionTest.connected) {
+          console.error('❌ Supabase connection failed:', connectionTest.error);
+          if (mounted) {
+            setError('Database connection failed');
+            setLoading(false);
+          }
+          return;
+        }
+        
+        console.log('✅ Supabase connection successful');
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
           if (mounted) {
             setSession(null);
+            setError('Authentication error');
             setLoading(false);
           }
           return;
@@ -86,13 +117,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session) {
             await refreshUser();
           }
+          setError(null);
           setLoading(false);
         }
       } catch (error) {
         console.error('❌ Error initializing auth:', error);
         if (mounted) {
           setSession(null);
+          setError('Failed to initialize authentication');
           setLoading(false);
+        }
+      } finally {
+        if (initializationTimeout) {
+          clearTimeout(initializationTimeout);
         }
       }
     };
@@ -107,6 +144,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           console.log('🔔 Auth state changed:', { event, hasSession: !!session });
           setSession(session);
+          setError(null);
           
           if (session) {
             await refreshUser();
@@ -118,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.error('❌ Error handling auth state change:', error);
           if (mounted) {
+            setError('Authentication state error');
             setLoading(false);
           }
         }
@@ -126,12 +165,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
+      }
       subscription.unsubscribe();
     };
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ user, session, loading, error, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

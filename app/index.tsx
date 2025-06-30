@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles } from 'lucide-react-native';
+import { Sparkles, AlertCircle } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 export default function IndexScreen() {
-  const { user, session, loading } = useAuth();
+  const { user, session, loading, error } = useAuth();
   const sparkleRotation = useSharedValue(0);
 
   useEffect(() => {
@@ -27,13 +27,14 @@ export default function IndexScreen() {
   useEffect(() => {
     // Add a small delay to ensure auth state is properly loaded
     const navigationTimeout = setTimeout(() => {
-      if (!loading) {
+      if (!loading && !error) {
         console.log('🔍 Routing check:', { 
           hasSession: !!session, 
           hasUser: !!user, 
           userFocusArea: user?.focusArea,
           userName: user?.name,
-          loading 
+          loading,
+          error
         });
 
         try {
@@ -68,19 +69,37 @@ export default function IndexScreen() {
           // Fallback to auth screen on any navigation error
           router.replace('/auth');
         }
-      } else {
-        console.log('⏳ Still loading auth state...');
+      } else if (error && !loading) {
+        console.log('❌ Auth error detected, redirecting to auth...');
+        router.replace('/auth');
       }
     }, 100); // Small delay to ensure proper state loading
 
     return () => clearTimeout(navigationTimeout);
-  }, [loading, session, user]);
+  }, [loading, session, user, error]);
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
     return {
       transform: [{ rotate: `${sparkleRotation.value}deg` }],
     };
   });
+
+  // Show error state if there's an authentication error
+  if (error && !loading) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <View style={styles.content}>
+          <AlertCircle size={60} color="#EF4444" />
+          <Text style={styles.errorTitle}>Connection Issue</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorSubtext}>Please check your internet connection and refresh the page</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   // Show loading screen while checking auth state
   return (
@@ -92,6 +111,7 @@ export default function IndexScreen() {
         <Animated.View style={[styles.iconContainer, animatedSparkleStyle]}>
           <Sparkles size={80} color="#F59E0B" strokeWidth={1.5} />
         </Animated.View>
+        <Text style={styles.loadingText}>Connecting to your inner wisdom...</Text>
       </View>
     </LinearGradient>
   );
@@ -105,8 +125,38 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 24,
   },
   iconContainer: {
     marginBottom: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#D1D5DB',
+    textAlign: 'center',
+  },
+  errorTitle: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#EF4444',
+    textAlign: 'center',
+    marginTop: 20,
+    marginBottom: 12,
+  },
+  errorText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#F3F4F6',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    maxWidth: 280,
+    lineHeight: 20,
   },
 });

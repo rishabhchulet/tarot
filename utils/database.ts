@@ -38,6 +38,7 @@ export const getJournalEntries = async (): Promise<JournalEntry[]> => {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.log('ℹ️ No authenticated user for journal entries');
       return [];
     }
 
@@ -48,22 +49,24 @@ export const getJournalEntries = async (): Promise<JournalEntry[]> => {
       .order('date', { ascending: false });
 
     if (error) {
+      console.error('❌ Error fetching journal entries:', error);
       throw error;
     }
 
     return data || [];
   } catch (error) {
-    console.error('Error getting journal entries:', error);
+    console.error('❌ Error getting journal entries:', error);
     return [];
   }
 };
 
-// NEW: Check if user has drawn a card today
+// Check if user has drawn a card today
 export const hasDrawnCardToday = async (): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.log('ℹ️ No authenticated user for card check');
       return false;
     }
 
@@ -77,23 +80,24 @@ export const hasDrawnCardToday = async (): Promise<boolean> => {
       .limit(1);
 
     if (error) {
-      console.error('Error checking today\'s card:', error);
+      console.error('❌ Error checking today\'s card:', error);
       return false;
     }
 
     return (data && data.length > 0);
   } catch (error) {
-    console.error('Error checking today\'s card:', error);
+    console.error('❌ Error checking today\'s card:', error);
     return false;
   }
 };
 
-// NEW: Get today's journal entry (if exists)
+// Get today's journal entry (if exists)
 export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.log('ℹ️ No authenticated user for today\'s entry');
       return null;
     }
 
@@ -107,18 +111,19 @@ export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
       .limit(1);
 
     if (error) {
+      console.error('❌ Error getting today\'s entry:', error);
       throw error;
     }
 
     // Return the first entry if found, otherwise null
     return data && data.length > 0 ? data[0] : null;
   } catch (error) {
-    console.error('Error getting today\'s entry:', error);
+    console.error('❌ Error getting today\'s entry:', error);
     return null;
   }
 };
 
-// NEW: Save today's daily question for later reference
+// Save today's daily question for later reference
 export const saveDailyQuestion = async (question: string) => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
@@ -154,6 +159,7 @@ export const startFreeTrial = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.log('ℹ️ No authenticated user for trial start');
       throw new Error('No authenticated user');
     }
 
@@ -176,11 +182,14 @@ export const startFreeTrial = async () => {
       .single();
 
     if (error) {
+      console.error('❌ Error starting trial:', error);
       throw error;
     }
 
+    console.log('✅ Free trial started successfully');
     return { data, error: null };
   } catch (error: any) {
+    console.error('❌ Error starting free trial:', error);
     return { data: null, error: error.message };
   }
 };
@@ -190,6 +199,7 @@ export const getSubscriptionStatus = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
+      console.log('ℹ️ No authenticated user for subscription check');
       return null;
     }
 
@@ -199,12 +209,13 @@ export const getSubscriptionStatus = async () => {
       .eq('user_id', user.id);
 
     if (error) {
-      console.error('Error fetching subscription:', error);
+      console.error('❌ Error fetching subscription:', error);
       return null;
     }
 
     // Check if no subscription record exists (new user)
     if (!data || data.length === 0) {
+      console.log('ℹ️ No subscription record found');
       return null;
     }
 
@@ -224,7 +235,7 @@ export const getSubscriptionStatus = async () => {
       isInTrial: !trialExpired && !subscription.has_active_subscription,
     };
   } catch (error) {
-    console.error('Error getting subscription status:', error);
+    console.error('❌ Error getting subscription status:', error);
     return null;
   }
 };

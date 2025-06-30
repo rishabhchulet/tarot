@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 export default function BreathingScreen() {
-  const [phase, setPhase] = useState<'prepare' | 'breathing' | 'complete'>('prepare');
+  const [phase, setPhase] = useState<'prepare' | 'breathing'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
   
   // Animation values
@@ -59,6 +59,8 @@ export default function BreathingScreen() {
   };
 
   const startBreathingCycle = () => {
+    let currentBreath = 0;
+    
     const breathingCycle = () => {
       // Inhale (4 seconds)
       circleScale.value = withTiming(1.4, { 
@@ -85,20 +87,26 @@ export default function BreathingScreen() {
 
     // Start first cycle
     breathingCycle();
+    currentBreath = 1;
+    setBreathCount(1);
 
     // Continue cycles
     const interval = setInterval(() => {
-      breathingCycle();
-      setBreathCount(prev => {
-        const newCount = prev + 1;
-        if (newCount >= 3) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setPhase('complete');
-          }, 8000); // Wait for last cycle to complete
-        }
-        return newCount;
-      });
+      currentBreath++;
+      setBreathCount(currentBreath);
+      
+      if (currentBreath <= 3) {
+        breathingCycle();
+      }
+      
+      if (currentBreath >= 3) {
+        clearInterval(interval);
+        // Wait for last cycle to complete, then navigate directly to main app
+        setTimeout(() => {
+          console.log('🎉 Breathing complete, navigating to main app...');
+          router.replace('/(tabs)');
+        }, 8000); // Wait for last cycle to complete
+      }
     }, 8000); // 8 seconds per complete cycle
 
     return () => clearInterval(interval);
@@ -108,11 +116,6 @@ export default function BreathingScreen() {
     console.log('🫁 Starting breathing exercise...');
     setPhase('breathing');
     setBreathCount(0);
-  };
-
-  const handleContinue = () => {
-    console.log('📱 Breathing complete, navigating to main app...');
-    router.replace('/(tabs)');
   };
 
   // Animated styles
@@ -134,10 +137,10 @@ export default function BreathingScreen() {
   }));
 
   const getBreathingText = () => {
-    if (breathCount === 0) return 'Breathe in... and out...';
-    if (breathCount === 1) return 'Feel your body relaxing...';
-    if (breathCount === 2) return 'One more deep breath...';
-    return 'Perfect...';
+    if (breathCount === 1) return 'Breathe in... and out...';
+    if (breathCount === 2) return 'Feel your body relaxing...';
+    if (breathCount === 3) return 'One more deep breath...';
+    return 'Breathe in... and out...';
   };
 
   const renderContent = () => {
@@ -188,40 +191,12 @@ export default function BreathingScreen() {
             </Text>
             
             <Text style={styles.breathingCount}>
-              Breath {breathCount + 1} of 3
+              Breath {breathCount} of 3
             </Text>
 
             <Text style={styles.breathingInstruction}>
               Follow the circle as it expands and contracts
             </Text>
-          </>
-        );
-      
-      case 'complete':
-        return (
-          <>
-            <View style={styles.iconContainer}>
-              <Animated.View style={heartStyle}>
-                <Heart size={60} color="#10B981" fill="#10B981" />
-              </Animated.View>
-            </View>
-
-            <Text style={styles.title}>Perfect</Text>
-            <Text style={styles.subtitle}>
-              You're now centered and ready to receive your first inner message.
-            </Text>
-            <Text style={styles.description}>
-              Your intention has been set. Let's connect with your inner wisdom.
-            </Text>
-
-            <Pressable style={styles.continueButton} onPress={handleContinue}>
-              <LinearGradient
-                colors={['#F59E0B', '#D97706']}
-                style={styles.continueButtonGradient}
-              >
-                <Text style={styles.continueButtonText}>Continue to Your Message</Text>
-              </LinearGradient>
-            </Pressable>
           </>
         );
       
@@ -415,28 +390,6 @@ const styles = StyleSheet.create({
   },
   
   startButtonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-  },
-  
-  continueButton: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  
-  continueButtonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  
-  continueButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',

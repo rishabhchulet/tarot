@@ -25,7 +25,7 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // FIXED: Improved routing logic to handle new users properly
+    // CRITICAL FIX: Faster routing with better logic
     const navigationTimeout = setTimeout(() => {
       console.log('🔍 Routing check:', { 
         hasSession: !!session, 
@@ -36,7 +36,7 @@ export default function IndexScreen() {
         error
       });
 
-      // CRITICAL FIX: If not loading and no error, handle routing
+      // Only route if not loading
       if (!loading) {
         try {
           if (session && user) {
@@ -56,11 +56,8 @@ export default function IndexScreen() {
               console.log('✅ User has completed onboarding - going to main app...');
               router.replace('/(tabs)');
             }
-          } else if (session && !user) {
-            console.log('⚠️ Session exists but no user data - waiting for user refresh...');
-            // Don't navigate yet, wait for user data to load
           } else {
-            // FIXED: No session means new user - go to auth regardless of error state
+            // FIXED: No session means new user - go to auth
             console.log('🔐 No session found - redirecting to auth (new user)...');
             router.replace('/auth');
           }
@@ -70,8 +67,7 @@ export default function IndexScreen() {
           router.replace('/auth');
         }
       }
-      // REMOVED: Don't show error state for new users - only show if there's a session but connection issues
-    }, 300); // Reduced delay for faster navigation
+    }, 100); // Much faster timeout
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error]);
@@ -94,8 +90,7 @@ export default function IndexScreen() {
     router.replace('/auth');
   };
 
-  // FIXED: Only show error state for existing users with connection issues
-  // New users (no session) should go directly to auth, not see error screen
+  // Only show error state for existing users with connection issues
   if (error && !loading && session) {
     const isConnectionError = error.includes('timeout') || error.includes('connection') || error.includes('network');
     

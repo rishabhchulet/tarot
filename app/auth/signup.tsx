@@ -14,7 +14,6 @@ export default function SignUpScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -24,7 +23,6 @@ export default function SignUpScreen() {
   const handleSignUp = async () => {
     console.log('🎯 Sign up button pressed');
     setError(null);
-    setSuccess(false);
     
     // Validation
     if (!name.trim()) {
@@ -68,56 +66,32 @@ export default function SignUpScreen() {
       if (error) {
         console.error('❌ Sign up failed:', error);
         setError(error);
+        setLoading(false);
         return;
       } 
       
       if (user) {
         console.log('✅ Sign up successful');
         
-        if (session) {
-          // User is immediately signed in (no email confirmation required)
-          setSuccess(true);
-          
-          // FIXED: Navigate immediately without delay
-          console.log('📱 Navigating to onboarding immediately...');
-          router.replace('/onboarding/quiz');
-        } else {
-          // User needs to confirm email
-          setSuccess(true);
-          
-          setTimeout(() => {
-            console.log('📱 Navigating to sign in...');
-            router.replace('/auth/signin');
-          }, 1500);
-        }
+        // CRITICAL FIX: Navigate immediately without any delays or success states
+        console.log('📱 Navigating to onboarding immediately...');
+        
+        // Use replace to prevent going back to sign-up
+        router.replace('/onboarding/quiz');
+        
+        // Don't set loading to false here since we're navigating away
+        return;
       } else {
         console.error('❓ Unexpected sign up result: no user and no error');
         setError('An unexpected error occurred. Please try again.');
+        setLoading(false);
       }
     } catch (error) {
       console.error('💥 Unexpected error during sign up:', error);
       setError('An unexpected error occurred. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      >
-        <View style={styles.successContainer}>
-          <CheckCircle size={64} color="#10B981" />
-          <Text style={styles.successTitle}>Account Created!</Text>
-          <Text style={styles.successMessage}>
-            Welcome to Daily Inner Reflection! Setting up your journey...
-          </Text>
-        </View>
-      </LinearGradient>
-    );
-  }
 
   return (
     <LinearGradient
@@ -126,7 +100,11 @@ export default function SignUpScreen() {
     >
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => router.back()} disabled={loading}>
+          <Pressable 
+            style={styles.backButton} 
+            onPress={() => router.back()} 
+            disabled={loading}
+          >
             <ArrowLeft size={24} color={loading ? "#6B7280" : "#F3F4F6"} />
           </Pressable>
           <Text style={styles.title}>Create Account</Text>
@@ -322,28 +300,6 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginLeft: 8,
     flex: 1,
-  },
-  successContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  successTitle: {
-    fontSize: 28,
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
-    marginTop: 24,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  successMessage: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 320,
   },
   inputContainer: {
     marginBottom: 24,

@@ -59,7 +59,7 @@ export default function QuizScreen() {
               text: 'Continue', 
               onPress: () => {
                 console.log('📱 Continuing despite error...');
-                router.push('/onboarding/intro');
+                router.replace('/onboarding/intro');
               }
             }
           ]
@@ -79,7 +79,7 @@ export default function QuizScreen() {
       }
       
       console.log('📱 Navigating to intro screen...');
-      router.push('/onboarding/intro');
+      router.replace('/onboarding/intro');
       
     } catch (error) {
       console.error('💥 Error in quiz continue:', error);
@@ -94,7 +94,7 @@ export default function QuizScreen() {
             text: 'Continue', 
             onPress: () => {
               console.log('📱 Continuing despite error...');
-              router.push('/onboarding/intro');
+              router.replace('/onboarding/intro');
             }
           }
         ]

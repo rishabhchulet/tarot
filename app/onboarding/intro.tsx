@@ -20,7 +20,7 @@ export default function IntroScreen() {
     }
     
     console.log('📱 Navigating to tutorial...');
-    router.push('/onboarding/tutorial');
+    router.replace('/onboarding/tutorial');
     setLoading(false);
   };
 

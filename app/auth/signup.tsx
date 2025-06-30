@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
@@ -78,11 +78,9 @@ export default function SignUpScreen() {
           // User is immediately signed in (no email confirmation required)
           setSuccess(true);
           
-          // Show success briefly then navigate
-          setTimeout(() => {
-            console.log('📱 Navigating to onboarding...');
-            router.replace('/onboarding/quiz');
-          }, 1500);
+          // FIXED: Navigate immediately without delay
+          console.log('📱 Navigating to onboarding immediately...');
+          router.replace('/onboarding/quiz');
         } else {
           // User needs to confirm email
           setSuccess(true);
@@ -90,7 +88,7 @@ export default function SignUpScreen() {
           setTimeout(() => {
             console.log('📱 Navigating to sign in...');
             router.replace('/auth/signin');
-          }, 2000);
+          }, 1500);
         }
       } else {
         console.error('❓ Unexpected sign up result: no user and no error');
@@ -114,7 +112,7 @@ export default function SignUpScreen() {
           <CheckCircle size={64} color="#10B981" />
           <Text style={styles.successTitle}>Account Created!</Text>
           <Text style={styles.successMessage}>
-            Welcome to Daily Inner Reflection! Let's set up your inner journey.
+            Welcome to Daily Inner Reflection! Setting up your journey...
           </Text>
         </View>
       </LinearGradient>

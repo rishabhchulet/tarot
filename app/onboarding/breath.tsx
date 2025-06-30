@@ -49,8 +49,8 @@ export default function BreathScreen() {
   };
 
   const handleContinue = () => {
-    console.log('📱 Breathing complete, navigating to tutorial...');
-    router.push('/onboarding/tutorial');
+    console.log('📱 Breathing complete, navigating to main app...');
+    router.replace('/(tabs)');
   };
 
   const animatedCircleStyle = useAnimatedStyle(() => {
@@ -100,10 +100,10 @@ export default function BreathScreen() {
           <>
             <Text style={styles.title}>Perfect</Text>
             <Text style={styles.subtitle}>
-              You're now centered and ready to begin your tarot journey.
+              You're now centered and ready to begin your inner journey.
             </Text>
             <Text style={styles.description}>
-              Your intention has been set. Let's learn how to use your daily reflection practice.
+              Your intention has been set. Let's explore your daily practice.
             </Text>
           </>
         );
@@ -128,7 +128,7 @@ export default function BreathScreen() {
             colors={['#F59E0B', '#D97706']}
             style={styles.buttonGradient}
           >
-            <Text style={styles.buttonText}>Continue to Tutorial</Text>
+            <Text style={styles.buttonText}>Start My Journey</Text>
           </LinearGradient>
         </Pressable>
       )}

@@ -45,7 +45,7 @@ export default function TutorialScreen() {
   };
 
   const handleComplete = async () => {
-    console.log('🎉 Tutorial complete, starting free trial...');
+    console.log('🎉 Tutorial complete, starting free trial and going to breathing...');
     setLoading(true);
     
     try {
@@ -56,12 +56,12 @@ export default function TutorialScreen() {
       console.error('❌ Error starting free trial:', error);
     }
     
-    console.log('📱 Navigating to main app...');
-    router.replace('/(tabs)');
+    console.log('📱 Navigating to breathing exercise...');
+    router.replace('/onboarding/breath');
   };
 
   const handleSkip = () => {
-    console.log('⏭️ Tutorial skipped');
+    console.log('⏭️ Tutorial skipped, going to breathing exercise...');
     handleComplete();
   };
 
@@ -105,7 +105,7 @@ export default function TutorialScreen() {
             style={styles.buttonGradient}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Setting up...' : currentStep === TUTORIAL_STEPS.length - 1 ? 'Start My Journey' : 'Next'}
+              {loading ? 'Setting up...' : currentStep === TUTORIAL_STEPS.length - 1 ? 'Continue' : 'Next'}
             </Text>
           </LinearGradient>
         </Pressable>

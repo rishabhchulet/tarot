@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut, Database } from 'lucide-react-native';
+import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSubscriptionStatus } from '@/utils/database';
-import { SupabaseTest } from '@/components/SupabaseTest';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [showSupabaseTest, setShowSupabaseTest] = useState(false);
 
   useEffect(() => {
     loadSubscriptionStatus();
@@ -186,18 +184,6 @@ export default function SettingsScreen() {
             onPress={handleHelpSupport}
           />
         </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Developer</Text>
-          <SettingItem
-            icon={Database}
-            title="Database Connection Test"
-            subtitle="Test Supabase connection and debug issues"
-            onPress={() => setShowSupabaseTest(!showSupabaseTest)}
-          />
-        </View>
-
-        {showSupabaseTest && <SupabaseTest />}
 
         <View style={styles.section}>
           <SettingItem

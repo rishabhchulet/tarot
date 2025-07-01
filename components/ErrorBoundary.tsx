@@ -1,7 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AlertTriangle, RefreshCw, Bug } from 'lucide-react-native';
+import { TriangleAlert as AlertTriangle, RefreshCw, Bug } from 'lucide-react-native';
 
 interface Props {
   children: ReactNode;

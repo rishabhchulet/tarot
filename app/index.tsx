@@ -3,6 +3,8 @@ import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
+import { ConnectionStatus } from '@/components/ConnectionStatus';
+import { LoadingState } from '@/components/LoadingState';
 import { Sparkles, CircleAlert as AlertCircle, RefreshCw, Wifi, WifiOff } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
@@ -13,7 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 export default function IndexScreen() {
-  const { user, session, loading, error } = useAuth();
+  const { user, session, loading, error, connectionStatus, retryConnection } = useAuth();
   const sparkleRotation = useSharedValue(0);
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // CRITICAL FIX: Much faster routing with better logic
+    // CRITICAL FIX: Enhanced routing with connection status awareness
     const navigationTimeout = setTimeout(() => {
       console.log('🔍 Routing check:', { 
         hasSession: !!session, 
@@ -33,11 +35,12 @@ export default function IndexScreen() {
         userFocusArea: user?.focusArea,
         userName: user?.name,
         loading,
-        error
+        error,
+        connectionStatus
       });
 
-      // Only route if not loading
-      if (!loading) {
+      // Only route if not loading and connection is stable
+      if (!loading && connectionStatus !== 'connecting') {
         try {
           if (session && user) {
             // User is authenticated and profile exists
@@ -67,14 +70,16 @@ export default function IndexScreen() {
           }
         } catch (navigationError) {
           console.error('❌ Navigation error:', navigationError);
-          // Fallback to auth screen on any navigation error
-          router.replace('/auth');
+          // Don't navigate if there's a connection issue
+          if (connectionStatus === 'connected') {
+            router.replace('/auth');
+          }
         }
       }
-    }, 500); // Reduced to 500ms for faster navigation
+    }, 1000); // Increased to 1s to account for connection status
 
     return () => clearTimeout(navigationTimeout);
-  }, [loading, session, user, error]);
+  }, [loading, session, user, error, connectionStatus]);
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
     return {
@@ -94,96 +99,125 @@ export default function IndexScreen() {
     router.replace('/auth');
   };
 
-  // Only show error state for existing users with connection issues
-  if (error && !loading && session) {
-    const isConnectionError = error.includes('timeout') || error.includes('connection') || error.includes('network');
-    
+  // Show enhanced loading state with connection status
+  if (loading || connectionStatus === 'connecting') {
+    const loadingMessage = connectionStatus === 'connecting' 
+      ? 'Connecting to your inner wisdom...'
+      : session && !user 
+        ? 'Setting up your profile...'
+        : 'Connecting to your inner wisdom...';
+        
+    const submessage = connectionStatus === 'connecting'
+      ? 'Establishing secure connection...'
+      : session && !user
+        ? 'Loading your data...'
+        : 'Please wait a moment...';
+
     return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      >
-        <View style={styles.content}>
-          {isConnectionError ? (
-            <WifiOff size={60} color="#EF4444" />
-          ) : (
-            <AlertCircle size={60} color="#EF4444" />
-          )}
-          
-          <Text style={styles.errorTitle}>
-            {isConnectionError ? 'Connection Issue' : 'Something went wrong'}
-          </Text>
-          
-          <Text style={styles.errorText}>
-            {isConnectionError 
-              ? 'Unable to connect to our servers. Please check your internet connection and try again.'
-              : error
-            }
-          </Text>
-          
-          {isConnectionError && (
-            <View style={styles.connectionTips}>
-              <Text style={styles.tipsTitle}>Try these steps:</Text>
-              <Text style={styles.tipText}>• Check your internet connection</Text>
-              <Text style={styles.tipText}>• Refresh the page</Text>
-              <Text style={styles.tipText}>• Try again in a few moments</Text>
-            </View>
-          )}
-          
-          <View style={styles.errorActions}>
-            <Pressable style={styles.refreshButton} onPress={handleRefresh}>
-              <LinearGradient
-                colors={['#3B82F6', '#1D4ED8']}
-                style={styles.buttonGradient}
-              >
-                <RefreshCw size={20} color="#FFFFFF" />
-                <Text style={styles.buttonText}>Refresh</Text>
-              </LinearGradient>
-            </Pressable>
-            
-            <Pressable style={styles.authButton} onPress={handleGoToAuth}>
-              <View style={styles.outlineButton}>
-                <Text style={styles.outlineButtonText}>Continue to Sign In</Text>
-              </View>
-            </Pressable>
-          </View>
-          
-          <Text style={styles.supportText}>
-            Still having trouble? Contact support at support@dailyinner.com
-          </Text>
-        </View>
-      </LinearGradient>
+      <View style={styles.container}>
+        <ConnectionStatus 
+          status={connectionStatus}
+          error={error}
+          onRetry={retryConnection}
+        />
+        <LoadingState 
+          message={loadingMessage}
+          submessage={submessage}
+        />
+      </View>
     );
   }
 
-  // Show loading screen while checking auth state
-  return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
-      <View style={styles.content}>
-        <Animated.View style={[styles.iconContainer, animatedSparkleStyle]}>
-          <Sparkles size={80} color="#F59E0B" strokeWidth={1.5} />
-        </Animated.View>
-        <Text style={styles.loadingText}>
-          {session && !user ? 'Setting up your profile...' : 'Connecting to your inner wisdom...'}
-        </Text>
-        
-        {/* Show connection status */}
-        <View style={styles.connectionStatus}>
-          <Wifi size={16} color="#9CA3AF" />
-          <Text style={styles.connectionText}>
-            {session && !user ? 'Loading your data...' : 'Establishing secure connection...'}
-          </Text>
-        </View>
+  // Enhanced error state with better user feedback
+  if (error && !loading && (session || connectionStatus === 'error')) {
+    const isConnectionError = error.includes('timeout') || error.includes('connection') || error.includes('network');
+    
+    return (
+      <View style={styles.container}>
+        <ConnectionStatus 
+          status={connectionStatus}
+          error={error}
+          onRetry={retryConnection}
+        />
+        <LinearGradient
+          colors={['#1F2937', '#374151', '#6B46C1']}
+          style={styles.errorContainer}
+        >
+          <View style={styles.content}>
+            {isConnectionError ? (
+              <WifiOff size={60} color="#EF4444" />
+            ) : (
+              <AlertCircle size={60} color="#EF4444" />
+            )}
+            
+            <Text style={styles.errorTitle}>
+              {isConnectionError ? 'Connection Issue' : 'Something went wrong'}
+            </Text>
+            
+            <Text style={styles.errorText}>
+              {isConnectionError 
+                ? 'Unable to connect to our servers. Please check your internet connection and try again.'
+                : error
+              }
+            </Text>
+            
+            {isConnectionError && (
+              <View style={styles.connectionTips}>
+                <Text style={styles.tipsTitle}>Try these steps:</Text>
+                <Text style={styles.tipText}>• Check your internet connection</Text>
+                <Text style={styles.tipText}>• Refresh the page</Text>
+                <Text style={styles.tipText}>• Try again in a few moments</Text>
+              </View>
+            )}
+            
+            <View style={styles.errorActions}>
+              <Pressable style={styles.refreshButton} onPress={retryConnection}>
+                <LinearGradient
+                  colors={['#3B82F6', '#1D4ED8']}
+                  style={styles.buttonGradient}
+                >
+                  <RefreshCw size={20} color="#FFFFFF" />
+                  <Text style={styles.buttonText}>Refresh</Text>
+                </LinearGradient>
+              </Pressable>
+              
+              <Pressable style={styles.authButton} onPress={handleGoToAuth}>
+                <View style={styles.outlineButton}>
+                  <Text style={styles.outlineButtonText}>Continue to Sign In</Text>
+                </View>
+              </Pressable>
+            </View>
+            
+            <Text style={styles.supportText}>
+              Still having trouble? Contact support at support@dailyinner.com
+            </Text>
+          </View>
+        </LinearGradient>
       </View>
-    </LinearGradient>
+    );
+  }
+
+  // Show main loading screen with connection status
+  return (
+    <View style={styles.container}>
+      <ConnectionStatus 
+        status={connectionStatus}
+        error={error}
+        onRetry={retryConnection}
+      />
+      <LoadingState 
+        message={session && !user ? 'Setting up your profile...' : 'Connecting to your inner wisdom...'}
+        submessage={session && !user ? 'Loading your data...' : 'Establishing secure connection...'}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  errorContainer: {
     flex: 1,
   },
   content: {

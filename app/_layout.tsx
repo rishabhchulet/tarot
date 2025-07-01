@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { registerForPushNotificationsAsync } from '@/utils/notifications';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useFonts } from 'expo-font';
 import {
   Inter_400Regular,
@@ -44,17 +45,19 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="auth" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="breathing" />
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="profile" />
-        <Stack.Screen name="daily-question" />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="light" backgroundColor="#1F2937" />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="auth" />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="breathing" />
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="profile" />
+          <Stack.Screen name="daily-question" />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="light" backgroundColor="#1F2937" />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { supabase } from '@/utils/supabase';
 import { testDatabaseAccess } from '@/utils/auth';
+import { diagnostics } from '@/utils/diagnostics';
 
 export function SupabaseTest() {
   const [connectionStatus, setConnectionStatus] = useState<'testing' | 'connected' | 'error'>('testing');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [accessTest, setAccessTest] = useState<any[]>([]);
+  const [diagnosticReport, setDiagnosticReport] = useState<any>(null);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   useEffect(() => {
     testConnection();
@@ -70,6 +73,28 @@ export function SupabaseTest() {
     }
   };
 
+  const runDiagnostics = async () => {
+    try {
+      const report = await diagnostics.runComprehensiveDiagnostics();
+      setDiagnosticReport(report);
+      setShowDiagnostics(true);
+      console.log('🔍 Full diagnostic report:', report);
+    } catch (error) {
+      console.error('Failed to run diagnostics:', error);
+      alert('Failed to run diagnostics');
+    }
+  };
+
+  const formatDiagnosticStatus = (status: string) => {
+    switch (status) {
+      case 'PASS': return '✅';
+      case 'FAIL': return '❌';
+      case 'WARNING': return '⚠️';
+      case 'INFO': return 'ℹ️';
+      default: return '❓';
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Supabase Connection Test</Text>
@@ -117,6 +142,77 @@ export function SupabaseTest() {
       <Pressable style={styles.button} onPress={fetchDebugInfo}>
         <Text style={styles.buttonText}>Show Debug Info</Text>
       </Pressable>
+      
+      <Pressable style={styles.button} onPress={runDiagnostics}>
+        <Text style={styles.buttonText}>Run Full Diagnostics</Text>
+      </Pressable>
+      
+      {showDiagnostics && diagnosticReport && (
+        <View style={styles.diagnosticsContainer}>
+          <Text style={styles.diagnosticsTitle}>
+            🔍 System Health Report
+          </Text>
+          
+          <View style={styles.overallStatus}>
+            <Text style={styles.overallStatusText}>
+              Overall: {diagnosticReport.overall.status} 
+              {diagnosticReport.overall.status === 'HEALTHY' ? ' ✅' : 
+               diagnosticReport.overall.status === 'DEGRADED' ? ' ⚠️' : ' ❌'}
+            </Text>
+            {diagnosticReport.overall.criticalIssues > 0 && (
+              <Text style={styles.criticalIssues}>
+                Critical Issues: {diagnosticReport.overall.criticalIssues}
+              </Text>
+            )}
+            {diagnosticReport.overall.warnings > 0 && (
+              <Text style={styles.warnings}>
+                Warnings: {diagnosticReport.overall.warnings}
+              </Text>
+            )}
+          </View>
+          
+          <Text style={styles.sectionTitle}>Connectivity Tests:</Text>
+          {diagnosticReport.connectivity.map((test: any, index: number) => (
+            <Text key={index} style={styles.testResult}>
+              {formatDiagnosticStatus(test.status)} {test.name}: {test.status}
+              {test.duration && ` (${test.duration}ms)`}
+              {test.error && ` - ${test.error}`}
+            </Text>
+          ))}
+          
+          <Text style={styles.sectionTitle}>Auth Tests:</Text>
+          {diagnosticReport.auth.map((test: any, index: number) => (
+            <Text key={index} style={styles.testResult}>
+              {formatDiagnosticStatus(test.status)} {test.name}: {test.status}
+              {test.duration && ` (${test.duration}ms)`}
+              {test.error && ` - ${test.error}`}
+            </Text>
+          ))}
+          
+          <Text style={styles.sectionTitle}>Database Tests:</Text>
+          {diagnosticReport.database.map((test: any, index: number) => (
+            <Text key={index} style={styles.testResult}>
+              {formatDiagnosticStatus(test.status)} {test.name}: {test.status}
+              {test.duration && ` (${test.duration}ms)`}
+              {test.error && ` - ${test.error}`}
+            </Text>
+          ))}
+          
+          <Text style={styles.sectionTitle}>Recommendations:</Text>
+          {diagnosticReport.overall.recommendations.map((rec: string, index: number) => (
+            <Text key={index} style={styles.recommendation}>
+              • {rec}
+            </Text>
+          ))}
+          
+          <Pressable 
+            style={styles.button} 
+            onPress={() => setShowDiagnostics(false)}
+          >
+            <Text style={styles.buttonText}>Close Diagnostics</Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -198,5 +294,60 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  diagnosticsContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  diagnosticsTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#F3F4F6',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  overallStatus: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 6,
+  },
+  overallStatusText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#F3F4F6',
+    marginBottom: 4,
+  },
+  criticalIssues: {
+    fontSize: 14,
+    color: '#EF4444',
+    marginBottom: 2,
+  },
+  warnings: {
+    fontSize: 14,
+    color: '#F59E0B',
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#F3F4F6',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  testResult: {
+    fontSize: 12,
+    color: '#D1D5DB',
+    marginBottom: 3,
+    fontFamily: 'monospace',
+  },
+  recommendation: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginBottom: 4,
+    lineHeight: 16,
   },
 });

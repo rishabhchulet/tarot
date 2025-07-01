@@ -10,6 +10,8 @@ interface AuthContextType {
   error: string | null;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
+  retryConnection: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,10 +21,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting');
+  const [retryCount, setRetryCount] = useState(0);
+  const [lastSuccessfulConnection, setLastSuccessfulConnection] = useState<Date | null>(null);
 
   const refreshUser = async () => {
     try {
       console.log('🔄 Refreshing user data...');
+      setConnectionStatus('connecting');
       
       // CRITICAL FIX: Use much longer timeout with progressive fallback
       const currentUser = await createTimeoutWrapper(
@@ -39,6 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
         setUser(currentUser);
         setError(null);
+        setConnectionStatus('connected');
+        setLastSuccessfulConnection(new Date());
+        setRetryCount(0); // Reset retry count on success
         return;
       }
       
@@ -63,6 +72,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ Using session fallback user data');
         setUser(fallbackUser);
         setError(null);
+        setConnectionStatus('connected');
+        setLastSuccessfulConnection(new Date());
+        setRetryCount(0);
         
         // CRITICAL FIX: Try to load full profile data in background with longer timeout
         setTimeout(async () => {
@@ -93,16 +105,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         console.log('ℹ️ No user data available');
         setUser(null);
+        setConnectionStatus('disconnected');
       }
       
     } catch (error: any) {
       console.error('❌ Error refreshing user:', error);
+      setConnectionStatus('error');
+      setRetryCount(prev => prev + 1);
+      
+      // Enhanced error handling with user-friendly messages
+      let userFriendlyError = 'Connection issue. Please check your internet connection.';
+      
+      if (error.message?.includes('timeout')) {
+        userFriendlyError = 'Connection is slow. Please wait or try again.';
+      } else if (error.message?.includes('network')) {
+        userFriendlyError = 'Network error. Please check your internet connection.';
+      } else if (error.message?.includes('auth')) {
+        userFriendlyError = 'Authentication error. Please try signing in again.';
+      }
+      
+      setError(userFriendlyError);
       
       // Only clear user if we don't have existing data
       if (!user) {
         setUser(null);
       }
     }
+  };
+
+  const retryConnection = async () => {
+    console.log('🔄 Manual connection retry triggered...');
+    setError(null);
+    setConnectionStatus('connecting');
+    await refreshUser();
   };
 
   const signOut = async () => {
@@ -113,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setSession(null);
       setError(null);
+      setConnectionStatus('disconnected');
       
       // Then sign out from Supabase
       const { error } = await supabase.auth.signOut();
@@ -128,12 +164,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Even if there's an error, clear the local state
       setUser(null);
       setSession(null);
+      setConnectionStatus('error');
       throw error;
     }
   };
 
   useEffect(() => {
     console.log('🚀 AuthContext initializing...');
+    setConnectionStatus('connecting');
     
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
@@ -144,6 +182,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.warn('⚠️ Auth initialization timeout (10s) - proceeding');
         setLoading(false);
         setError(null);
+        setConnectionStatus('error');
       }
     }, 10000); // INCREASED: 10 seconds for initialization
     
@@ -166,6 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (mounted) {
             setSession(null);
             setError(null);
+            setConnectionStatus('error');
             setLoading(false);
           }
           return;
@@ -177,6 +217,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setLoading(false); // Set loading false after session check
           setError(null);
+          setConnectionStatus(session ? 'connected' : 'disconnected');
+          if (session) {
+            setLastSuccessfulConnection(new Date());
+          }
           
           if (session) {
             console.log('👤 Session found, loading user profile in background...');
@@ -193,6 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mounted) {
           setSession(null);
           setError(null);
+          setConnectionStatus('error');
           setLoading(false);
         }
       } finally {
@@ -214,6 +259,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setError(null);
           setLoading(false); // Always set loading false on auth state change
+          setConnectionStatus(session ? 'connected' : 'disconnected');
+          
+          if (session) {
+            setLastSuccessfulConnection(new Date());
+            setRetryCount(0);
+          }
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
             // Load user data in background without blocking
@@ -227,6 +278,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         } catch (error) {
           console.error('❌ Error handling auth state change:', error);
+          setConnectionStatus('error');
+          setError('Connection issue during authentication.');
           if (mounted) {
             setLoading(false);
           }
@@ -243,8 +296,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Auto-retry mechanism for connection errors
+  useEffect(() => {
+    if (connectionStatus === 'error' && retryCount < 3 && !loading) {
+      const retryDelay = Math.min(1000 * Math.pow(2, retryCount), 10000); // Exponential backoff, max 10s
+      console.log(`🔄 Auto-retry in ${retryDelay}ms (attempt ${retryCount + 1}/3)...`);
+      
+      const retryTimer = setTimeout(() => {
+        if (connectionStatus === 'error') {
+          console.log('🔄 Executing auto-retry...');
+          refreshUser();
+        }
+      }, retryDelay);
+      
+      return () => clearTimeout(retryTimer);
+    }
+  }, [connectionStatus, retryCount, loading]);
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, error, signOut, refreshUser }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      loading, 
+      error, 
+      signOut, 
+      refreshUser, 
+      connectionStatus,
+      retryConnection
+    }}>
       {children}
     </AuthContext.Provider>
   );

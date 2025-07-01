@@ -158,14 +158,7 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       try {
         // Use a slight delay to ensure the alert is shown
         setTimeout(() => {
-          // First try dismissAll to clear any modal stacks
-          try {
-            router.dismissAll();
-          } catch (dismissError) {
-            console.warn('⚠️ Dismiss error (non-critical):', dismissError);
-          }
-          
-          // Then replace with tabs route
+          // Navigate to tabs route
           router.replace('/(tabs)');
           console.log('✅ Navigation to home successful');
         }, 500);

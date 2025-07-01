@@ -206,13 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('📱 Force navigating to auth screen...');
         
         if (Platform.OS === 'web') {
-          // On web, we can use a more aggressive approach
-          try {
-            router.dismissAll();
-          } catch (e) {
-            console.log('ℹ️ No modals to dismiss');
-          }
-          
+          // Navigate to auth screen
           router.replace('/auth');
           console.log('✅ Navigation triggered');
         } else {

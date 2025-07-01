@@ -78,25 +78,23 @@ export default function SettingsScreen() {
               // Force clear all navigation stack and go to auth
               console.log('📱 Forcing navigation to auth screen...');
               
-              // First dismiss all modals/stacks
-              try {
-                router.dismissAll();
-              } catch (e) {
-                console.log('⚠️ No modals to dismiss');
-              }
-              
-              // Then navigate to auth with replace to prevent back navigation
+              // Navigate to auth immediately without delay
               setTimeout(() => {
+                try {
+                  router.dismissAll();
+                } catch (e) {
+                  console.log('⚠️ No modals to dismiss:', e);
+                }
                 router.replace('/auth');
-              }, 100);
+                console.log('📱 Navigation to auth completed');
+              }, 500); // Slightly longer delay to ensure signOut completes
               
             } catch (error) {
               console.error('❌ Sign out error:', error);
               Alert.alert('Error', 'Failed to sign out. Please try again.');
               setIsSigningOut(false);
-            } finally {
-              // Don't set loading to false here since we're navigating away
             }
+            // Don't set loading to false here since we're navigating away
           }
         }
       ]

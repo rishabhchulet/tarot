@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { BookOpen, Calendar, Settings, Sparkles, Home } from 'lucide-react-native';
+import { BookOpen, Calendar, Settings, Sparkles, Chrome as Home } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 export default function TabLayout() {

@@ -11,10 +11,8 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAuth } from '@/contexts/AuthContext';
 
 export default function AuthWelcomeScreen() {
-  const { user, session } = useAuth();
   const { user, session } = useAuth();
   const sparkleScale = useSharedValue(1);
   const sparkleRotation = useSharedValue(0);

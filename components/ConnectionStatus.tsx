@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { WifiOff, Wifi, AlertCircle, RefreshCw } from 'lucide-react-native';
+import { WifiOff, Wifi, CircleAlert as AlertCircle, RefreshCw } from 'lucide-react-native';
 
 interface ConnectionStatusProps {
   status: 'connected' | 'connecting' | 'disconnected' | 'error';

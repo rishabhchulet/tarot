@@ -24,10 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔄 Refreshing user data...');
       
-      // CRITICAL FIX: Use timeout wrapper with immediate session fallback
+      // CRITICAL FIX: Use much longer timeout with progressive fallback
       const currentUser = await createTimeoutWrapper(
         () => getCurrentUser(),
-        2000, // 2 second timeout
+        8000, // INCREASED: 8 second timeout
         null // Fallback to null
       );
       
@@ -42,12 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      // CRITICAL FIX: If getCurrentUser fails, try session fallback immediately
+      // CRITICAL FIX: If getCurrentUser fails, try session fallback with longer timeout
       console.warn('⚠️ getCurrentUser failed, trying session fallback...');
       
       const sessionResult = await createTimeoutWrapper(
         () => supabase.auth.getUser(),
-        1000, // 1 second timeout
+        3000, // INCREASED: 3 second timeout
         null
       );
       
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(fallbackUser);
         setError(null);
         
-        // CRITICAL FIX: Try to load full profile data in background without blocking
+        // CRITICAL FIX: Try to load full profile data in background with longer timeout
         setTimeout(async () => {
           try {
             console.log('🔄 Background profile fetch...');
@@ -74,7 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .select('focus_area, name')
                 .eq('id', authUser.id)
                 .single(),
-              2000, // 2 second timeout
+              5000, // INCREASED: 5 second timeout
               null
             );
             
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (bgError) {
             console.warn('⚠️ Background profile fetch failed:', bgError);
           }
-        }, 500);
+        }, 1000); // Give more time before background fetch
       } else {
         console.log('ℹ️ No user data available');
         setUser(null);
@@ -138,24 +138,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // CRITICAL FIX: Very short timeout for immediate UX
+    // CRITICAL FIX: Much longer timeout for better reliability
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('⚠️ Auth initialization timeout - proceeding');
+        console.warn('⚠️ Auth initialization timeout (10s) - proceeding');
         setLoading(false);
         setError(null);
       }
-    }, 1500); // Reduced to 1.5 seconds
+    }, 10000); // INCREASED: 10 seconds for initialization
     
-    // Get initial session with aggressive timeout
+    // Get initial session with reasonable timeout
     const initializeAuth = async () => {
       try {
         console.log('🔍 Getting initial session...');
         
-        // CRITICAL FIX: Use timeout wrapper for session check
+        // CRITICAL FIX: Use longer timeout for session check
         const sessionResult = await createTimeoutWrapper(
           () => supabase.auth.getSession(),
-          1500, // 1.5 second timeout
+          6000, // INCREASED: 6 second timeout
           { data: { session: null }, error: null } // Fallback to no session
         );
         
@@ -175,17 +175,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (mounted) {
           setSession(session);
-          setLoading(false); // CRITICAL FIX: Set loading false immediately
+          setLoading(false); // Set loading false after session check
           setError(null);
           
           if (session) {
             console.log('👤 Session found, loading user profile in background...');
-            // Load user data in background without blocking
+            // Load user data in background with longer timeout
             setTimeout(() => {
               if (mounted) {
                 refreshUser();
               }
-            }, 100);
+            }, 500); // Give more time before profile fetch
           }
         }
       } catch (error: any) {
@@ -213,7 +213,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.log('🔔 Auth state changed:', { event, hasSession: !!session });
           setSession(session);
           setError(null);
-          setLoading(false); // CRITICAL FIX: Always set loading false immediately
+          setLoading(false); // Always set loading false on auth state change
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
             // Load user data in background without blocking
@@ -221,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (mounted) {
                 refreshUser();
               }
-            }, 100);
+            }, 500); // Give more time before profile fetch
           } else if (!session && event === 'SIGNED_OUT') {
             setUser(null);
           }

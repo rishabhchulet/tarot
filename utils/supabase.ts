@@ -67,7 +67,7 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-// CRITICAL FIX: Create Supabase client with much longer timeouts
+// CRITICAL FIX: Create Supabase client with optimized longer timeouts
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder-key',
@@ -83,10 +83,10 @@ export const supabase = createClient(
       headers: {
         'X-Client-Info': 'daily-tarot-reflection',
       },
-      // CRITICAL FIX: Increase timeout to 15 seconds for all requests
+      // CRITICAL FIX: Increase timeout to 20 seconds for all requests
       fetch: (url, options = {}) => {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // INCREASED: 20 second timeout
         
         return fetch(url, {
           ...options,
@@ -107,10 +107,10 @@ export const supabase = createClient(
   }
 );
 
-// CRITICAL FIX: Create a wrapper for database operations with much longer timeouts
+// CRITICAL FIX: Create a wrapper for database operations with optimized longer timeouts
 export const createTimeoutWrapper = <T>(
   operation: () => Promise<T>,
-  timeoutMs: number = 10000, // Increased default to 10 seconds
+  timeoutMs: number = 12000, // INCREASED: default to 12 seconds
   fallbackValue?: T
 ): Promise<T> => {
   return new Promise((resolve, reject) => {

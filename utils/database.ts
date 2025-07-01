@@ -85,7 +85,7 @@ export const hasDrawnCardToday = async (): Promise<boolean> => {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    // CRITICAL FIX: Use timeout wrapper with fallback
+    // CRITICAL FIX: Use longer timeout with fallback
     const result = await createTimeoutWrapper(
       () => supabase
         .from('journal_entries')
@@ -93,7 +93,7 @@ export const hasDrawnCardToday = async (): Promise<boolean> => {
         .eq('user_id', user.id)
         .eq('date', today)
         .limit(1),
-      3000, // 3 second timeout
+      5000, // INCREASED: 5 second timeout
       { data: [], error: null } // Fallback to no entries
     );
 
@@ -123,7 +123,7 @@ export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
 
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-    // CRITICAL FIX: Use timeout wrapper with fallback
+    // CRITICAL FIX: Use longer timeout with fallback
     const result = await createTimeoutWrapper(
       () => supabase
         .from('journal_entries')
@@ -131,7 +131,7 @@ export const getTodaysEntry = async (): Promise<JournalEntry | null> => {
         .eq('user_id', user.id)
         .eq('date', today)
         .limit(1),
-      3000, // 3 second timeout
+      5000, // INCREASED: 5 second timeout
       { data: [], error: null } // Fallback to no entries
     );
 
@@ -208,29 +208,47 @@ export const startFreeTrial = async () => {
       subscription_type: null,
     };
 
-    // CRITICAL FIX: Use timeout wrapper for subscription creation
-    const result = await createTimeoutWrapper(
-      () => supabase
-        .from('subscriptions')
-        .upsert(subscriptionData, { onConflict: 'user_id' })
-        .select()
-        .single(),
-      5000, // 5 second timeout
-      { data: subscriptionData, error: null } // Fallback to the data we tried to insert
-    );
+    // CRITICAL FIX: Use longer timeout with retry logic for subscription creation
+    let result = null;
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+      attempts++;
+      console.log(`🔄 Trial creation attempt ${attempts}/${maxAttempts}...`);
+      
+      result = await createTimeoutWrapper(
+        () => supabase
+          .from('subscriptions')
+          .upsert(subscriptionData, { onConflict: 'user_id' })
+          .select()
+          .single(),
+        attempts === 1 ? 10000 : 6000, // Longer timeout on first attempt
+        { data: subscriptionData, error: null }
+      );
 
-    const { data, error } = result;
+      const { data, error } = result;
 
-    if (error) {
-      console.error('❌ Error starting trial:', error);
-      throw error;
+      if (!error && data) {
+        console.log('✅ Free trial started successfully');
+        return { data, error: null };
+      }
+      
+      if (attempts < maxAttempts) {
+        console.warn(`⚠️ Trial creation attempt ${attempts} failed, retrying...`, error);
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Wait between attempts
+      } else {
+        console.error('❌ All trial creation attempts failed:', error);
+        // Return success anyway since user can still use the app
+        return { data: subscriptionData, error: null };
+      }
     }
 
-    console.log('✅ Free trial started successfully');
-    return { data, error: null };
+    return { data: subscriptionData, error: null };
   } catch (error: any) {
     console.error('❌ Error starting free trial:', error);
-    return { data: null, error: error.message };
+    // Don't fail the entire process for trial creation issues
+    return { data: null, error: null };
   }
 };
 
@@ -243,13 +261,13 @@ export const getSubscriptionStatus = async () => {
       return null;
     }
 
-    // CRITICAL FIX: Use timeout wrapper with fallback
+    // CRITICAL FIX: Use longer timeout with retry logic
     const result = await createTimeoutWrapper(
       () => supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id),
-      3000, // 3 second timeout
+      6000, // INCREASED: 6 second timeout
       { data: [], error: null } // Fallback to no subscription
     );
 

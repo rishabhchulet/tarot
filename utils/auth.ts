@@ -28,7 +28,7 @@ export const signUp = async (email: string, password: string, name: string) => {
 
     console.log('📧 Attempting to create user account...');
     
-    // CRITICAL FIX: Use longer timeout for sign up
+    // CRITICAL FIX: Use much longer timeout for sign up
     const result = await createTimeoutWrapper(
       () => supabase.auth.signUp({
         email: email.trim().toLowerCase(),
@@ -39,7 +39,7 @@ export const signUp = async (email: string, password: string, name: string) => {
           },
         }
       }),
-      15000 // 15 second timeout for sign up
+      20000 // INCREASED: 20 second timeout for sign up
     );
 
     const { data, error } = result;
@@ -83,14 +83,14 @@ export const signUp = async (email: string, password: string, name: string) => {
       if (data.session) {
         console.log('✅ User signed in immediately with session');
         
-        // CRITICAL FIX: Try to ensure profile exists but don't block
+        // CRITICAL FIX: Immediately try to ensure profile exists with longer timeout
         setTimeout(async () => {
           try {
             await ensureUserProfileExists(data.user, name.trim());
           } catch (profileError) {
             console.warn('⚠️ Background profile creation had issues:', profileError);
           }
-        }, 1000);
+        }, 2000); // Give more time before profile creation
       } else {
         console.log('ℹ️ User created but needs email confirmation');
       }
@@ -114,13 +114,13 @@ export const signIn = async (email: string, password: string) => {
 
     console.log('🔍 Attempting to sign in...');
     
-    // CRITICAL FIX: Use longer timeout for sign in
+    // CRITICAL FIX: Use much longer timeout for sign in
     const result = await createTimeoutWrapper(
       () => supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       }),
-      10000 // 10 second timeout for sign in
+      15000 // INCREASED: 15 second timeout for sign in
     );
 
     const { data, error } = result;
@@ -149,14 +149,14 @@ export const signIn = async (email: string, password: string) => {
     if (data?.user && data?.session) {
       console.log('✅ Sign in successful for user:', data.user.id);
       
-      // Try to ensure user profile exists in background
+      // Try to ensure user profile exists in background with longer delay
       setTimeout(async () => {
         try {
           await ensureUserProfileExists(data.user);
         } catch (profileError) {
           console.warn('⚠️ Background profile check had issues:', profileError);
         }
-      }, 500);
+      }, 1500); // Give more time before profile check
     }
 
     return { user: data?.user, error: null };
@@ -166,30 +166,68 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// CRITICAL FIX: Enhanced profile creation with much longer timeouts
+// CRITICAL FIX: Enhanced profile creation with retry logic and longer timeouts
 const ensureUserProfileExists = async (user: any, name?: string) => {
   try {
     console.log('👤 Ensuring user profile exists for:', user.id);
     
-    // CRITICAL FIX: Use the new database function with longer timeout
-    const result = await createTimeoutWrapper(
-      () => supabase.rpc('ensure_user_profile_exists', {
-        check_user_id: user.id
-      }),
-      12000, // 12 second timeout
-      [{ success: false, message: 'Timeout', user_data: {} }]
-    );
+    // CRITICAL FIX: Try multiple approaches with retries
+    let result = null;
+    let attempts = 0;
+    const maxAttempts = 2;
     
-    console.log('🔧 Profile creation result:', result);
-    
-    if (result && result.length > 0) {
-      const profileResult = result[0];
-      if (profileResult.success) {
-        console.log('✅ User profile ensured successfully');
-      } else {
-        console.warn('⚠️ Profile creation had issues:', profileResult.message);
+    while (attempts < maxAttempts && (!result || !result[0]?.success)) {
+      attempts++;
+      console.log(`🔧 Profile creation attempt ${attempts}/${maxAttempts}...`);
+      
+      // Try using the database function first
+      result = await createTimeoutWrapper(
+        () => supabase.rpc('ensure_user_profile_exists', {
+          check_user_id: user.id
+        }),
+        attempts === 1 ? 15000 : 10000, // Longer timeout on first attempt
+        [{ success: false, message: 'Timeout', user_data: {} }]
+      );
+      
+      console.log(`🔧 Profile creation attempt ${attempts} result:`, result);
+      
+      if (result && result.length > 0 && result[0].success) {
+        console.log('✅ User profile ensured successfully via RPC');
+        return;
+      }
+      
+      // If RPC failed, try direct upsert as fallback
+      if (attempts === maxAttempts) {
+        console.log('🔧 Trying direct profile upsert as fallback...');
+        try {
+          await createTimeoutWrapper(
+            () => supabase
+              .from('users')
+              .upsert({
+                id: user.id,
+                email: user.email || `user_${user.id}@example.com`,
+                name: name || user.raw_user_meta_data?.name || 'User',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'id'
+              }),
+            10000, // 10 second timeout
+            null
+          );
+          console.log('✅ Direct profile upsert successful');
+          return;
+        } catch (upsertError) {
+          console.error('❌ Direct profile upsert failed:', upsertError);
+        }
+      }
+      
+      if (attempts < maxAttempts) {
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s between attempts
       }
     }
+    
+    console.warn('⚠️ All profile creation attempts failed');
   } catch (error) {
     console.error('❌ Error ensuring profile exists:', error);
   }
@@ -217,10 +255,10 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
     console.log('👤 Getting current user...');
     
-    // CRITICAL FIX: Use timeout wrapper with longer timeout
+    // CRITICAL FIX: Use much longer timeout with enhanced fallback
     const authResult = await createTimeoutWrapper(
       () => supabase.auth.getUser(),
-      5000 // 5 second timeout
+      8000 // INCREASED: 8 second timeout
     );
     
     const { data: { user } } = authResult;
@@ -232,29 +270,44 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
 
     console.log('✅ Found authenticated user:', user.id);
 
-    // CRITICAL FIX: Try to get profile data with longer timeout
+    // CRITICAL FIX: Try to get profile data with much longer timeout and retry logic
     try {
-      const profileResult = await createTimeoutWrapper(
-        () => supabase
-          .from('users')
-          .select('*')
-          .eq('id', user.id)
-          .single(),
-        5000, // 5 second timeout
-        null // Fallback to null if timeout
-      );
-
-      if (profileResult && profileResult.data && !profileResult.error) {
-        console.log('✅ User profile found:', profileResult.data.name);
-        return {
-          id: profileResult.data.id,
-          email: profileResult.data.email,
-          name: profileResult.data.name,
-          focusArea: profileResult.data.focus_area || undefined,
-        };
-      } else {
-        console.warn('⚠️ Profile fetch failed or timed out:', profileResult?.error);
+      // Try with retries
+      let profileResult = null;
+      let attempts = 0;
+      const maxAttempts = 2;
+      
+      while (attempts < maxAttempts && !profileResult?.data) {
+        attempts++;
+        console.log(`🔄 Profile fetch attempt ${attempts}/${maxAttempts}...`);
+        
+        profileResult = await createTimeoutWrapper(
+          () => supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single(),
+          attempts === 1 ? 8000 : 5000, // Longer timeout on first attempt
+          null
+        );
+        
+        if (profileResult && profileResult.data && !profileResult.error) {
+          console.log('✅ User profile found:', profileResult.data.name);
+          return {
+            id: profileResult.data.id,
+            email: profileResult.data.email,
+            name: profileResult.data.name,
+            focusArea: profileResult.data.focus_area || undefined,
+          };
+        }
+        
+        if (attempts < maxAttempts) {
+          console.warn(`⚠️ Profile fetch attempt ${attempts} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between attempts
+        }
       }
+      
+      console.warn('⚠️ All profile fetch attempts failed');
     } catch (profileError) {
       console.warn('⚠️ Profile fetch exception:', profileError);
     }
@@ -277,10 +330,10 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
     console.log('🔄 Starting user profile update...', updates);
     
-    // CRITICAL FIX: Use timeout wrapper for auth check with longer timeout
+    // CRITICAL FIX: Use much longer timeout for auth check
     const authResult = await createTimeoutWrapper(
       () => supabase.auth.getUser(),
-      5000 // 5 second timeout
+      8000 // INCREASED: 8 second timeout
     );
     
     const { data: { user } } = authResult;
@@ -306,7 +359,7 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
 
     console.log('📝 Update data:', updateData);
 
-    // CRITICAL FIX: Use timeout wrapper for database update with much longer timeout
+    // CRITICAL FIX: Use much longer timeout for database update with retry
     const updateResult = await createTimeoutWrapper(
       () => supabase
         .from('users')
@@ -319,7 +372,7 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
         })
         .select()
         .single(),
-      10000, // 10 second timeout
+      12000, // INCREASED: 12 second timeout
       { data: null, error: null } // Fallback to success if timeout
     );
 

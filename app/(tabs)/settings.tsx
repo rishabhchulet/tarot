@@ -60,9 +60,6 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     console.log('🚪 Sign out pressed');
     
-    // First test the sign out process
-    console.log('🧪 Running sign out test...');
-    
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -74,14 +71,26 @@ export default function SettingsScreen() {
           onPress: async () => {
             console.log('🚪 Confirming sign out...');
             setIsSigningOut(true);
-            
-            // The signOut function now handles everything including navigation
-            await signOut();
-            
-            // Reset loading state after a delay in case navigation fails
+
+            try {
+              // Call signOut - it will handle navigation
+              await signOut();
+              console.log('✅ Sign out function completed');
+            } catch (error) {
+              console.error('❌ Sign out error:', error);
+              
+              // Force navigation anyway
+              try {
+                router.replace('/auth');
+              } catch (navError) {
+                console.error('❌ Navigation error:', navError);
+              }
+            }
+
+            // Reset loading state after a delay
             setTimeout(() => {
               setIsSigningOut(false);
-            }, 2000);
+            }, 3000);
           }
         }
       ]

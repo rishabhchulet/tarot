@@ -70,12 +70,12 @@ const ExpoSecureStoreAdapter = {
 // CRITICAL FIX: Create Supabase client with optimized longer timeouts
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
+  supabaseAnonKey || 'placeholder-key', 
   {
     auth: {
       storage: ExpoSecureStoreAdapter,
       autoRefreshToken: true,
-      persistSession: true,
+      persistSession: true, // Keep this true for normal operation
       detectSessionInUrl: false,
       flowType: 'pkce',
     },
@@ -144,6 +144,34 @@ export const createTimeoutWrapper = <T>(
 export const testSupabaseConnection = async (): Promise<{ connected: boolean; error: string | null }> => {
   try {
     console.log('🔍 Testing Supabase connection...');
+
+    // CRITICAL: Add function to forcibly clear auth storage
+    if (typeof window !== 'undefined') {
+      (window as any).clearSupabaseAuth = () => {
+        try {
+          const keys = Object.keys(localStorage);
+          const supabaseKeys = keys.filter(key => 
+            key.includes('supabase') || 
+            key.includes('sb-') || 
+            key.includes('auth')
+          );
+          
+          console.log('🧹 Manual auth cleanup - keys to remove:', supabaseKeys);
+          
+          supabaseKeys.forEach(key => {
+            localStorage.removeItem(key);
+            console.log('🗑️ Removed:', key);
+          });
+          
+          return `Cleared ${supabaseKeys.length} auth keys`;
+        } catch (e) {
+          console.error('❌ Error clearing auth:', e);
+          return `Error: ${e}`;
+        }
+      };
+      
+      console.log('🔧 Registered clearSupabaseAuth() in window for manual cleanup');
+    }
     
     if (!supabaseUrl || !supabaseAnonKey || supabaseUrl.includes('placeholder')) {
       const error = 'Missing or invalid Supabase configuration';

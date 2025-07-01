@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, createTimeoutWrapper } from '@/utils/supabase';
 import { getCurrentUser, type AuthUser } from '@/utils/auth';
+import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { router } from 'expo-router';
 
@@ -13,6 +14,7 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   retryConnection: () => Promise<void>;
+  testSignOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,7 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting');
   const [retryCount, setRetryCount] = useState(0);
   const [lastSuccessfulConnection, setLastSuccessfulConnection] = useState<Date | null>(null);
-  
+
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
 
@@ -147,43 +149,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process...');
-      
-      // CRITICAL: Set ref immediately to prevent any race conditions
-      isSigningOutRef.current = true;
-      
-      // Clear local state immediately
-      console.log('🧹 Clearing local auth state...');
-      setUser(null);
-      setSession(null);
-      setError(null);
-      setConnectionStatus('disconnected');
-      
-      // Clear any cached data
-      setLastSuccessfulConnection(null);
-      setRetryCount(0);
-      
-      // Force sign out from Supabase with multiple attempts
-      console.log('📤 Signing out from Supabase...');
-      
-      // Method 1: Force global sign out first
+
+      // CRITICAL FIX: Set ref before everything else
+      isSigningOutRef.current = true; 
+
       try {
-        console.log('🔄 Attempting global sign out...');
-        await supabase.auth.signOut({ scope: 'global' });
-        console.log('✅ Global signOut() completed');
-      } catch (error) {
-        console.warn('⚠️ Global signOut failed, trying regular sign out:', error);
+        // Step 1: Clear local state first
+        console.log('🧹 Clearing local auth state...');
+        setUser(null);
+        setSession(null);
+        setError(null);
+        setConnectionStatus('disconnected');
+        setLastSuccessfulConnection(null);
+        setRetryCount(0);
         
-        try {
-          // Method 2: Regular sign out as fallback
-          await supabase.auth.signOut();
-          console.log('✅ Regular signOut() completed');
-        } catch (regularError) {
-          console.warn('⚠️ Regular signOut also failed:', regularError);
+        // Step 2: Sign out from Supabase
+        console.log('📤 Signing out from Supabase...');
+        
+        // Try global sign out first
+        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
+        if (globalError) {
+          console.warn('⚠️ Global sign out error:', globalError);
+          
+          // Try regular sign out as fallback
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.warn('⚠️ Regular sign out error:', error);
+          }
         }
-      }
-      
-      // Method 3: Manual storage cleanup
-      try {
+
+        // Step 3: Manually clear all storage
         console.log('🧹 Manually clearing storage...');
         if (typeof window !== 'undefined' && window.localStorage) {
           const keys = Object.keys(localStorage);
@@ -192,62 +187,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             key.includes('sb-') || 
             key.includes('auth-token')
           );
+          
           supabaseKeys.forEach(key => {
             localStorage.removeItem(key);
             console.log('🗑️ Removed localStorage key:', key);
           });
+          
+          // Also clear session storage
+          try {
+            sessionStorage.clear();
+            console.log('🗑️ Cleared session storage');
+          } catch (e) {
+            console.warn('⚠️ Session storage clear error:', e);
+          }
         }
-      } catch (storageError) {
-        console.warn('⚠️ Error clearing storage:', storageError);
-      }
-      
-      // Method 4: Force session invalidation
-      try {
-        console.log('🔄 Invalidating session...');
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          console.log('⚠️ Session still exists after signOut, forcing refresh...');
-          await supabase.auth.refreshSession();
+
+        // Step 4: Force auth navigation immediately
+        console.log('📱 Force navigating to auth screen...');
+        
+        if (Platform.OS === 'web') {
+          // On web, we can use a more aggressive approach
+          try {
+            router.dismissAll();
+          } catch (e) {
+            console.log('ℹ️ No modals to dismiss');
+          }
+          
+          router.replace('/auth');
+          console.log('✅ Navigation triggered');
+        } else {
+          // On native platforms
+          router.replace('/auth');
         }
-      } catch (sessionError) {
-        console.log('✅ Session cleared or refresh failed (expected):', sessionError);
+        
+        console.log('✅ Sign out process completed successfully');
+      } catch (error) {
+        console.error('❌ Error during sign out process:', error);
+        
+        // Still navigate away even if an error occurs
+        try {
+          router.replace('/auth');
+        } catch (navError) {
+          console.error('❌ Navigation error:', navError);
+        }
       }
-      
-      console.log('✅ Sign out completed successfully');
-      
-      // CRITICAL: Navigate to auth immediately
-      console.log('📱 Navigating to auth screen...');
-      try {
-        // Clear any modal stack first
-        router.dismissAll();
-      } catch (e) {
-        console.log('ℹ️ No modals to dismiss');
-      }
-      
-      // Use replace to clear the entire navigation stack
-      router.replace('/auth');
-      console.log('✅ Navigation to auth completed');
-      
     } catch (error) {
       console.error('❌ Error during sign out:', error);
       
-      // Even if sign out fails, clear local state and navigate
-      console.log('🧹 Force clearing state despite errors...');
+      // Force state clearing and navigation
       setUser(null);
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
       
-      // Still navigate to auth
       router.replace('/auth');
-      console.warn('⚠️ Sign out completed with errors but user redirected');
-      
     } finally {
       // Reset the flag after a longer delay to ensure auth state changes are ignored
-      setTimeout(() => {
-        console.log('🔓 Resetting sign out flag');
+      const timeout = setTimeout(() => {
+        console.log('🔓 Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-      }, 3000); // 3 second delay
+      }, 5000); // 5 second delay
+      
+      // Ensure timeout is cleared if component is unmounted
+      return () => clearTimeout(timeout);
     }
   };
 
@@ -380,9 +382,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Listen for auth changes with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        // CRITICAL: Use ref to check sign out status
+        // CRITICAL: Immediately ignore events during sign out process
         if (isSigningOutRef.current) {
-          console.log('🚫 IGNORING auth state change during sign out:', event);
+          console.log('🚫 IGNORING auth state change during sign out:', { event, isSigningOut: isSigningOutRef.current });
+          // Don't proceed with any state updates while signing out
           return;
         }
         
@@ -391,16 +394,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           console.log('🔔 Auth state changed:', { event, hasSession: !!session });
           
-          // CRITICAL: Handle SIGNED_OUT event explicitly and prevent re-auth
           if (event === 'SIGNED_OUT') {
-            console.log('👋 User signed out, clearing all state...');
+            console.log('👋 Explicit SIGNED_OUT event, clearing all state...');
             setSession(null);
             setUser(null);
             setError(null);
             setLoading(false);
             setConnectionStatus('disconnected');
-            
-            // Don't reload user data, just finish
             return;
           }
           
@@ -415,15 +415,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-            console.log('🔄 Loading user data for session...');
-            // Load user data in background without blocking
-            setTimeout(() => {
-              if (mounted) {
-                refreshUser();
-              }
-            }, 500); // Give more time before profile fetch
-          } else if (!session) {
-            console.log('🚫 No session, clearing user data...');
+            // Do not load user data if we're signing out
+            if (!isSigningOutRef.current) {
+              console.log('🔄 Loading user data for session...');
+              // Load user data in background without blocking
+              setTimeout(() => {
+                if (mounted) {
+                  refreshUser().catch(error => {
+                    console.warn('⚠️ Background user refresh failed:', error);
+                  });
+                }
+              }, 500); // Give more time before profile fetch
+            } else {
+              console.log('🚫 Skipping user data load during sign out');
+            }
             setUser(null);
           }
         } catch (error) {
@@ -465,6 +470,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={contextValue}>
+      {/* Add a key with isSigningOutRef to force re-render when sign out status changes */}
       {children}
     </AuthContext.Provider>
   );

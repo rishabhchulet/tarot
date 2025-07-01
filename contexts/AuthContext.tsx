@@ -15,7 +15,6 @@ interface AuthContextType {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   retryConnection: () => Promise<void>;
   testSignOut: () => Promise<void>;
-  testSignOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,8 +28,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [retryCount, setRetryCount] = useState(0);
   const [lastSuccessfulConnection, setLastSuccessfulConnection] = useState<Date | null>(null);
 
-  // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
-  const isSigningOutRef = React.useRef(false);
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
 

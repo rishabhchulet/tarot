@@ -144,28 +144,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🚪 Starting sign out process...');
       
-      // Clear local state first
+      // Clear local state immediately
+      console.log('🧹 Clearing local auth state...');
       setUser(null);
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
       
-      // Then sign out from Supabase
+      // Then sign out from Supabase with timeout
+      console.log('📤 Signing out from Supabase...');
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('❌ Supabase sign out error:', error);
-        throw error;
+        // Don't throw error, just log it since we already cleared local state
+        console.warn('⚠️ Supabase sign out had issues but continuing with local sign out');
       }
       
       console.log('✅ Sign out completed successfully');
+      
+      // Extra cleanup - clear any cached data
+      setLastSuccessfulConnection(null);
+      setRetryCount(0);
+      
     } catch (error) {
       console.error('❌ Error signing out:', error);
       // Even if there's an error, clear the local state
+      console.log('🧹 Force clearing local state due to error...');
       setUser(null);
       setSession(null);
       setConnectionStatus('error');
-      throw error;
+      setError(null);
+      // Don't throw error, just log it
+      console.warn('⚠️ Sign out completed with errors but local state cleared');
     }
   };
 

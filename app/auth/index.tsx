@@ -11,11 +11,32 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
+  const { user, session } = useAuth();
   const sparkleScale = useSharedValue(1);
   const sparkleRotation = useSharedValue(0);
+
+  // CRITICAL: Add test to verify user is signed out
+  useEffect(() => {
+    console.log('🔍 Auth welcome screen loaded');
+    console.log('👤 User state:', { hasUser: !!user, hasSession: !!session });
+    
+    if (user || session) {
+      console.log('⚠️ WARNING: User still has session on auth screen!');
+      console.log('User ID:', user?.id);
+      console.log('Session exists:', !!session);
+    } else {
+      console.log('✅ Auth screen: User properly signed out');
+    }
+  }, [user, session]);
+
+  // CRITICAL: If user is still authenticated, show debug info
+  if (user || session) {
+    console.log('🚨 CRITICAL: User is still authenticated on auth screen!');
+  }
 
   // CRITICAL: Add test to verify user is signed out
   useEffect(() => {
@@ -63,6 +84,22 @@ export default function AuthWelcomeScreen() {
       colors={['#1F2937', '#374151', '#6B46C1']}
       style={styles.container}
     >
+      {/* CRITICAL: Add sign out verification indicator */}
+      {!(user || session) && (
+        <View style={styles.signOutSuccess}>
+          <CheckCircle size={20} color="#10B981" />
+          <Text style={styles.signOutSuccessText}>Successfully signed out</Text>
+        </View>
+      )}
+      
+      {(user || session) && (
+        <View style={styles.signOutError}>
+          <Text style={styles.signOutErrorText}>⚠️ Sign out incomplete - Debug mode</Text>
+          <Text style={styles.debugText}>User: {user?.id || 'None'}</Text>
+          <Text style={styles.debugText}>Session: {session ? 'Active' : 'None'}</Text>
+        </View>
+      )}
+
       {/* CRITICAL: Add sign out verification indicator */}
       {!(user || session) && (
         <View style={styles.signOutSuccess}>
@@ -167,6 +204,62 @@ const styles = StyleSheet.create({
   primaryButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  
+  // NEW: Sign out verification styles
+  signOutSuccess: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+    gap: 8,
+    zIndex: 10,
+  },
+  signOutSuccessText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#10B981',
+  },
+  signOutError: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    zIndex: 10,
+  },
+  signOutErrorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#EF4444',
+    marginBottom: 4,
+  },
+  debugText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#EF4444',
+    opacity: 0.8,
+  },
+  secondaryButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
     color: '#FFFFFF',
   },
   

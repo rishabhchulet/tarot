@@ -86,6 +86,31 @@ export const testAuthState = async () => {
   }
 };
 
+// CRITICAL: Add test function for auth state
+export const testAuthState = async () => {
+  try {
+    console.log('🧪 Testing current auth state...');
+    
+    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: userData } = await supabase.auth.getUser();
+    
+    const testResult = {
+      timestamp: new Date().toISOString(),
+      hasSession: !!sessionData.session,
+      sessionId: sessionData.session?.access_token?.substring(0, 20) + '...',
+      hasUser: !!userData.user,
+      userId: userData.user?.id,
+      userEmail: userData.user?.email,
+    };
+    
+    console.log('🧪 Auth state test results:', testResult);
+    return testResult;
+  } catch (error) {
+    console.error('❌ Auth state test failed:', error);
+    return { error: error.message };
+  }
+};
+
 export const signUp = async (email: string, password: string, name: string) => {
   try {
     logAuthEvent('Starting sign up process', { email, nameLength: name.length });
@@ -298,7 +323,43 @@ export const signOut = async () => {
     } catch (globalError) {
       console.warn('⚠️ Global sign out timeout or error:', globalError);
     }
+      );
+      
+      if (globalResult.error) {
+        console.warn('⚠️ Global sign out error:', globalResult.error);
+      } else {
+        console.log('✅ Global sign out successful');
+      }
+    } catch (globalError) {
+      console.warn('⚠️ Global sign out timeout or error:', globalError);
+    }
     
+    // Step 2: Also try regular sign out as a fallback
+    try {
+      const result = await createTimeoutWrapper(
+        () => supabase.auth.signOut(),
+        5000 // 5 second timeout
+      );
+      
+      if (result.error) {
+        console.warn('⚠️ Regular sign out error:', result.error);
+      } else {
+        console.log('✅ Regular sign out successful');
+      }
+    } catch (error) {
+      console.warn('⚠️ Regular sign out timeout or error:', error);
+    }
+    
+    // Step 3: Force clear any remaining auth data from storage
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        // Find all Supabase related keys and remove them
+        const keys = Object.keys(localStorage);
+        for (const key of keys) {
+          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
+            localStorage.removeItem(key);
+            console.log('🗑️ Removed auth storage item:', key);
+          }
     // Step 2: Also try regular sign out as a fallback
     try {
       const result = await createTimeoutWrapper(
@@ -329,7 +390,6 @@ export const signOut = async () => {
       }
     } catch (storageError) {
       console.warn('⚠️ Storage cleanup error:', storageError);
-    }
     
     // Always return success to prevent errors from bubbling up
     logAuthEvent('Sign out successful');

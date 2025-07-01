@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { TestTube2 } from 'lucide-react-native';
+import { TestTube as TestTube2 } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { testAuthState } from '@/utils/auth';
 

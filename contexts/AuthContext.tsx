@@ -2,9 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, createTimeoutWrapper } from '@/utils/supabase';
 import { getCurrentUser, type AuthUser } from '@/utils/auth';
 import { Platform } from 'react-native';
-import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
-import { router } from 'expo-router';
 import { router } from 'expo-router';
 
 interface AuthContextType {

@@ -146,29 +146,31 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       console.log('✅ Journal entry saved successfully');
       
       // Show success message and navigate back to today screen
-      Alert.alert(
-        'Reflection Saved!',
-        'Your daily reflection has been saved. You can access your daily question anytime.'
-      );
-      
-      // FIXED: Don't wait for alert dismissal to navigate
-      // Navigate immediately after saving
+      // IMPORTANT: First trigger the navigation, THEN show the alert
+      // This prevents the alert from blocking navigation
       console.log('📱 Navigation to home screen triggered after save');
       
       try {
-        // Use a slight delay to ensure the alert is shown
+        // Navigate directly to the index tab (Today screen)
+        router.replace('/(tabs)/index');
+        console.log('✅ Navigation to home successful');
+        
+        // Show alert AFTER navigation is triggered
         setTimeout(() => {
-          // Navigate to tabs route
-          router.replace('/(tabs)');
-          console.log('✅ Navigation to home successful');
-        }, 500);
+          Alert.alert(
+            'Reflection Saved!',
+            'Your daily reflection has been saved. You can access your daily question anytime.'
+          );
+        }, 100);
       } catch (navError) {
         console.error('❌ Navigation error:', navError);
-        
         // Fallback navigation attempt
-        setTimeout(() => {
+        try {
+          console.log('🔄 Using fallback navigation to root');
           router.replace('/');
-        }, 1000);
+        } catch (fallbackError) {
+          console.error('❌ Fallback navigation error:', fallbackError);
+        }
       }
     } catch (error) {
       console.error('Unexpected error saving journal entry:', error);
@@ -176,13 +178,19 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
     } finally {
       setSaving(false);
       
-      // Final fallback if everything else fails
+      // CRITICAL: Final failsafe navigation if everything else fails
       setTimeout(() => {
         if (onComplete) {
-          console.log('🔄 Using onComplete fallback for navigation');
+          console.log('🔄 Using final onComplete fallback for navigation');
           onComplete();
+        } else {
+          // Absolute last resort: try to navigate using window.location (web only)
+          if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            console.log('⚠️ Last resort: using window.location navigation');
+            window.location.href = '/';
+          }
         }
-      }, 1500);
+      }, 1000);
     }
   };
 

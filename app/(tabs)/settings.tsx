@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSubscriptionStatus } from '@/utils/database';
+import { SignOutTestButton } from '@/components/SignOutTestButton';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -58,6 +59,10 @@ export default function SettingsScreen() {
 
   const handleSignOut = () => {
     console.log('🚪 Sign out pressed');
+    
+    // First test the sign out process
+    console.log('🧪 Running sign out test...');
+    
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -70,31 +75,13 @@ export default function SettingsScreen() {
             console.log('🚪 Confirming sign out...');
             setIsSigningOut(true);
             
-            try {
-              console.log('🔄 Calling signOut function...');
-              await signOut();
-              console.log('✅ Sign out successful, navigating to auth...');
-              
-              // Force clear all navigation stack and go to auth
-              console.log('📱 Forcing navigation to auth screen...');
-              
-              // Navigate to auth immediately without delay
-              setTimeout(() => {
-                try {
-                  router.dismissAll();
-                } catch (e) {
-                  console.log('⚠️ No modals to dismiss:', e);
-                }
-                router.replace('/auth');
-                console.log('📱 Navigation to auth completed');
-              }, 500); // Slightly longer delay to ensure signOut completes
-              
-            } catch (error) {
-              console.error('❌ Sign out error:', error);
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            // The signOut function now handles everything including navigation
+            await signOut();
+            
+            // Reset loading state after a delay in case navigation fails
+            setTimeout(() => {
               setIsSigningOut(false);
-            }
-            // Don't set loading to false here since we're navigating away
+            }, 2000);
           }
         }
       ]
@@ -195,6 +182,9 @@ export default function SettingsScreen() {
             onPress={handleHelpSupport}
           />
         </View>
+
+        {/* CRITICAL: Add test button for debugging */}
+        <SignOutTestButton />
 
         <View style={styles.section}>
           <SettingItem

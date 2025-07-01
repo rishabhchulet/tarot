@@ -61,6 +61,31 @@ export interface AuthUser {
   focusArea?: string;
 }
 
+// CRITICAL: Add test function for auth state
+export const testAuthState = async () => {
+  try {
+    console.log('🧪 Testing current auth state...');
+    
+    const { data: sessionData } = await supabase.auth.getSession();
+    const { data: userData } = await supabase.auth.getUser();
+    
+    const testResult = {
+      timestamp: new Date().toISOString(),
+      hasSession: !!sessionData.session,
+      sessionId: sessionData.session?.access_token?.substring(0, 20) + '...',
+      hasUser: !!userData.user,
+      userId: userData.user?.id,
+      userEmail: userData.user?.email,
+    };
+    
+    console.log('🧪 Auth state test results:', testResult);
+    return testResult;
+  } catch (error) {
+    console.error('❌ Auth state test failed:', error);
+    return { error: error.message };
+  }
+};
+
 export const signUp = async (email: string, password: string, name: string) => {
   try {
     logAuthEvent('Starting sign up process', { email, nameLength: name.length });

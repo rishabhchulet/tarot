@@ -148,21 +148,48 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       // Show success message and navigate back to today screen
       Alert.alert(
         'Reflection Saved!',
-        'Your daily reflection has been saved. You can access your daily question anytime.',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              router.replace('/(tabs)');
-            }
-          }
-        ]
+        'Your daily reflection has been saved. You can access your daily question anytime.'
       );
+      
+      // FIXED: Don't wait for alert dismissal to navigate
+      // Navigate immediately after saving
+      console.log('📱 Navigation to home screen triggered after save');
+      
+      try {
+        // Use a slight delay to ensure the alert is shown
+        setTimeout(() => {
+          // First try dismissAll to clear any modal stacks
+          try {
+            router.dismissAll();
+          } catch (dismissError) {
+            console.warn('⚠️ Dismiss error (non-critical):', dismissError);
+          }
+          
+          // Then replace with tabs route
+          router.replace('/(tabs)');
+          console.log('✅ Navigation to home successful');
+        }, 500);
+      } catch (navError) {
+        console.error('❌ Navigation error:', navError);
+        
+        // Fallback navigation attempt
+        setTimeout(() => {
+          router.replace('/');
+        }, 1000);
+      }
     } catch (error) {
       console.error('Unexpected error saving journal entry:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setSaving(false);
+      
+      // Final fallback if everything else fails
+      setTimeout(() => {
+        if (onComplete) {
+          console.log('🔄 Using onComplete fallback for navigation');
+          onComplete();
+        }
+      }, 1500);
     }
   };
 

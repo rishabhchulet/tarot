@@ -278,6 +278,11 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
     logAuthEvent('Error ensuring profile exists', null, error);
   }
 };
+
+export const signOut = async () => {
+  try {
+    logAuthEvent('Starting sign out process');
+    
     // Step 1: Try global sign out first (all devices)
     try {
       const globalResult = await createTimeoutWrapper(

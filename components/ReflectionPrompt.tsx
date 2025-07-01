@@ -146,30 +146,54 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       console.log('✅ Journal entry saved successfully');
       
       // Show success message and navigate back to today screen
-      // IMPORTANT: First trigger the navigation, THEN show the alert
-      // This prevents the alert from blocking navigation
-      console.log('📱 Navigation to home screen triggered after save');
+      // CRITICAL FIX: Use a better navigation approach that works more reliably
+      console.log('📱 Attempting navigation after reflection save');
       
       try {
-        // Navigate directly to the index tab (Today screen)
-        router.replace('/(tabs)/index');
-        console.log('✅ Navigation to home successful');
+        // Show a brief success message first, then navigate
+        Alert.alert(
+          'Reflection Saved!',
+          'Your daily reflection has been saved.',
+          [{ 
+            text: 'OK', 
+            onPress: () => {
+              // After alert is dismissed, navigate to home
+              console.log('🏠 Navigating to home after alert dismissed');
+              
+              // Try direct navigation to the index tab
+              router.navigate('/(tabs)');
+            }
+          }]
+        );
+      } catch (navError) {
+        console.error('❌ Primary navigation error:', navError);
         
-        // Show alert AFTER navigation is triggered
-        setTimeout(() => {
+        // If alert fails, still try to navigate
+        try {
+          console.log('🔄 Direct navigation without alert');
+          router.navigate('/(tabs)');
+        } catch (directNavError) {
+          console.error('❌ Direct navigation error:', directNavError);
+          
           Alert.alert(
             'Reflection Saved!',
-            'Your daily reflection has been saved. You can access your daily question anytime.'
+            'Your daily reflection has been saved, but there was a navigation issue. Please tap OK to return home.',
+            [{ 
+              text: 'OK', 
+              onPress: () => {
+                // Try alternative navigation methods
+                console.log('🏠 Trying alternative navigation');
+                
+                // Use onComplete callback as a fallback
+                if (onComplete) {
+                  onComplete();
+                } else {
+                  // Last resort - use replace
+                  router.replace('/');
+                }
+              }
+            }]
           );
-        }, 100);
-      } catch (navError) {
-        console.error('❌ Navigation error:', navError);
-        // Fallback navigation attempt
-        try {
-          console.log('🔄 Using fallback navigation to root');
-          router.replace('/');
-        } catch (fallbackError) {
-          console.error('❌ Fallback navigation error:', fallbackError);
         }
       }
     } catch (error) {
@@ -178,19 +202,22 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
     } finally {
       setSaving(false);
       
-      // CRITICAL: Final failsafe navigation if everything else fails
+      // CRITICAL: Final failsafe navigation after a delay
       setTimeout(() => {
-        if (onComplete) {
-          console.log('🔄 Using final onComplete fallback for navigation');
-          onComplete();
-        } else {
+        // Check if we're still on the reflection screen after 2 seconds
+        console.log('🔄 Final navigation failsafe check');
+        
+        try {
+          // Try to go to home screen one last time
+          router.navigate('/(tabs)');
+        } catch (error) {
           // Absolute last resort: try to navigate using window.location (web only)
           if (Platform.OS === 'web' && typeof window !== 'undefined') {
             console.log('⚠️ Last resort: using window.location navigation');
             window.location.href = '/';
           }
         }
-      }, 1000);
+      }, 2000);
     }
   };
 

@@ -68,9 +68,27 @@ export function TarotCardFlow() {
   };
 
   const handleReflectionComplete = () => {
-    console.log('Reflection completed');
-    // This will be handled by the ReflectionPrompt component
-    // which navigates back to the main app
+    console.log('⭐ Reflection complete callback triggered');
+    
+    // Use a more reliable navigation approach
+    try {
+      console.log('🏠 Attempting navigation to home from completion handler');
+      router.navigate('/(tabs)');
+    } catch (error) {
+      console.error('❌ Navigation error in handleReflectionComplete:', error);
+      
+      // Fallback: try direct replace to home screen
+      try {
+        router.replace('/');
+      } catch (fallbackError) {
+        console.error('❌ Fallback navigation error:', fallbackError);
+        
+        // Web-only fallback with window.location
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.location.href = '/';
+        }
+      }
+    }
   };
 
   const frontAnimatedStyle = useAnimatedStyle(() => {

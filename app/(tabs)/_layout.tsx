@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
-import { BookOpen, Calendar, Settings, Sparkles } from 'lucide-react-native';
+import { BookOpen, Calendar, Settings, Sparkles, Home } from 'lucide-react-native';
+import { Platform } from 'react-native';
 
 export default function TabLayout() {
   return (
@@ -23,12 +24,25 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
-        name="index"
+        name="index" 
+        options={{
+          title: 'Today',
+          tabBarIcon: ({ size, color }) => (
+            <Home size={size} color={color} strokeWidth={2} />
+          ),
+          // CRITICAL FIX: Handle pop to top for iOS
+          headerShown: Platform.OS === 'ios' ? true : false,
+          headerTitle: 'Today',
+        }}
+      />
+      <Tabs.Screen
+        name="today" // Alias for index
         options={{
           title: 'Today',
           tabBarIcon: ({ size, color }) => (
             <Sparkles size={size} color={color} strokeWidth={2} />
           ),
+          href: null, // Hide from tab bar but keep as navigation target
         }}
       />
       <Tabs.Screen

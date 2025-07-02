@@ -320,7 +320,7 @@ export const signOut = async () => {
       if (typeof window !== 'undefined' && window.localStorage) {
         // Find all Supabase related keys and remove them
         const keys = Object.keys(localStorage);
-        for (const key of keys) {
+        let removed = 0;
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
             localStorage.removeItem(key);
             removed++;

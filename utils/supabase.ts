@@ -70,14 +70,15 @@ const ExpoSecureStoreAdapter = {
 // CRITICAL FIX: Create Supabase client with optimized longer timeouts
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key', 
+  supabaseAnonKey || 'placeholder-key',
   {
     auth: {
       storage: ExpoSecureStoreAdapter,
       autoRefreshToken: true,
-      persistSession: true, // Keep this true for normal operation
+      persistSession: true,
       detectSessionInUrl: false,
       flowType: 'pkce',
+      debug: true, // CRITICAL FIX: Enable debug mode to help diagnose issues
     },
     global: {
       headers: {
@@ -144,6 +145,28 @@ export const createTimeoutWrapper = <T>(
 export const testSupabaseConnection = async (): Promise<{ connected: boolean; error: string | null }> => {
   try {
     console.log('🔍 Testing Supabase connection...');
+    
+    // CRITICAL FIX: Add function to check auth state
+    if (typeof window !== 'undefined') {
+      (window as any).checkAuthState = async () => {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession();
+          const { data: userData } = await supabase.auth.getUser();
+          
+          return {
+            hasSession: !!sessionData.session,
+            sessionExpires: sessionData.session?.expires_at,
+            hasUser: !!userData.user,
+            userId: userData.user?.id,
+            timestamp: new Date().toISOString()
+          };
+        } catch (e) {
+          return { error: e.message };
+        }
+      };
+      
+      console.log('🔧 Registered checkAuthState() in window for debugging');
+    }
 
     // CRITICAL: Add function to forcibly clear auth storage
     if (typeof window !== 'undefined') {

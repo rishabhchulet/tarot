@@ -29,7 +29,7 @@ export default function IndexScreen() {
   useEffect(() => {
     // CRITICAL FIX: Enhanced routing with connection status awareness
     const navigationTimeout = setTimeout(() => {
-      console.log('🔍 Routing check:', { 
+      console.log('🔍 Root index routing check:', { 
         hasSession: !!session, 
         hasUser: !!user, 
         userFocusArea: user?.focusArea,
@@ -42,12 +42,13 @@ export default function IndexScreen() {
       // Only route if not loading and connection is stable
       if (!loading && connectionStatus !== 'connecting') {
         try {
-          if (session && user) {
+          // CRITICAL FIX: Check for session first, even without complete user data
+          if (session) {
             // User is authenticated and profile exists
-            const focusArea = user.focusArea;
+            const focusArea = user?.focusArea;
             const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
             
-            console.log('🎯 Authenticated user routing:', { 
+            console.log('🎯 Authenticated session routing:', { 
               focusArea: focusArea,
               hasCompletedOnboarding: hasCompletedOnboarding
             });
@@ -59,10 +60,6 @@ export default function IndexScreen() {
               console.log('✅ User has completed onboarding - going to main app...');
               router.replace('/(tabs)');
             }
-          } else if (session && !user) {
-            // CRITICAL FIX: If we have session but no user, proceed to onboarding anyway
-            console.log('⚠️ Session exists but no user data - proceeding to onboarding...');
-            router.replace('/onboarding/quiz');
           } else {
             // No session means new user - go to auth
             console.log('🔐 No session found - redirecting to auth (new user)...');
@@ -79,7 +76,7 @@ export default function IndexScreen() {
     }, 1000); // Increased to 1s to account for connection status
 
     return () => clearTimeout(navigationTimeout);
-  }, [loading, session, user, error, connectionStatus]);
+  }, [loading, session, user?.focusArea, error, connectionStatus]);
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
     return {

@@ -146,15 +146,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshUser();
   };
 
+  // ... existing code ...
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process from AuthContext');
-
-      // CRITICAL FIX: Set ref first to ignore auth changes during sign out
       isSigningOutRef.current = true;
 
-      // Step 1: Clear local state immediately
-      console.log('🧹 Clearing local auth state...');
+      // Step 1: Sign out from Supabase
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.warn('⚠️ Supabase sign out error:', error);
+      }
+
+      // Step 2: Clear local state
       setUser(null);
       setSession(null);
       setError(null);
@@ -162,140 +166,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLastSuccessfulConnection(null);
       setRetryCount(0);
 
-      // Step 2: Clear storage immediately
-      console.log('🧹 Clearing local storage...');
-      try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          const keys = Object.keys(localStorage);
-          const supabaseKeys = keys.filter(key => 
-            key.includes('supabase') || 
-            key.includes('sb-') || 
-            key.includes('auth') || 
-            key.includes('token')
-          );
-
-          let removedCount = 0;
-          supabaseKeys.forEach(key => {
-            localStorage.removeItem(key);
-            removedCount++;
-          });
-          console.log(`🗑️ Removed ${removedCount} storage keys`);
-
-          // Force remove specific known keys
-          ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token'].forEach(key => {
-            localStorage.removeItem(key);
-          });
-
-          // Also clear session storage
-          try { 
-            sessionStorage.clear(); 
-            console.log('🧹 Cleared session storage');
-          } catch (e) { 
-            console.warn('⚠️ Session storage clear error:', e);
-          }
-        }
-      } catch (storageError) {
-        console.warn('⚠️ Storage clearing error:', storageError);
-      }
-
-      // Step 3: Sign out from Supabase
-      console.log('📤 Signing out from Supabase...');
-      try {
-        // Try global sign out first
-        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
-        if (globalError) {
-          console.warn('⚠️ Global sign out error:', globalError);
-
-          // Try regular sign out as fallback
-          const { error } = await supabase.auth.signOut();
-          if (error) {
-            console.warn('⚠️ Regular sign out error:', error);
-          }
-        }
-      } catch (signOutError) {
-        console.warn('⚠️ Supabase sign out error:', signOutError);
-      }
-
-      // Step 4: Force navigation to auth screen
-      console.log('📱 Forcing navigation to auth screen...');
-      try {
-        router.replace('/auth');
-        console.log('✅ Navigation triggered');
-      } catch (navError) {
-        console.error('❌ Navigation error:', navError);
-
-        // Web fallback - force page reload
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.location.href = '/auth';
-        }
-      } 
-
-      console.log('✅ Auth state cleared locally');
-      return { error: null };
-      
+      // Step 3: Redirect to auth screen
+      router.replace('/auth');
+      console.log('✅ Navigation triggered');
     } catch (error) {
       console.error('❌ Unexpected error during sign out:', error);
-      return { error: error.message || 'Sign out failed' };
-    } finally {      
-      // Reset the flag after a delay
+    } finally {
       setTimeout(() => {
-        console.log('🔓 Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-      }, 5000);
-
-      // Final verification - check if we're still authenticated after 3 seconds
-      setTimeout(async () => {
-        const { data } = await supabase.auth.getUser();
-        console.log('🔍 Final auth check:', { stillAuthenticated: !!data.user });
-      }, 3000);
+      }, 2000);
     }
-   };
-
-  // CRITICAL: Add a test function to verify sign out
-  const testSignOut = async () => {
-    console.log('🧪 Testing sign out process...');
-    
-    const beforeState = {
-      hasUser: !!user,
-      hasSession: !!session,
-      userId: user?.id,
-    };
-    
-    console.log('🧪 State before sign out:', beforeState);
-    
-    await signOut();
-    
-    // Check state after a delay
-    setTimeout(() => {
-      const afterState = {
-        hasUser: !!user,
-        hasSession: !!session,
-        isSigningOut: isSigningOutRef.current,
-      };
-      
-      console.log('🧪 State after sign out:', afterState);
-      
-      if (!afterState.hasUser && !afterState.hasSession) {
-        console.log('✅ Sign out test PASSED - user and session cleared');
-      } else {
-        console.error('❌ Sign out test FAILED - state not cleared properly');
-      }
-    }, 1000);
   };
-
-  // Add testSignOut to the context
-  const contextValue = { 
-    user, 
-    session, 
-    loading,  
-    error, 
-    signOut, 
-    refreshUser, 
-    connectionStatus,
-    retryConnection,
-    testSignOut // NEW: Add test function
-  };
-      
+     
   useEffect(() => {
     console.log('🚀 AuthContext initializing...');
     setConnectionStatus('connecting');

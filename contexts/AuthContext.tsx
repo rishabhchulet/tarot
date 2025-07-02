@@ -345,6 +345,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [connectionStatus, retryCount, loading]);
 
+  const testSignOut = async () => {
+    console.log('🧪 Test sign out triggered');
+    await signOut();
+  };
+
+  const contextValue: AuthContextType = {
+    user,
+    session,
+    loading,
+    error,
+    signOut,
+    refreshUser,
+    connectionStatus,
+    retryConnection,
+    testSignOut,
+  };
+
   return (
     <AuthContext.Provider value={contextValue}>
       {children}

@@ -153,16 +153,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // CRITICAL FIX: Set ref before everything else
       isSigningOutRef.current = true; 
 
+     // FIXED: Immediately clear state for more responsive UX
+     setUser(null);
+     setSession(null);
+     setError(null);
+     setConnectionStatus('disconnected');
+     setLastSuccessfulConnection(null);
+     setRetryCount(0);
       try {
-        // Step 1: Clear local state first
-        console.log('🧹 Clearing local auth state...');
-        setUser(null);
-        setSession(null);
-        setError(null);
-        setConnectionStatus('disconnected');
-        setLastSuccessfulConnection(null);
-        setRetryCount(0);
-        
         // Step 2: Sign out from Supabase
         console.log('📤 Signing out from Supabase...');
         
@@ -209,9 +207,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Navigate to auth screen
           router.replace('/auth');
           console.log('✅ Navigation triggered');
+         // FIXED: Return early to prevent further execution
+         return;
         } else {
           // On native platforms
           router.replace('/auth');
+         // FIXED: Return early to prevent further execution
+         return;
         }
         
         console.log('✅ Sign out process completed successfully');
@@ -240,10 +242,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const timeout = setTimeout(() => {
         console.log('🔓 Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-      }, 5000); // 5 second delay
+     }, 3000); // Reduced to 3 seconds for faster recovery
       
-      // Ensure timeout is cleared if component is unmounted
-      return () => clearTimeout(timeout);
+     // FIXED: Don't return the timeout cleanup as it causes issues in async context
     }
   };
 

@@ -68,29 +68,18 @@ export default function SettingsScreen() {
         { 
           text: 'Sign Out', 
           style: 'destructive',
-          onPress: async () => {
+         onPress: () => {
             console.log('🚪 Confirming sign out...');
             setIsSigningOut(true);
 
-            try {
-              // Call signOut - it will handle navigation
-              await signOut();
-              console.log('✅ Sign out function completed');
-            } catch (error) {
-              console.error('❌ Sign out error:', error);
-              
-              // Force navigation anyway
-              try {
-                router.replace('/auth');
-              } catch (navError) {
-                console.error('❌ Navigation error:', navError);
-              }
-            }
-
-            // Reset loading state after a delay
-            setTimeout(() => {
-              setIsSigningOut(false);
-            }, 3000);
+           // Use non-awaited call to prevent component unmounting issues
+           signOut().catch(error => {
+             console.error('❌ Sign out error:', error);
+             // Force navigation as fallback
+             router.replace('/auth');
+           });
+           
+           // No need to reset isSigningOut as the component will unmount
           }
         }
       ]

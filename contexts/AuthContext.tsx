@@ -180,6 +180,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             localStorage.removeItem(key);
             console.log(`🗑️ Removed key: ${key}`);
           }
+          )
 
           // Also clear session storage
           try { sessionStorage.clear(); } catch (e) { /* ignore */ }
@@ -216,8 +217,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isSigningOutRef.current = false;
         console.log('🔄 Reset isSigningOut flag');
       }, 5000);
-   }
- };
+       }
+   };
 
   // CRITICAL: Add a test function to verify sign out
   const testSignOut = async () => {
@@ -335,6 +336,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     };
+    )
 
     initializeAuth();
 

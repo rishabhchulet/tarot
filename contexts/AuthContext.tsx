@@ -150,7 +150,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshUser();
   };
 
-  // ... existing code ...
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process from AuthContext...');

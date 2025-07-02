@@ -320,13 +320,10 @@ export const signOut = async () => {
       if (typeof window !== 'undefined' && window.localStorage) {
         // Find all Supabase related keys and remove them
         const keys = Object.keys(localStorage);
-        let removed = 0;
-       let removed = 0;
         for (const key of keys) {
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
             localStorage.removeItem(key);
             removed++;
-           removed++;
             console.log('🗑️ Removed auth storage item:', key);
           }
         }
@@ -337,20 +334,9 @@ export const signOut = async () => {
           localStorage.removeItem('supabase.auth.token');
           localStorage.removeItem('sb-access-token');
           localStorage.removeItem('sb-refresh-token');
-          console.log('🔒 Forced removal of critical auth tokens');
         } catch (e) {
           console.warn('⚠️ Error during forced token removal:', e);
         }
-       console.log(`🧹 Removed ${removed} auth-related items from storage`);
-       
-       // Force a more aggressive cleanup for stubborn auth tokens
-       try {
-         localStorage.removeItem('supabase.auth.token');
-         localStorage.removeItem('sb-access-token');
-         localStorage.removeItem('sb-refresh-token');
-       } catch (e) {
-         console.warn('⚠️ Error during forced token removal:', e);
-       }
       }
     } catch (storageError) {
       console.warn('⚠️ Storage cleanup error:', storageError);

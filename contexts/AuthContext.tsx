@@ -224,6 +224,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       
       router.replace('/auth');
+    } catch (error) {
+      console.error('❌ Error during sign out:', error);
+      
+      // Force state clearing and navigation
+      setUser(null);
+      setSession(null);
+      setError(null);
+      setConnectionStatus('disconnected');
+      
+      router.replace('/auth');
     } finally {
       // Reset the flag after a longer delay to ensure auth state changes are ignored
       const timeout = setTimeout(() => {

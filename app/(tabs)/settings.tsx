@@ -92,7 +92,7 @@ export default function SettingsScreen() {
     subtitle,
     onPress,
     rightElement,
-    disabled = false
+    disabled = false,
   }: {
     icon: any;
     title: string;

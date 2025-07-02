@@ -264,6 +264,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 1000);
   };
 
+  // CRITICAL: Add a test function to verify sign out
+  const testSignOut = async () => {
+    console.log('🧪 Testing sign out process...');
+    const beforeState = {
+      hasUser: !!user,
+      hasSession: !!session,
+      userId: user?.id
+    };
+    
+    console.log('🧪 State before sign out:', beforeState);
+    
+    await signOut();
+    
+    // Check state after a delay
+    setTimeout(() => {
+      const afterState = {
+        hasUser: !!user,
+        hasSession: !!session,
+        isSigningOut: isSigningOutRef.current
+      };
+      
+      console.log('🧪 State after sign out:', afterState);
+      
+      if (!afterState.hasUser && !afterState.hasSession) {
+        console.log('✅ Sign out test PASSED - user and session cleared');
+      } else {
+        console.error('❌ Sign out test FAILED - state not cleared properly');
+      }
+    }, 1000);
+  };
+
   const contextValue = {
     user,
     session,

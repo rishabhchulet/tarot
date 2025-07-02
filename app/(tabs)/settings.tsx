@@ -68,29 +68,18 @@ export default function SettingsScreen() {
         { 
           text: 'Sign Out', 
           style: 'destructive',
-         onPress: () => {
+          onPress: () => {
             console.log('🚪 Confirming sign out...');
             setIsSigningOut(true);
 
-           // Use non-awaited call to prevent component unmounting issues
-           signOut().catch(error => {
-             console.error('❌ Sign out error:', error);
-             // Force navigation as fallback
-             router.replace('/auth');
-           });
-           
-           // No need to reset isSigningOut as the component will unmount
-          }
-        }
-      ]
-    );
-  };
-
-  const SettingItem = ({ 
-    icon: Icon, 
-    title, 
-    subtitle, 
-    onPress, 
+            // Use non-awaited promise approach to prevent component unmounting issues
+            signOut().catch(error => {
+              console.error('❌ Sign out error:', error);
+              // Force navigation as fallback
+              router.replace('/auth');
+            });
+            
+            // No need to reset isSigningOut as the component will unmount
     rightElement,
     disabled = false
   }: {

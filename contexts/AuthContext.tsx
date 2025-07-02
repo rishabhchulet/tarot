@@ -149,19 +149,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process...');
-
+      
       // CRITICAL FIX: Set ref before everything else
       isSigningOutRef.current = true; 
 
-     // FIXED: Immediately clear state for more responsive UX
-     setUser(null);
-     setSession(null);
-     setError(null);
-     setConnectionStatus('disconnected');
-     setLastSuccessfulConnection(null);
-     setRetryCount(0);
-      try {
-        // Step 2: Sign out from Supabase
+      // FIXED: Immediately clear local state first for more responsive UX
+      setUser(null);
+      setSession(null);
+      setError(null);
+      setConnectionStatus('disconnected');
+      setLastSuccessfulConnection(null);
+      setRetryCount(0);
+        // Sign out from Supabase
         console.log('📤 Signing out from Supabase...');
         
         // Try global sign out first
@@ -206,17 +205,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (Platform.OS === 'web') {
           // Navigate to auth screen
           router.replace('/auth');
-          console.log('✅ Navigation triggered');
+          console.log('✅ Web navigation triggered');
+          return; // FIXED: Return early to prevent further execution
          // FIXED: Return early to prevent further execution
          return;
         } else {
           // On native platforms
           router.replace('/auth');
+          console.log('✅ Native navigation triggered');
+          return; // FIXED: Return early to prevent further execution
          // FIXED: Return early to prevent further execution
          return;
         }
-        
-        console.log('✅ Sign out process completed successfully');
       } catch (error) {
         console.error('❌ Error during sign out process:', error);
         
@@ -242,9 +242,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const timeout = setTimeout(() => {
         console.log('🔓 Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-     }, 3000); // Reduced to 3 seconds for faster recovery
-      
-     // FIXED: Don't return the timeout cleanup as it causes issues in async context
+      }, 3000); // Reduced to 3 seconds for faster recovery
+      // FIXED: Don't return the timeout cleanup as it causes issues in async context
     }
   };
 

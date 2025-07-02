@@ -287,7 +287,7 @@ export const signOut = async () => {
     try {
       const globalResult = await createTimeoutWrapper(
         () => supabase.auth.signOut({ scope: 'global' }),
-       5000 // Reduced to 5 second timeout for faster response
+        5000 // Reduced to 5 second timeout for faster response
       );
       
       if (globalResult.error) {
@@ -303,7 +303,7 @@ export const signOut = async () => {
     try {
       const result = await createTimeoutWrapper(
         () => supabase.auth.signOut(),
-       3000 // Reduced to 3 second timeout
+        3000 // Reduced to 3 second timeout
       );
       
       if (result.error) {
@@ -320,13 +320,26 @@ export const signOut = async () => {
       if (typeof window !== 'undefined' && window.localStorage) {
         // Find all Supabase related keys and remove them
         const keys = Object.keys(localStorage);
+        let removed = 0;
        let removed = 0;
         for (const key of keys) {
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
             localStorage.removeItem(key);
+            removed++;
            removed++;
             console.log('🗑️ Removed auth storage item:', key);
           }
+        }
+        console.log(`🧹 Removed ${removed} auth-related items from storage`);
+        
+        // Force a more aggressive cleanup for stubborn auth tokens
+        try {
+          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('sb-access-token');
+          localStorage.removeItem('sb-refresh-token');
+          console.log('🔒 Forced removal of critical auth tokens');
+        } catch (e) {
+          console.warn('⚠️ Error during forced token removal:', e);
         }
        console.log(`🧹 Removed ${removed} auth-related items from storage`);
        

@@ -149,10 +149,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process from AuthContext');
-      
+
       // CRITICAL FIX: Set ref first to ignore auth changes during sign out
       isSigningOutRef.current = true;
-      
+
       // Step 1: Clear local state immediately
       console.log('🧹 Clearing local auth state...');
       setUser(null);
@@ -161,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
-      
+
       // Step 2: Clear storage immediately
       console.log('🧹 Clearing local storage...');
       try {
@@ -170,15 +170,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const supabaseKeys = keys.filter(key => 
             key.includes('supabase') || 
             key.includes('sb-') || 
-            key.includes('auth') ||
+            key.includes('auth') || 
             key.includes('token')
           );
-          
+
+          let removedCount = 0;
           supabaseKeys.forEach(key => {
             localStorage.removeItem(key);
-            console.log(`🗑️ Removed storage key: ${key}`);
+            removedCount++;
           });
-          
+          console.log(`🗑️ Removed ${removedCount} storage keys`);
+
+          // Force remove specific known keys
+          ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token'].forEach(key => {
+            localStorage.removeItem(key);
+          });
+
           // Also clear session storage
           try { 
             sessionStorage.clear(); 
@@ -190,7 +197,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (storageError) {
         console.warn('⚠️ Storage clearing error:', storageError);
       }
-      
+
       // Step 3: Sign out from Supabase
       console.log('📤 Signing out from Supabase...');
       try {
@@ -198,7 +205,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
         if (globalError) {
           console.warn('⚠️ Global sign out error:', globalError);
-          
+
           // Try regular sign out as fallback
           const { error } = await supabase.auth.signOut();
           if (error) {
@@ -208,7 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (signOutError) {
         console.warn('⚠️ Supabase sign out error:', signOutError);
       }
-      
+
       // Step 4: Force navigation to auth screen
       console.log('📱 Forcing navigation to auth screen...');
       try {
@@ -216,13 +223,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('✅ Navigation triggered');
       } catch (navError) {
         console.error('❌ Navigation error:', navError);
-        
+
         // Web fallback - force page reload
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           window.location.href = '/auth';
         }
       } 
-      
+
       console.log('✅ Auth state cleared locally');
       return { error: null };
       
@@ -230,12 +237,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('❌ Unexpected error during sign out:', error);
       return { error: error.message || 'Sign out failed' };
     } finally {      
-      // Reset the flag after a delay to ensure auth state changes are ignored
+      // Reset the flag after a delay
       setTimeout(() => {
         console.log('🔓 Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-      }, 5000); // 5 second delay
-      
+      }, 5000);
+
       // Final verification - check if we're still authenticated after 3 seconds
       setTimeout(async () => {
         const { data } = await supabase.auth.getUser();

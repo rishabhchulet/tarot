@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator, Platform, BackHandler } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -61,7 +61,7 @@ export default function SettingsScreen() {
   const handleSignOut = () => {
     console.log('🚪 Sign out pressed from settings screen');
     setSignOutError(null);
-    
+
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -71,30 +71,61 @@ export default function SettingsScreen() {
           text: 'Sign Out', 
           style: 'destructive',
           onPress: async () => {
-            console.log('🚪 Sign out confirmed - immediate navigation first');
+            console.log('🚪 Sign out confirmed - starting process');
             
-            // Set signing out state immediately to show loading screen
+            // Set signing out state immediately for UI feedback
             setIsSigningOut(true);
             
-            // CRITICAL FIX: Call signOut directly first
-            try {              
-              // Call the signOut function from AuthContext
+            // CRITICAL FIX: Clear storage first for immediate effect
+            try {
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                console.log('🧹 Directly clearing all storage first');
+                const keys = Object.keys(localStorage);
+                const authKeys = keys.filter(key => 
+                  key.includes('supabase') || 
+                  key.includes('sb-') || 
+                  key.includes('auth') ||
+                  key.includes('token')
+                );
+                
+                authKeys.forEach(key => {
+                  localStorage.removeItem(key);
+                  console.log(`🗑️ Removed: ${key}`);
+                });
+                
+                // Clear session storage too
+                try { 
+                  sessionStorage.clear(); 
+                  console.log('🧹 Cleared session storage');
+                } catch (e) { 
+                  console.log('⚠️ Session storage clear error:', e);
+                }
+              }
+            } catch (storageError) {
+              console.warn('⚠️ Storage clearing error:', storageError);
+            }
+            
+            // Call signOut function from AuthContext
+            try {
+              console.log('🔑 Calling signOut function...');
               await signOut();
-              console.log('✅ Sign out function completed successfully');
+              console.log('✅ signOut function completed');
             } catch (error) {
-              console.error('❌ Sign out function error:', error);
+              console.error('❌ signOut function error:', error);
               setSignOutError('Sign out failed. Please try again.');
             }
             
-            // Force navigation regardless of signOut success
+            // Force navigation to auth screen regardless of signOut success
             console.log('📱 Forcing navigation to auth screen');
             try {
+              // Use replace to prevent going back to the app after sign out
               router.replace('/auth');
             } catch (navError) {
               console.error('❌ Navigation error:', navError);
               
-              // Web fallback - force page reload
+              // Web fallback - force page reload to clear any cached state
               if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                console.log('🔄 Forcing page reload as fallback');
                 window.location.href = '/auth';
               }
             }
@@ -102,7 +133,8 @@ export default function SettingsScreen() {
             // Reset signing out state after a delay
             setTimeout(() => {
               setIsSigningOut(false);
-            }, 5000);
+              console.log('✅ Sign out process completed');
+            }, 3000);
           }
         }
       ]
@@ -147,16 +179,25 @@ export default function SettingsScreen() {
   if (isSigningOut) {
     return (
       <LinearGradient
-        colors={['#1F2937', '#374151', '#4B5563']}
+        colors={['#1F2937', '#374151', '#6B46C1']}
         style={styles.container}
       > 
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
+          <ActivityIndicator size="large" color="#F59E0B" />
           <Text style={styles.loadingText}>Signing out...</Text>
           {signOutError && (
             <View style={styles.errorContainer}>
               <AlertTriangle size={20} color="#EF4444" />
               <Text style={styles.errorText}>{signOutError}</Text>
+              <Pressable 
+                style={styles.retryButton}
+                onPress={() => {
+                  setSignOutError(null);
+                  handleSignOut();
+                }}
+              >
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </Pressable>
             </View>
           )}
         </View>
@@ -330,12 +371,12 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 18,
     fontFamily: 'Inter-Medium',
-    color: '#FFFFFF',
+    color: '#F3F4F6',
     marginTop: 16,
     textAlign: 'center',
   },
   errorContainer: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderRadius: 8,
@@ -343,12 +384,29 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderWidth: 1,
     borderColor: 'rgba(239, 68, 68, 0.3)',
+    width: '80%',
+    maxWidth: 300,
   },
   errorText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#EF4444',
     marginLeft: 8,
+    marginTop: 8,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  retryButton: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  retryButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#EF4444',
   },
   footer: {
     alignItems: 'center',

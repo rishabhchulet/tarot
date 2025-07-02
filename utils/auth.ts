@@ -282,18 +282,18 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
 export const signOut = async () => {
   try {
     logAuthEvent('Starting sign out process from utils/auth.ts');
-    
+
     // CRITICAL FIX: Clear all storage first for immediate effect
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         logAuthEvent('Clearing all auth storage first');
-        
+
         // Find and remove all Supabase related keys
         const keys = Object.keys(localStorage);
         const supabaseKeys = keys.filter(key => 
           key.includes('supabase') || 
           key.includes('sb-') || 
-          key.includes('auth') ||
+          key.includes('auth') || 
           key.includes('token')
         );
         
@@ -301,7 +301,7 @@ export const signOut = async () => {
           localStorage.removeItem(key);
           logAuthEvent(`Removed storage key: ${key}`);
         });
-        
+
         // Also clear session storage
         try { 
           sessionStorage.clear(); 
@@ -313,14 +313,14 @@ export const signOut = async () => {
     } catch (storageError) {
       logAuthEvent('Storage clearing error', null, storageError);
     }
-    
+
     // Step 1: Try global sign out first (all devices)
     try {
       const globalResult = await createTimeoutWrapper(
         () => supabase.auth.signOut({ scope: 'global' }),
         5000 // 5 second timeout
       );
-      
+
       if (globalResult.error) {
         console.warn('⚠️ Global sign out error:', globalResult.error);
       } else {
@@ -329,14 +329,14 @@ export const signOut = async () => {
     } catch (globalError) {
       console.warn('⚠️ Global sign out timeout or error:', globalError);
     }
-    
+
     // Step 2: Also try regular sign out as a fallback
     try {
       const result = await createTimeoutWrapper(
         () => supabase.auth.signOut(),
         3000 // 3 second timeout
       );
-      
+
       if (result.error) {
         console.warn('⚠️ Regular sign out error:', result.error);
       } else {
@@ -345,7 +345,7 @@ export const signOut = async () => {
     } catch (error) {
       console.warn('⚠️ Regular sign out timeout or error:', error);
     }
-    
+
     // Step 3: Force clear any remaining auth data from storage
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -353,7 +353,7 @@ export const signOut = async () => {
         const keys = Object.keys(localStorage);
         let removed = 0;
         for (const key of keys) {
-          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
+          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth') || key.includes('token')) {
             localStorage.removeItem(key);
             removed++;
             console.log('🗑️ Removed auth storage item:', key);
@@ -361,7 +361,7 @@ export const signOut = async () => {
         }
         console.log(`🧹 Removed ${removed} auth-related items from storage`);
         
-        // Force a more aggressive cleanup for stubborn auth tokens
+        // Force a more aggressive cleanup for stubborn tokens
         try {
           localStorage.removeItem('supabase.auth.token');
           localStorage.removeItem('sb-access-token');
@@ -374,7 +374,16 @@ export const signOut = async () => {
     } catch (storageError) {
       console.warn('⚠️ Storage cleanup error:', storageError);
     }
-    
+
+    // Force navigation to auth screen if on web
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      try {
+        window.location.href = '/auth';
+      } catch (e) {
+        console.warn('⚠️ Navigation error:', e);
+      }
+    }
+
     // Always return success to prevent errors from bubbling up
     logAuthEvent('Sign out successful');
     return { error: null };
@@ -382,7 +391,6 @@ export const signOut = async () => {
     const enhancedError = getEnhancedErrorMessage(error, 'signOut');
     return { error: enhancedError };
   }
-  
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {

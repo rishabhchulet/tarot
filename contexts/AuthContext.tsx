@@ -149,72 +149,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process...');
+      console.log('🧹 Will clear ALL authentication state');
 
       // CRITICAL FIX: Set ref before everything else
-      isSigningOutRef.current = true; 
+      isSigningOutRef.current = true;
+      
+      // CRITICAL FIX: Set a safety timeout to reset the signing out flag
+      setTimeout(() => {
+        console.log('🔄 Safety timeout: resetting signing out flag');
+        isSigningOutRef.current = false;
+      }, 10000); // 10 seconds should be enough for any sign out process
 
-     // FIXED: Immediately clear state for more responsive UX
-     setUser(null);
-     setSession(null);
-     setError(null);
-     setConnectionStatus('disconnected');
-     setLastSuccessfulConnection(null);
-     setRetryCount(0);
+      // FIXED: Immediately clear local state for more responsive UX
+      setUser(null);
+      setSession(null);
+      setError(null);
+      setConnectionStatus('disconnected');
+      setLastSuccessfulConnection(null);
+      setRetryCount(0);
+      
       try {
-        // Step 2: Sign out from Supabase
+        // Sign out from Supabase (global first, then regular)
         console.log('📤 Signing out from Supabase...');
         
-        // Try global sign out first
-        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
-        if (globalError) {
-          console.warn('⚠️ Global sign out error:', globalError);
-          
-          // Try regular sign out as fallback
-          const { error } = await supabase.auth.signOut();
-          if (error) {
-            console.warn('⚠️ Regular sign out error:', error);
-          }
-        }
+        // CRITICAL FIX: Don't await these calls, just fire them off
+        // This prevents waiting that could block navigation
+        supabase.auth.signOut({ scope: 'global' })
+          .then(({ error }) => {
+            if (error) {
+              console.warn('⚠️ Global sign out error:', error);
+              // Try regular sign out as fallback
+              return supabase.auth.signOut();
+            }
+          })
+          .catch(error => {
+            console.warn('⚠️ Sign out API error:', error);
+          });
 
         // Step 3: Manually clear all storage
         console.log('🧹 Manually clearing storage...');
         if (typeof window !== 'undefined' && window.localStorage) {
           const keys = Object.keys(localStorage);
+          let removed = 0;
           const supabaseKeys = keys.filter(key => 
             key.includes('supabase') || 
             key.includes('sb-') || 
-            key.includes('auth-token')
+            key.includes('auth-token') ||
+            key.includes('auth')
           );
           
           supabaseKeys.forEach(key => {
             localStorage.removeItem(key);
+            removed++;
             console.log('🗑️ Removed localStorage key:', key);
           });
+          console.log(`🧹 Cleared ${removed} Supabase-related items from storage`);
           
-          // Also clear session storage
+          // CRITICAL FIX: Clear session storage with better error handling
           try {
             sessionStorage.clear();
             console.log('🗑️ Cleared session storage');
+          } catch (storageError) {
+            console.warn('⚠️ Session storage clear error:', storageError);
+          }
+          
+          // CRITICAL FIX: Direct removal of known problematic keys
+          try {
+            ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token', 'auth.token'].forEach(key => {
+              localStorage.removeItem(key);
+            });
+            console.log('🗑️ Forced removal of critical auth keys');
           } catch (e) {
-            console.warn('⚠️ Session storage clear error:', e);
+            console.warn('⚠️ Forced key removal error:', e);
           }
         }
 
-        // Step 4: Force auth navigation immediately
+        // CRITICAL FIX: Force navigation immediately without waiting for anything
         console.log('📱 Force navigating to auth screen...');
         
-        if (Platform.OS === 'web') {
-          // Navigate to auth screen
-          router.replace('/auth');
-          console.log('✅ Navigation triggered');
-         // FIXED: Return early to prevent further execution
-         return;
-        } else {
-          // On native platforms
-          router.replace('/auth');
-         // FIXED: Return early to prevent further execution
-         return;
-        }
+        router.replace('/auth');
+        console.log('✅ Navigation triggered, exiting sign out function');
+        return; // Exit immediately after navigation
         
         console.log('✅ Sign out process completed successfully');
       } catch (error) {
@@ -237,14 +252,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       
       router.replace('/auth');
-    } finally {
-      // Reset the flag after a longer delay to ensure auth state changes are ignored
-      const timeout = setTimeout(() => {
-        console.log('🔓 Resetting sign out flag after delay');
-        isSigningOutRef.current = false;
-     }, 3000); // Reduced to 3 seconds for faster recovery
-      
-     // FIXED: Don't return the timeout cleanup as it causes issues in async context
     }
   };
 

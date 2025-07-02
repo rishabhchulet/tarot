@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -58,7 +58,7 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
-    console.log('🚪 Sign out pressed');
+    console.log('🚪 Sign out pressed from settings screen');
     
     Alert.alert(
       'Sign Out',
@@ -68,15 +68,47 @@ export default function SettingsScreen() {
         { 
           text: 'Sign Out', 
           style: 'destructive',
-         onPress: () => {
-            console.log('🚪 Sign out confirmed by user');
+          onPress: async () => {
+            console.log('🚪 Sign out confirmed - immediate navigation first');
             setIsSigningOut(true);
-
-            // CRITICAL FIX: Use a more direct approach that won't be affected by component unmounting
-            signOut();
-           
-            // Prevent any UI flickering by maintaining loading state
-            // The component will unmount soon anyway
+            
+            // CRITICAL FIX: Navigate FIRST, then clean up in background
+            try {
+              console.log('📱 IMMEDIATE navigation to auth screen');
+              router.replace('/auth');
+              
+              // Fallback: If router fails, try direct location change on web
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                setTimeout(() => {
+                  console.log('🔄 Fallback: Forcing page redirect via location');
+                  window.location.href = '/auth';
+                }, 500);
+              }
+              
+              // AFTER navigation is triggered, clean up auth in background
+              setTimeout(() => {
+                console.log('🧹 Background cleanup: calling signOut()');
+                signOut().catch(error => {
+                  console.error('❌ Background signOut error:', error);
+                });
+              }, 300);
+              
+            } catch (error) {
+              console.error('❌ Navigation error in handleSignOut:', error);
+              
+              // Ultimate fallback: force reload the page
+              if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                console.log('🔄 CRITICAL FALLBACK: Forcing page reload');
+                window.location.href = '/auth';
+              } else {
+                // Try one more time with replace
+                try {
+                  router.replace('/auth');
+                } catch (finalError) {
+                  console.error('❌ Final navigation attempt failed:', finalError);
+                }
+              }
+            }
           }
         }
       ]
@@ -117,6 +149,20 @@ export default function SettingsScreen() {
       {rightElement}
     </Pressable>
   );
+
+  if (isSigningOut) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#4B5563']}
+        style={styles.container}
+      >
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+          <Text style={styles.loadingText}>Redirecting to sign in...</Text>
+        </View>
+      </LinearGradient>
+    );
+  }
 
   return (
     <LinearGradient
@@ -274,6 +320,19 @@ const styles = StyleSheet.create({
   },
   settingSubtitleDisabled: {
     color: '#6B7280',
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center', 
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#FFFFFF',
+    marginTop: 16,
+    textAlign: 'center',
   },
   footer: {
     alignItems: 'center',

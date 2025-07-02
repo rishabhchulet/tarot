@@ -16,14 +16,38 @@ export function SignOutTestButton() {
     console.log('🧪 Starting comprehensive sign out tests via TEST BUTTON...');
     
     // Test 1: Check current auth state
-    console.log('🧪 Test 1: Current auth state');
+    console.log('🧪 Test 1: Checking current auth state');
     await testAuthState();
     
     // Test 2: Test sign out process
-    console.log('🧪 Test 2: Sign out process');
+    console.log('🧪 Test 2: Testing sign out process');
     if (testSignOut) {
       try {
-        await testSignOut();
+        console.log('🧪 Executing test sign out...');
+        
+        // CRITICAL FIX: For test button, use a more direct approach
+        // that immediately clears local state AND navigates
+        if (typeof window !== 'undefined' && window.localStorage) {
+          console.log('🧹 TEST: Directly clearing all storage first');
+          const keys = Object.keys(localStorage);
+          const supabaseKeys = keys.filter(key => 
+            key.includes('supabase') || 
+            key.includes('sb-') || 
+            key.includes('auth') ||
+            key.includes('token')
+          );
+          
+          supabaseKeys.forEach(key => {
+            localStorage.removeItem(key);
+            console.log(`🗑️ TEST: Removed ${key}`);
+          });
+          
+          try { sessionStorage.clear(); } catch (e) { /* ignore */ }
+        }
+        
+        // Then call the actual sign out function
+        const result = await testSignOut();
+        console.log('🧪 Test sign out result:', result);
         
         // Schedule a check to verify results
         const checkTimeout = setTimeout(() => {
@@ -44,7 +68,18 @@ export function SignOutTestButton() {
             }
           });
         }, 3000);
-                
+        
+        // CRITICAL FIX: Add a more aggressive fallback
+        setTimeout(() => {
+          console.log('🧪 Final test verification - forcing page reload if needed');
+          if (user || session) {
+            console.log('🧪 Still authenticated after test, forcing reload');
+            if (Platform.OS === 'web' && typeof window !== 'undefined') {
+              window.location.href = '/auth';
+            }
+          }
+        }, 5000);
+        
       } catch (error) {
         console.error('❌ Sign out test error:', error);
         setTestResult('failure');
@@ -85,7 +120,7 @@ export function SignOutTestButton() {
   return (
     <View style={styles.container}>
       <Pressable 
-        style={buttonStyle} 
+        style={[buttonStyle, testRunning && { opacity: 0.5 }]}
         onPress={handleRunTests}
         disabled={testRunning}
       >

@@ -31,6 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
 
+  // Add a ref to track if we've already navigated to prevent multiple redirects
+  const hasNavigatedRef = React.useRef(false);
+
   const refreshUser = async () => {
     try {
       console.log('🔄 Refreshing user data...');
@@ -148,80 +151,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      console.log('🚪 Starting sign out process...');
-      console.log('🧹 Will clear ALL authentication state');
+      console.log('🚪 Starting sign out process from AuthContext');
 
-      // CRITICAL FIX: Set ref before everything else
+      // CRITICAL FIX: Set ref first to ignore auth changes during sign out
       isSigningOutRef.current = true;
-      
-      // CRITICAL FIX: Set a safety timeout to reset the signing out flag
-      setTimeout(() => {
-        console.log('🔄 Safety timeout: resetting signing out flag');
-        isSigningOutRef.current = false;
-      }, 10000); // 10 seconds should be enough for any sign out process
-
-      // FIXED: Immediately clear local state for more responsive UX
+        
+      // Clear local state immediately
       setUser(null);
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
-      
-      try {
-        // Sign out from Supabase (global first, then regular)
-        console.log('📤 Signing out from Supabase...');
-        
-        // CRITICAL FIX: Don't await these calls, just fire them off
-        // This prevents waiting that could block navigation
-        supabase.auth.signOut({ scope: 'global' })
-          .then(({ error }) => {
-            if (error) {
-              console.warn('⚠️ Global sign out error:', error);
-              // Try regular sign out as fallback
-              return supabase.auth.signOut();
-            }
-          })
-          .catch(error => {
-            console.warn('⚠️ Sign out API error:', error);
-          });
 
-        // Step 3: Manually clear all storage
-        console.log('🧹 Manually clearing storage...');
+      // Clear storage immediately without waiting
+      try {
         if (typeof window !== 'undefined' && window.localStorage) {
+          console.log('🧹 Manually clearing ALL storage...');
           const keys = Object.keys(localStorage);
-          let removed = 0;
           const supabaseKeys = keys.filter(key => 
             key.includes('supabase') || 
             key.includes('sb-') || 
-            key.includes('auth-token') ||
-            key.includes('auth')
+            key.includes('auth') ||
+            key.includes('token')
           );
           
           supabaseKeys.forEach(key => {
             localStorage.removeItem(key);
-            removed++;
-            console.log('🗑️ Removed localStorage key:', key);
-          });
-          console.log(`🧹 Cleared ${removed} Supabase-related items from storage`);
-          
-          // CRITICAL FIX: Clear session storage with better error handling
-          try {
-            sessionStorage.clear();
-            console.log('🗑️ Cleared session storage');
-          } catch (storageError) {
-            console.warn('⚠️ Session storage clear error:', storageError);
+            console.log(`🗑️ Removed key: ${key}`);
           }
-          
-          // CRITICAL FIX: Direct removal of known problematic keys
-          try {
-            ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token', 'auth.token'].forEach(key => {
-              localStorage.removeItem(key);
-            });
-            console.log('🗑️ Forced removal of critical auth keys');
-          } catch (e) {
-            console.warn('⚠️ Forced key removal error:', e);
-          }
+
+          // Also clear session storage
+          try { sessionStorage.clear(); } catch (e) { /* ignore */ }
         }
 
         // CRITICAL FIX: Force navigation immediately without waiting for anything
@@ -242,18 +203,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           console.error('❌ Navigation error:', navError);
         }
       }
+      
+      console.log('✅ Auth state cleared locally');
+      return { error: null };
+      
     } catch (error) {
-      console.error('❌ Error during sign out:', error);
-      
-      // Force state clearing and navigation
-      setUser(null);
-      setSession(null);
-      setError(null);
-      setConnectionStatus('disconnected');
-      
-      router.replace('/auth');
-    }
-  };
+      console.error('❌ Unexpected error during sign out:', error);
+      return { error: error.message || 'Sign out failed' };
+    } finally {
+      // Reset sign out flag after a delay to ensure auth events are ignored
+      setTimeout(() => {
+        isSigningOutRef.current = false;
+        console.log('🔄 Reset isSigningOut flag');
+      }, 5000);
+   }
+ };
 
   // CRITICAL: Add a test function to verify sign out
   const testSignOut = async () => {
@@ -311,23 +275,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('⚠️ Auth initialization timeout (10s) - proceeding');
-        setLoading(false);
-        setError(null);
-        setConnectionStatus('error');
+      } catch (e) {
+        console.warn('⚠️ Storage clearing error:', e);
       }
-    }, 10000); // INCREASED: 10 seconds for initialization
-    
-    // Get initial session with reasonable timeout
-    const initializeAuth = async () => {
+     
+      // Fire and forget Supabase sign out calls
       try {
-        console.log('🔍 Getting initial session...');
-        
-        // CRITICAL FIX: Use longer timeout for session check
-        const sessionResult = await createTimeoutWrapper(
-          () => supabase.auth.getSession(),
-          6000, // INCREASED: 6 second timeout
-          { data: { session: null }, error: null } // Fallback to no session
-        );
+        console.log('📤 Calling Supabase signOut API');
+        supabase.auth.signOut({ scope: 'global' }).catch(() => {});
+        supabase.auth.signOut().catch(() => {});
+      } catch (e) {
+        console.warn('⚠️ Supabase signOut API error:', e);
         
         const { data: { session }, error } = sessionResult;
         

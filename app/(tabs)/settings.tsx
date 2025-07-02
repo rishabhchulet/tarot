@@ -80,6 +80,17 @@ export default function SettingsScreen() {
             });
             
             // No need to reset isSigningOut as the component will unmount
+          }
+        }
+      ]
+    );
+  };
+
+  const SettingItem = ({
+    icon: Icon,
+    title,
+    subtitle,
+    onPress,
     rightElement,
     disabled = false
   }: {

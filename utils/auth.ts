@@ -328,7 +328,6 @@ export const signOut = async () => {
             console.log('🗑️ Removed auth storage item:', key);
           }
         }
-        }
         console.log(`🧹 Removed ${removed} auth-related items from storage`);
         
         // Force a more aggressive cleanup for stubborn auth tokens

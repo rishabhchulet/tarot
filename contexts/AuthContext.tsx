@@ -224,7 +224,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       
       router.replace('/auth');
-    } catch (error) {
     } finally {
       // Reset the flag after a longer delay to ensure auth state changes are ignored
       const timeout = setTimeout(() => {
@@ -237,10 +236,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // CRITICAL: Add a test function to verify sign out
   const testSignOut = async () => {
     console.log('🧪 Testing sign out process...');
-  } finally {
+    const beforeState = {
       hasUser: !!user,
       hasSession: !!session,
-      userId: user?.id,
+      userId: user?.id
     };
     
     console.log('🧪 State before sign out:', beforeState);
@@ -252,7 +251,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const afterState = {
         hasUser: !!user,
         hasSession: !!session,
-        isSigningOut: isSigningOutRef.current,
+        isSigningOut: isSigningOutRef.current
       };
       
       console.log('🧪 State after sign out:', afterState);
@@ -265,8 +264,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 1000);
   };
 
-  // Add testSignOut to the context
-      
+  const contextValue = {
+    user,
+    session,
+    loading,
+    error,
+    signOut,
+    refreshUser,
+    connectionStatus,
+    retryConnection,
+    testSignOut
+  };
+
   useEffect(() => {
     console.log('🚀 AuthContext initializing...');
     setConnectionStatus('connecting');

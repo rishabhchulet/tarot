@@ -179,8 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           supabaseKeys.forEach(key => {
             localStorage.removeItem(key);
             console.log(`🗑️ Removed key: ${key}`);
-          }
-          )
+          });
 
           // Also clear session storage
           try { sessionStorage.clear(); } catch (e) { /* ignore */ }
@@ -276,19 +275,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('⚠️ Auth initialization timeout (10s) - proceeding');
-      } catch (e) {
-        console.warn('⚠️ Storage clearing error:', e);
+        setLoading(false);
+        setConnectionStatus('error');
       }
-     
-      // Fire and forget Supabase sign out calls
+    }, 10000);
+
+    const initializeAuth = async () => {
       try {
-        console.log('📤 Calling Supabase signOut API');
-        supabase.auth.signOut({ scope: 'global' }).catch(() => {});
-        supabase.auth.signOut().catch(() => {});
-      } catch (e) {
-        console.warn('⚠️ Supabase signOut API error:', e);
-        
-        const { data: { session }, error } = sessionResult;
+        console.log('🔄 Initializing auth...');
+        const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
@@ -336,7 +331,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
     };
-    )
 
     initializeAuth();
 
@@ -390,7 +384,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               console.log('🚫 Skipping user data load during sign out');
             }
-            setUser(null);
           }
         } catch (error) {
           console.error('❌ Error handling auth state change:', error);

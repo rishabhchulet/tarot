@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut, AlertTriangle } from 'lucide-react-native';
+import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';

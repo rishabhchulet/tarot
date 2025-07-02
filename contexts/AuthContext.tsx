@@ -148,19 +148,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      console.log('🚪 Starting sign out process from AuthContext...');
+      console.log('🚪 Starting sign out process from AuthContext');
 
       // CRITICAL FIX: Set ref first to ignore auth changes during sign out
       isSigningOutRef.current = true;
-
-      // CRITICAL FIX: Unsubscribe from auth changes during sign out
-      let currentSubscription = null;
-      try {
-        const { data } = supabase.auth.onAuthStateChange(() => {});
-        currentSubscription = data.subscription;
-      } catch (e) {
-        console.warn('⚠️ Error getting current subscription:', e);
-      }
 
       // Step 1: Clear local state immediately
       console.log('🧹 Clearing local auth state...');
@@ -210,37 +201,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Step 3: Sign out from Supabase
       console.log('📤 Signing out from Supabase...');
       try {
-        // CRITICAL FIX: Use a more reliable approach with timeout
-        const signOutPromise = new Promise<void>(async (resolve) => {
-          try {
-            // Try global sign out first
-            const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
-            if (globalError) {
-              console.warn('⚠️ Global sign out error:', globalError);
+        // Try global sign out first
+        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
+        if (globalError) {
+          console.warn('⚠️ Global sign out error:', globalError);
 
-              // Try regular sign out as fallback
-              const { error } = await supabase.auth.signOut();
-              if (error) {
-                console.warn('⚠️ Regular sign out error:', error);
-              }
-            }
-            resolve();
-          } catch (e) {
-            console.warn('⚠️ Sign out error:', e);
-            resolve(); // Resolve anyway to continue the process
+          // Try regular sign out as fallback
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.warn('⚠️ Regular sign out error:', error);
           }
-        });
-        
-        // Set a timeout to ensure we don't get stuck
-        const timeoutPromise = new Promise<void>((resolve) => {
-          setTimeout(() => {
-            console.log('⏱️ Sign out timeout reached, continuing...');
-            resolve();
-          }, 3000);
-        });
-        
-        // Wait for either sign out to complete or timeout
-        await Promise.race([signOutPromise, timeoutPromise]);
+        }
       } catch (signOutError) {
         console.warn('⚠️ Supabase sign out error:', signOutError);
       }
@@ -265,24 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('❌ Unexpected error during sign out:', error);
       return { error: error.message || 'Sign out failed' };
-    } finally {
-      // CRITICAL FIX: Force clear any cached auth state
-      try {
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          // Force clear any remaining auth data
-          const keys = ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token'];
-          keys.forEach(key => {
-            try {
-              localStorage.removeItem(key);
-            } catch (e) {
-              // Ignore errors
-            }
-          });
-        }
-      } catch (e) {
-        console.warn('⚠️ Final cleanup error:', e);
-      }
-      
+    } finally {      
       // Reset the flag after a delay
       setTimeout(() => {
         console.log('🔓 Resetting sign out flag after delay');
@@ -295,7 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('🔍 Final auth check:', { stillAuthenticated: !!data.user });
       }, 3000);
     }
-  };
+   };
 
   // CRITICAL: Add a test function to verify sign out
   const testSignOut = async () => {
@@ -312,27 +266,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut();
     
     // Check state after a delay
-    setTimeout(async () => {
-      // CRITICAL FIX: Check actual current auth state instead of stale variables
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        const { data: userData } = await supabase.auth.getUser();
-        
-        const afterState = {
-          hasUser: !!userData.user,
-          hasSession: !!sessionData.session,
-          isSigningOut: isSigningOutRef.current,
-        };
-        
-        console.log('🧪 State after sign out:', afterState);
-        
-        if (!afterState.hasUser && !afterState.hasSession) {
-          console.log('✅ Sign out test PASSED - user and session cleared');
-        } else {
-          console.error('❌ Sign out test FAILED - state not cleared properly');
-        }
-      } catch (error) {
-        console.error('❌ Sign out test ERROR - failed to check auth state:', error);
+    setTimeout(() => {
+      const afterState = {
+        hasUser: !!user,
+        hasSession: !!session,
+        isSigningOut: isSigningOutRef.current,
+      };
+      
+      console.log('🧪 State after sign out:', afterState);
+      
+      if (!afterState.hasUser && !afterState.hasSession) {
+        console.log('✅ Sign out test PASSED - user and session cleared');
+      } else {
+        console.error('❌ Sign out test FAILED - state not cleared properly');
       }
     }, 1000);
   };

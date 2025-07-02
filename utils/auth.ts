@@ -281,31 +281,44 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
 
 export const signOut = async () => {
   try {
-    logAuthEvent('Starting sign out process (from utils/auth.ts)');
+    logAuthEvent('Starting sign out process from utils/auth.ts');
     
-    // CRITICAL FIX: Set immediate navigation timeout as a fallback
-    const navigationFallbackTimeout = setTimeout(() => {
-      logAuthEvent('FALLBACK: Forcing navigation to auth screen after timeout');
-      
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        // Force a full page refresh as last resort
-        window.location.href = '/auth';
-      } else {
-        // Try router navigation on native
-        try {
-          const { router } = require('expo-router');
-          router.replace('/auth');
-        } catch (error) {
-          logAuthEvent('Critical navigation fallback failed', null, error);
+    // CRITICAL FIX: Clear all storage first for immediate effect
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        logAuthEvent('Clearing all auth storage first');
+        
+        // Find and remove all Supabase related keys
+        const keys = Object.keys(localStorage);
+        const supabaseKeys = keys.filter(key => 
+          key.includes('supabase') || 
+          key.includes('sb-') || 
+          key.includes('auth') ||
+          key.includes('token')
+        );
+        
+        supabaseKeys.forEach(key => {
+          localStorage.removeItem(key);
+          logAuthEvent(`Removed storage key: ${key}`);
+        });
+        
+        // Also clear session storage
+        try { 
+          sessionStorage.clear(); 
+          logAuthEvent('Cleared session storage');
+        } catch (e) { 
+          logAuthEvent('Session storage clear error', null, e);
         }
       }
-    }, 3000); // 3 second fallback timeout
+    } catch (storageError) {
+      logAuthEvent('Storage clearing error', null, storageError);
+    }
     
     // Step 1: Try global sign out first (all devices)
     try {
       const globalResult = await createTimeoutWrapper(
         () => supabase.auth.signOut({ scope: 'global' }),
-       5000 // Reduced to 5 second timeout for faster response
+        5000 // 5 second timeout
       );
       
       if (globalResult.error) {
@@ -321,7 +334,7 @@ export const signOut = async () => {
     try {
       const result = await createTimeoutWrapper(
         () => supabase.auth.signOut(),
-       3000 // Reduced to 3 second timeout
+        3000 // 3 second timeout
       );
       
       if (result.error) {
@@ -338,24 +351,25 @@ export const signOut = async () => {
       if (typeof window !== 'undefined' && window.localStorage) {
         // Find all Supabase related keys and remove them
         const keys = Object.keys(localStorage);
-       let removed = 0;
+        let removed = 0;
         for (const key of keys) {
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
             localStorage.removeItem(key);
-           removed++;
+            removed++;
             console.log('🗑️ Removed auth storage item:', key);
           }
         }
-       console.log(`🧹 Removed ${removed} auth-related items from storage`);
-       
-       // Force a more aggressive cleanup for stubborn auth tokens
-       try {
-         localStorage.removeItem('supabase.auth.token');
-         localStorage.removeItem('sb-access-token');
-         localStorage.removeItem('sb-refresh-token');
-       } catch (e) {
-         console.warn('⚠️ Error during forced token removal:', e);
-       }
+        console.log(`🧹 Removed ${removed} auth-related items from storage`);
+        
+        // Force a more aggressive cleanup for stubborn auth tokens
+        try {
+          localStorage.removeItem('supabase.auth.token');
+          localStorage.removeItem('sb-access-token');
+          localStorage.removeItem('sb-refresh-token');
+          localStorage.removeItem('sb-auth-token');
+        } catch (e) {
+          console.warn('⚠️ Error during forced token removal:', e);
+        }
       }
     } catch (storageError) {
       console.warn('⚠️ Storage cleanup error:', storageError);
@@ -369,31 +383,6 @@ export const signOut = async () => {
     return { error: enhancedError };
   }
   
-  // CRITICAL FIX: Check if user is still authenticated after sign out
-  // This helps diagnose persistent auth issues
-  setTimeout(async () => {
-    try {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        logAuthEvent('WARNING: User still authenticated after sign out', { 
-          userId: data.user.id, 
-          email: data.user.email 
-        });
-        
-        // Force clear all known auth tokens again
-        if (typeof window !== 'undefined' && window.localStorage) {
-          ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token', 'sb-refresh-token', 'auth.token'].forEach(key => {
-            localStorage.removeItem(key);
-            console.log(`🗑️ Final cleanup: removed ${key}`);
-          });
-        }
-      } else {
-        logAuthEvent('✅ Auth check confirms user is signed out');
-      }
-    } catch (error) {
-      logAuthEvent('Error checking auth state after sign out', null, error);
-    }
-  }, 2000); // Check 2 seconds after sign out attempt
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {

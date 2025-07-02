@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase, createTimeoutWrapper } from '@/utils/supabase';
 import { getCurrentUser, type AuthUser } from '@/utils/auth';
 import { Platform } from 'react-native';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, User } from '@supabase/supabase-js';
 import { router } from 'expo-router';
 
 interface AuthContextType {
@@ -30,9 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
-
-  // Add a ref to track if we've already navigated to prevent multiple redirects
-  const hasNavigatedRef = React.useRef(false);
 
   const refreshUser = async () => {
     try {
@@ -152,22 +149,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = async () => {
     try {
       console.log('🚪 Starting sign out process from AuthContext');
-
+      
       // CRITICAL FIX: Set ref first to ignore auth changes during sign out
       isSigningOutRef.current = true;
-        
-      // Clear local state immediately
+      
+      // Step 1: Clear local state immediately
+      console.log('🧹 Clearing local auth state...');
       setUser(null);
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
-
-      // Clear storage immediately without waiting
+      
+      // Step 2: Clear storage immediately
+      console.log('🧹 Clearing local storage...');
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
-          console.log('🧹 Manually clearing ALL storage...');
           const keys = Object.keys(localStorage);
           const supabaseKeys = keys.filter(key => 
             key.includes('supabase') || 
@@ -178,31 +176,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
           supabaseKeys.forEach(key => {
             localStorage.removeItem(key);
-            console.log(`🗑️ Removed key: ${key}`);
+            console.log(`🗑️ Removed storage key: ${key}`);
           });
-
+          
           // Also clear session storage
-          try { sessionStorage.clear(); } catch (e) { /* ignore */ }
+          try { 
+            sessionStorage.clear(); 
+            console.log('🧹 Cleared session storage');
+          } catch (e) { 
+            console.warn('⚠️ Session storage clear error:', e);
+          }
         }
-
-        // CRITICAL FIX: Force navigation immediately without waiting for anything
-        console.log('📱 Force navigating to auth screen...');
-        
-        router.replace('/auth');
-        console.log('✅ Navigation triggered, exiting sign out function');
-        return; // Exit immediately after navigation
-        
-        console.log('✅ Sign out process completed successfully');
-      } catch (error) {
-        console.error('❌ Error during sign out process:', error);
-        
-        // Still navigate away even if an error occurs
-        try {
-          router.replace('/auth');
-        } catch (navError) {
-          console.error('❌ Navigation error:', navError);
-        }
+      } catch (storageError) {
+        console.warn('⚠️ Storage clearing error:', storageError);
       }
+      
+      // Step 3: Sign out from Supabase
+      console.log('📤 Signing out from Supabase...');
+      try {
+        // Try global sign out first
+        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
+        if (globalError) {
+          console.warn('⚠️ Global sign out error:', globalError);
+          
+          // Try regular sign out as fallback
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.warn('⚠️ Regular sign out error:', error);
+          }
+        }
+      } catch (signOutError) {
+        console.warn('⚠️ Supabase sign out error:', signOutError);
+      }
+      
+      // Step 4: Force navigation to auth screen
+      console.log('📱 Forcing navigation to auth screen...');
+      try {
+        router.replace('/auth');
+        console.log('✅ Navigation triggered');
+      } catch (navError) {
+        console.error('❌ Navigation error:', navError);
+        
+        // Web fallback - force page reload
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          window.location.href = '/auth';
+        }
+      } 
       
       console.log('✅ Auth state cleared locally');
       return { error: null };
@@ -210,13 +229,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('❌ Unexpected error during sign out:', error);
       return { error: error.message || 'Sign out failed' };
-    } finally {
-      // Reset sign out flag after a delay to ensure auth events are ignored
+    } finally {      
+      // Reset the flag after a delay to ensure auth state changes are ignored
       setTimeout(() => {
+        console.log('🔓 Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-        console.log('🔄 Reset isSigningOut flag');
-      }, 5000);
-       }
+      }, 5000); // 5 second delay
+      
+      // Final verification - check if we're still authenticated after 3 seconds
+      setTimeout(async () => {
+        const { data } = await supabase.auth.getUser();
+        console.log('🔍 Final auth check:', { stillAuthenticated: !!data.user });
+      }, 3000);
+    }
    };
 
   // CRITICAL: Add a test function to verify sign out
@@ -255,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const contextValue = { 
     user, 
     session, 
-    loading, 
+    loading,  
     error, 
     signOut, 
     refreshUser, 
@@ -271,19 +296,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     let initializationTimeout: NodeJS.Timeout;
     
-    // CRITICAL FIX: Much longer timeout for better reliability
+    // Set timeout for initialization
     initializationTimeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('⚠️ Auth initialization timeout (10s) - proceeding');
         setLoading(false);
+        setError('Connection timeout. Please try again.');
         setConnectionStatus('error');
       }
     }, 10000);
 
     const initializeAuth = async () => {
       try {
-        console.log('🔄 Initializing auth...');
-        const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('🔍 Getting initial session...');
+        
+        // Use timeout wrapper for session check
+        const sessionResult = await createTimeoutWrapper(
+          () => supabase.auth.getSession(),
+          6000, // 6 second timeout
+          { data: { session: null }, error: null } // Fallback to no session
+        );
+        
+        const { data: { session }, error } = sessionResult;
         
         if (error) {
           console.error('❌ Error getting initial session:', error);
@@ -291,7 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setSession(null);
             setError(null);
             setConnectionStatus('error');
-            setLoading(false);
+            setLoading(false); 
           }
           return;
         }
@@ -299,7 +333,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('📱 Initial session check:', { hasSession: !!session });
         
         if (mounted) {
-          setSession(session);
+          setSession(session); 
           setLoading(false); // Set loading false after session check
           setError(null);
           setConnectionStatus(session ? 'connected' : 'disconnected');
@@ -307,7 +341,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLastSuccessfulConnection(new Date());
           }
           
-          if (session) {
+          if (session) { 
             console.log('👤 Session found, loading user profile in background...');
             // Load user data in background with longer timeout
             setTimeout(() => {
@@ -316,7 +350,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }
             }, 500); // Give more time before profile fetch
           }
-        }
+        } 
       } catch (error: any) {
         console.error('❌ Error initializing auth:', error);
         if (mounted) {
@@ -324,7 +358,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError(null);
           setConnectionStatus('error');
           setLoading(false);
-        }
+        } 
       } finally {
         if (initializationTimeout) {
           clearTimeout(initializationTimeout);
@@ -333,7 +367,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     initializeAuth();
-
+    
     // Listen for auth changes with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -341,7 +375,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isSigningOutRef.current) {
           console.log('🚫 IGNORING auth state change during sign out:', { event, isSigningOut: isSigningOutRef.current });
           // Don't proceed with any state updates while signing out
-          return;
+          return; 
         }
         
         if (!mounted) return;
@@ -349,7 +383,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           console.log('🔔 Auth state changed:', { event, hasSession: !!session });
           
-          if (event === 'SIGNED_OUT') {
+          if (event === 'SIGNED_OUT') { 
             console.log('👋 Explicit SIGNED_OUT event, clearing all state...');
             setSession(null);
             setUser(null);
@@ -357,7 +391,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLoading(false);
             setConnectionStatus('disconnected');
             return;
-          }
+          } 
           
           setSession(session);
           setError(null);
@@ -367,7 +401,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session) {
             setLastSuccessfulConnection(new Date());
             setRetryCount(0);
-          }
+          } 
           
           if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
             // Do not load user data if we're signing out
@@ -383,7 +417,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               }, 500); // Give more time before profile fetch
             } else {
               console.log('🚫 Skipping user data load during sign out');
-            }
+            } 
           }
         } catch (error) {
           console.error('❌ Error handling auth state change:', error);
@@ -391,7 +425,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setError('Connection issue during authentication.');
           if (mounted) {
             setLoading(false);
-          }
+          } 
         }
       }
     );
@@ -401,7 +435,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (initializationTimeout) {
         clearTimeout(initializationTimeout);
       }
-      subscription.unsubscribe();
+      subscription.unsubscribe(); 
     };
   }, []); // Remove isSigningOut dependency to prevent re-creation
 

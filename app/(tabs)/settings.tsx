@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut } from 'lucide-react-native';
+import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut, AlertTriangle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,7 +12,8 @@ export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
-  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false); 
+  const [signOutError, setSignOutError] = useState<string | null>(null);
 
   useEffect(() => {
     loadSubscriptionStatus();
@@ -59,6 +60,7 @@ export default function SettingsScreen() {
 
   const handleSignOut = () => {
     console.log('🚪 Sign out pressed from settings screen');
+    setSignOutError(null);
     
     Alert.alert(
       'Sign Out',
@@ -70,45 +72,37 @@ export default function SettingsScreen() {
           style: 'destructive',
           onPress: async () => {
             console.log('🚪 Sign out confirmed - immediate navigation first');
+            
+            // Set signing out state immediately to show loading screen
             setIsSigningOut(true);
             
-            // CRITICAL FIX: Navigate FIRST, then clean up in background
-            try {
-              console.log('📱 IMMEDIATE navigation to auth screen');
-              router.replace('/auth');
-              
-              // Fallback: If router fails, try direct location change on web
-              if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                setTimeout(() => {
-                  console.log('🔄 Fallback: Forcing page redirect via location');
-                  window.location.href = '/auth';
-                }, 500);
-              }
-              
-              // AFTER navigation is triggered, clean up auth in background
-              setTimeout(() => {
-                console.log('🧹 Background cleanup: calling signOut()');
-                signOut().catch(error => {
-                  console.error('❌ Background signOut error:', error);
-                });
-              }, 300);
-              
+            // CRITICAL FIX: Call signOut directly first
+            try {              
+              // Call the signOut function from AuthContext
+              await signOut();
+              console.log('✅ Sign out function completed successfully');
             } catch (error) {
-              console.error('❌ Navigation error in handleSignOut:', error);
+              console.error('❌ Sign out function error:', error);
+              setSignOutError('Sign out failed. Please try again.');
+            }
+            
+            // Force navigation regardless of signOut success
+            console.log('📱 Forcing navigation to auth screen');
+            try {
+              router.replace('/auth');
+            } catch (navError) {
+              console.error('❌ Navigation error:', navError);
               
-              // Ultimate fallback: force reload the page
+              // Web fallback - force page reload
               if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                console.log('🔄 CRITICAL FALLBACK: Forcing page reload');
                 window.location.href = '/auth';
-              } else {
-                // Try one more time with replace
-                try {
-                  router.replace('/auth');
-                } catch (finalError) {
-                  console.error('❌ Final navigation attempt failed:', finalError);
-                }
               }
             }
+            
+            // Reset signing out state after a delay
+            setTimeout(() => {
+              setIsSigningOut(false);
+            }, 5000);
           }
         }
       ]
@@ -155,10 +149,16 @@ export default function SettingsScreen() {
       <LinearGradient
         colors={['#1F2937', '#374151', '#4B5563']}
         style={styles.container}
-      >
+      > 
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#FFFFFF" />
-          <Text style={styles.loadingText}>Redirecting to sign in...</Text>
+          <Text style={styles.loadingText}>Signing out...</Text>
+          {signOutError && (
+            <View style={styles.errorContainer}>
+              <AlertTriangle size={20} color="#EF4444" />
+              <Text style={styles.errorText}>{signOutError}</Text>
+            </View>
+          )}
         </View>
       </LinearGradient>
     );
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   loadingContainer: {
-    flex: 1,
+    flex: 1, 
     alignItems: 'center',
     justifyContent: 'center', 
     paddingHorizontal: 24,
@@ -333,6 +333,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 16,
     textAlign: 'center',
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  errorText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#EF4444',
+    marginLeft: 8,
   },
   footer: {
     alignItems: 'center',

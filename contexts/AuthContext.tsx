@@ -224,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       
       router.replace('/auth');
+    } catch (error) {
     } finally {
       // Reset the flag after a longer delay to ensure auth state changes are ignored
       const timeout = setTimeout(() => {

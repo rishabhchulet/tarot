@@ -321,11 +321,13 @@ export const signOut = async () => {
         // Find all Supabase related keys and remove them
         const keys = Object.keys(localStorage);
         let removed = 0;
+        for (const key of keys) {
           if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
             localStorage.removeItem(key);
             removed++;
             console.log('🗑️ Removed auth storage item:', key);
           }
+        }
         }
         console.log(`🧹 Removed ${removed} auth-related items from storage`);
         

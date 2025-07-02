@@ -281,46 +281,15 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
 
 export const signOut = async () => {
   try {
-    logAuthEvent('Starting sign out process from utils/auth.ts');
-
-    // CRITICAL FIX: Clear all storage first for immediate effect
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        logAuthEvent('Clearing all auth storage first');
-
-        // Find and remove all Supabase related keys
-        const keys = Object.keys(localStorage);
-        const supabaseKeys = keys.filter(key => 
-          key.includes('supabase') || 
-          key.includes('sb-') || 
-          key.includes('auth') || 
-          key.includes('token')
-        );
-        
-        supabaseKeys.forEach(key => {
-          localStorage.removeItem(key);
-          logAuthEvent(`Removed storage key: ${key}`);
-        });
-
-        // Also clear session storage
-        try { 
-          sessionStorage.clear(); 
-          logAuthEvent('Cleared session storage');
-        } catch (e) { 
-          logAuthEvent('Session storage clear error', null, e);
-        }
-      }
-    } catch (storageError) {
-      logAuthEvent('Storage clearing error', null, storageError);
-    }
-
+    logAuthEvent('Starting sign out process');
+    
     // Step 1: Try global sign out first (all devices)
     try {
       const globalResult = await createTimeoutWrapper(
         () => supabase.auth.signOut({ scope: 'global' }),
-        5000 // 5 second timeout
+       5000 // Reduced to 5 second timeout for faster response
       );
-
+      
       if (globalResult.error) {
         console.warn('⚠️ Global sign out error:', globalResult.error);
       } else {
@@ -329,14 +298,14 @@ export const signOut = async () => {
     } catch (globalError) {
       console.warn('⚠️ Global sign out timeout or error:', globalError);
     }
-
+    
     // Step 2: Also try regular sign out as a fallback
     try {
       const result = await createTimeoutWrapper(
         () => supabase.auth.signOut(),
-        3000 // 3 second timeout
+       3000 // Reduced to 3 second timeout
       );
-
+      
       if (result.error) {
         console.warn('⚠️ Regular sign out error:', result.error);
       } else {
@@ -345,45 +314,35 @@ export const signOut = async () => {
     } catch (error) {
       console.warn('⚠️ Regular sign out timeout or error:', error);
     }
-
+    
     // Step 3: Force clear any remaining auth data from storage
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
         // Find all Supabase related keys and remove them
         const keys = Object.keys(localStorage);
-        let removed = 0;
+       let removed = 0;
         for (const key of keys) {
-          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth') || key.includes('token')) {
+          if (key.includes('supabase') || key.includes('sb-') || key.includes('auth')) {
             localStorage.removeItem(key);
-            removed++;
+           removed++;
             console.log('🗑️ Removed auth storage item:', key);
           }
         }
-        console.log(`🧹 Removed ${removed} auth-related items from storage`);
-        
-        // Force a more aggressive cleanup for stubborn tokens
-        try {
-          localStorage.removeItem('supabase.auth.token');
-          localStorage.removeItem('sb-access-token');
-          localStorage.removeItem('sb-refresh-token');
-          localStorage.removeItem('sb-auth-token');
-        } catch (e) {
-          console.warn('⚠️ Error during forced token removal:', e);
-        }
+       console.log(`🧹 Removed ${removed} auth-related items from storage`);
+       
+       // Force a more aggressive cleanup for stubborn auth tokens
+       try {
+         localStorage.removeItem('supabase.auth.token');
+         localStorage.removeItem('sb-access-token');
+         localStorage.removeItem('sb-refresh-token');
+       } catch (e) {
+         console.warn('⚠️ Error during forced token removal:', e);
+       }
       }
     } catch (storageError) {
       console.warn('⚠️ Storage cleanup error:', storageError);
     }
-
-    // Force navigation to auth screen if on web
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      try {
-        window.location.href = '/auth';
-      } catch (e) {
-        console.warn('⚠️ Navigation error:', e);
-      }
-    }
-
+    
     // Always return success to prevent errors from bubbling up
     logAuthEvent('Sign out successful');
     return { error: null };

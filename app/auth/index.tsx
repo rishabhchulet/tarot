@@ -15,7 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
   const sparkleScale = useSharedValue(1);
-  const sparkleRotation = useSharedValue(0); 
+  const sparkleRotation = useSharedValue(0);
 
   // CRITICAL: Add test to verify user is signed out
   useEffect(() => {
@@ -23,47 +23,28 @@ export default function AuthWelcomeScreen() {
     console.log('👤 User state:', { hasUser: !!user, hasSession: !!session });
     
     if (user || session) {
-      console.log('⚠️ WARNING: User still has session on auth screen! Cleaning up...');
-      console.log('👤 Leftover user ID:', user?.id);
-      console.log('🔐 Session still exists:', !!session);
-      
-      // CRITICAL FIX: Force clean up storage if we detect we're authenticated on auth screen
-      if (typeof window !== 'undefined' && window.localStorage) {
-        console.log('🧹 Emergency cleanup: clearing auth storage');
-        try {
-          const keys = Object.keys(localStorage);
-          const authKeys = keys.filter(key => 
-            key.includes('supabase') || 
-            key.includes('sb-') || 
-            key.includes('auth') ||
-            key.includes('token')
-          );
-          
-          authKeys.forEach(key => {
-            localStorage.removeItem(key);
-            console.log(`🗑️ Emergency removed: ${key}`);
-          });
-          
-          // Also try to clear specific known token keys
-          ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token', 'auth.token'].forEach(key => {
-            localStorage.removeItem(key);
-          });
-          
-          // Clear session storage too
-          try { sessionStorage.clear(); } catch (e) { /* ignore */ }
-          
-          console.log('🔄 Emergency cleanup complete, reloading page');
-          
-          // Force reload the page to clear any cached state
-          setTimeout(() => {
-            if (user || session) {
-              window.location.reload();
-            }
-          }, 500);
-        } catch (e) {
-          console.error('❌ Emergency cleanup error:', e);
-        }
-      }
+      console.log('⚠️ WARNING: User still has session on auth screen!');
+      console.log('User ID:', user?.id);
+      console.log('Session exists:', !!session);
+    } else {
+      console.log('✅ Auth screen: User properly signed out');
+    }
+  }, [user, session]);
+
+  // CRITICAL: If user is still authenticated, show debug info
+  if (user || session) {
+    console.log('🚨 CRITICAL: User is still authenticated on auth screen!');
+  }
+
+  // CRITICAL: Add test to verify user is signed out
+  useEffect(() => {
+    console.log('🔍 Auth welcome screen loaded');
+    console.log('👤 User state:', { hasUser: !!user, hasSession: !!session });
+    
+    if (user || session) {
+      console.log('⚠️ WARNING: User still has session on auth screen!');
+      console.log('User ID:', user?.id);
+      console.log('Session exists:', !!session);
     } else {
       console.log('✅ Auth screen: User properly signed out');
     }

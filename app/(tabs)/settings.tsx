@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert, ActivityIndicator, Platform, BackHandler } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { Bell, User, Heart, CreditCard, CircleHelp as HelpCircle, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,8 +12,7 @@ export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
-  const [isSigningOut, setIsSigningOut] = useState(false); 
-  const [signOutError, setSignOutError] = useState<string | null>(null);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     loadSubscriptionStatus();
@@ -59,9 +58,8 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
-    console.log('🚪 Sign out pressed from settings screen');
-    setSignOutError(null);
-
+    console.log('🚪 Sign out pressed');
+    
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out?',
@@ -70,71 +68,18 @@ export default function SettingsScreen() {
         { 
           text: 'Sign Out', 
           style: 'destructive',
-          onPress: async () => {
-            console.log('🚪 Sign out confirmed - starting process');
-            
-            // Set signing out state immediately for UI feedback
+         onPress: () => {
+            console.log('🚪 Confirming sign out...');
             setIsSigningOut(true);
-            
-            // CRITICAL FIX: Clear storage first for immediate effect
-            try {
-              if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                console.log('🧹 Directly clearing all storage first');
-                const keys = Object.keys(localStorage);
-                const authKeys = keys.filter(key => 
-                  key.includes('supabase') || 
-                  key.includes('sb-') || 
-                  key.includes('auth') ||
-                  key.includes('token')
-                );
-                
-                authKeys.forEach(key => {
-                  localStorage.removeItem(key);
-                  console.log(`🗑️ Removed: ${key}`);
-                });
-                
-                // Clear session storage too
-                try { 
-                  sessionStorage.clear(); 
-                  console.log('🧹 Cleared session storage');
-                } catch (e) { 
-                  console.log('⚠️ Session storage clear error:', e);
-                }
-              }
-            } catch (storageError) {
-              console.warn('⚠️ Storage clearing error:', storageError);
-            }
-            
-            // Call signOut function from AuthContext
-            try {
-              console.log('🔑 Calling signOut function...');
-              await signOut();
-              console.log('✅ signOut function completed');
-            } catch (error) {
-              console.error('❌ signOut function error:', error);
-              setSignOutError('Sign out failed. Please try again.');
-            }
-            
-            // Force navigation to auth screen regardless of signOut success
-            console.log('📱 Forcing navigation to auth screen');
-            try {
-              // Use replace to prevent going back to the app after sign out
-              router.replace('/auth');
-            } catch (navError) {
-              console.error('❌ Navigation error:', navError);
-              
-              // Web fallback - force page reload to clear any cached state
-              if (Platform.OS === 'web' && typeof window !== 'undefined') {
-                console.log('🔄 Forcing page reload as fallback');
-                window.location.href = '/auth';
-              }
-            }
-            
-            // Reset signing out state after a delay
-            setTimeout(() => {
-              setIsSigningOut(false);
-              console.log('✅ Sign out process completed');
-            }, 3000);
+
+           // Use non-awaited call to prevent component unmounting issues
+           signOut().catch(error => {
+             console.error('❌ Sign out error:', error);
+             // Force navigation as fallback
+             router.replace('/auth');
+           });
+           
+           // No need to reset isSigningOut as the component will unmount
           }
         }
       ]
@@ -175,35 +120,6 @@ export default function SettingsScreen() {
       {rightElement}
     </Pressable>
   );
-
-  if (isSigningOut) {
-    return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      > 
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#F59E0B" />
-          <Text style={styles.loadingText}>Signing out...</Text>
-          {signOutError && (
-            <View style={styles.errorContainer}>
-              <AlertTriangle size={20} color="#EF4444" />
-              <Text style={styles.errorText}>{signOutError}</Text>
-              <Pressable 
-                style={styles.retryButton}
-                onPress={() => {
-                  setSignOutError(null);
-                  handleSignOut();
-                }}
-              >
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
-      </LinearGradient>
-    );
-  }
 
   return (
     <LinearGradient
@@ -318,7 +234,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F59E0B',
     marginBottom: 16,
   },
   settingItem: {
@@ -361,52 +277,6 @@ const styles = StyleSheet.create({
   },
   settingSubtitleDisabled: {
     color: '#6B7280',
-  },
-  loadingContainer: {
-    flex: 1, 
-    alignItems: 'center',
-    justifyContent: 'center', 
-    paddingHorizontal: 24,
-  },
-  loadingText: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
-    marginTop: 16,
-    textAlign: 'center',
-  },
-  errorContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
-    width: '80%',
-    maxWidth: 300,
-  },
-  errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EF4444',
-    marginLeft: 8,
-    marginTop: 8,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  retryButton: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    marginTop: 8,
-  },
-  retryButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#EF4444',
   },
   footer: {
     alignItems: 'center',

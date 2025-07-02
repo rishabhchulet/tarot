@@ -237,8 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // CRITICAL: Add a test function to verify sign out
   const testSignOut = async () => {
     console.log('🧪 Testing sign out process...');
-    
-    const beforeState = {
+  } finally {
       hasUser: !!user,
       hasSession: !!session,
       userId: user?.id,

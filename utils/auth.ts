@@ -341,6 +341,8 @@ export const signOut = async () => {
       }
     } catch (storageError) {
       console.warn('⚠️ Storage cleanup error:', storageError);
+    } finally {
+      // Ensure cleanup is complete
     }
     
     // Always return success to prevent errors from bubbling up

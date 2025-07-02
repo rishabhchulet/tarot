@@ -69,17 +69,14 @@ export default function SettingsScreen() {
           text: 'Sign Out', 
           style: 'destructive',
          onPress: () => {
-            console.log('🚪 Confirming sign out...');
+            console.log('🚪 Sign out confirmed by user');
             setIsSigningOut(true);
 
-           // Use non-awaited call to prevent component unmounting issues
-           signOut().catch(error => {
-             console.error('❌ Sign out error:', error);
-             // Force navigation as fallback
-             router.replace('/auth');
-           });
+            // CRITICAL FIX: Use a more direct approach that won't be affected by component unmounting
+            signOut();
            
-           // No need to reset isSigningOut as the component will unmount
+            // Prevent any UI flickering by maintaining loading state
+            // The component will unmount soon anyway
           }
         }
       ]
@@ -234,7 +231,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#FFFFFF',
     marginBottom: 16,
   },
   settingItem: {

@@ -267,18 +267,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Check state after a delay
     setTimeout(() => {
-      const afterState = {
-        hasUser: !!user,
-        hasSession: !!session,
-        isSigningOut: isSigningOutRef.current,
-      };
-      
-      console.log('🧪 State after sign out:', afterState);
-      
-      if (!afterState.hasUser && !afterState.hasSession) {
-        console.log('✅ Sign out test PASSED - user and session cleared');
-      } else {
-        console.error('❌ Sign out test FAILED - state not cleared properly');
+      // CRITICAL FIX: Check actual current auth state instead of stale variables
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const { data: userData } = await supabase.auth.getUser();
+        
+        const afterState = {
+          hasUser: !!userData.user,
+          hasSession: !!sessionData.session,
+          isSigningOut: isSigningOutRef.current,
+        };
+        
+        console.log('🧪 State after sign out:', afterState);
+        
+        if (!afterState.hasUser && !afterState.hasSession) {
+          console.log('✅ Sign out test PASSED - user and session cleared');
+        } else {
+          console.error('❌ Sign out test FAILED - state not cleared properly');
+        }
+      } catch (error) {
+        console.error('❌ Sign out test ERROR - failed to check auth state:', error);
       }
     }, 1000);
   };

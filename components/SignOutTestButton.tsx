@@ -13,7 +13,7 @@ export function SignOutTestButton() {
   const handleRunTests = async () => {
     setTestRunning(true);
     setTestResult(null);
-    console.log('🧪 Starting comprehensive sign out tests...');
+    console.log('🧪 Starting comprehensive sign out tests via TEST BUTTON...');
     
     // Test 1: Check current auth state
     console.log('🧪 Test 1: Current auth state');
@@ -26,7 +26,7 @@ export function SignOutTestButton() {
         await testSignOut();
         
         // Schedule a check to verify results
-        setTimeout(() => {
+        const checkTimeout = setTimeout(() => {
           const success = !user && !session;
           setTestResult(success ? 'success' : 'failure');
           setTestRunning(false);
@@ -37,9 +37,14 @@ export function SignOutTestButton() {
               ? 'The sign out process completed successfully. User and session were properly cleared.'
               : 'The sign out process failed. User or session still exist after sign out.',
             [{ text: 'OK' }]
-          );
+          ).finally(() => {
+            // Force reload the page if sign out failed
+            if (!success && Platform.OS === 'web' && typeof window !== 'undefined') {
+              window.location.href = '/auth';
+            }
+          });
         }, 3000);
-        
+                
       } catch (error) {
         console.error('❌ Sign out test error:', error);
         setTestResult('failure');

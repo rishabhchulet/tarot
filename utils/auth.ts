@@ -281,7 +281,25 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
 
 export const signOut = async () => {
   try {
-    logAuthEvent('Starting sign out process');
+    logAuthEvent('Starting sign out process (from utils/auth.ts)');
+    
+    // CRITICAL FIX: Set immediate navigation timeout as a fallback
+    const navigationFallbackTimeout = setTimeout(() => {
+      logAuthEvent('FALLBACK: Forcing navigation to auth screen after timeout');
+      
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        // Force a full page refresh as last resort
+        window.location.href = '/auth';
+      } else {
+        // Try router navigation on native
+        try {
+          const { router } = require('expo-router');
+          router.replace('/auth');
+        } catch (error) {
+          logAuthEvent('Critical navigation fallback failed', null, error);
+        }
+      }
+    }, 3000); // 3 second fallback timeout
     
     // Step 1: Try global sign out first (all devices)
     try {
@@ -350,6 +368,32 @@ export const signOut = async () => {
     const enhancedError = getEnhancedErrorMessage(error, 'signOut');
     return { error: enhancedError };
   }
+  
+  // CRITICAL FIX: Check if user is still authenticated after sign out
+  // This helps diagnose persistent auth issues
+  setTimeout(async () => {
+    try {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        logAuthEvent('WARNING: User still authenticated after sign out', { 
+          userId: data.user.id, 
+          email: data.user.email 
+        });
+        
+        // Force clear all known auth tokens again
+        if (typeof window !== 'undefined' && window.localStorage) {
+          ['supabase.auth.token', 'sb-access-token', 'sb-refresh-token', 'sb-refresh-token', 'auth.token'].forEach(key => {
+            localStorage.removeItem(key);
+            console.log(`🗑️ Final cleanup: removed ${key}`);
+          });
+        }
+      } else {
+        logAuthEvent('✅ Auth check confirms user is signed out');
+      }
+    } catch (error) {
+      logAuthEvent('Error checking auth state after sign out', null, error);
+    }
+  }, 2000); // Check 2 seconds after sign out attempt
 };
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {

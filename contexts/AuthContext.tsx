@@ -266,7 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await signOut();
     
     // Check state after a delay
-    setTimeout(() => {
+    setTimeout(async () => {
       // CRITICAL FIX: Check actual current auth state instead of stale variables
       try {
         const { data: sessionData } = await supabase.auth.getSession();

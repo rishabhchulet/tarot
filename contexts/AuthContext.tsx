@@ -148,88 +148,92 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      console.log('🚪 Starting sign out process...');
-      
-      // CRITICAL FIX: Set ref before everything else
-      isSigningOutRef.current = true; 
+      console.log('🚪 [signOut] Starting sign out process...');
+      isSigningOutRef.current = true;
+      setIsSigningOut?.(true); // Optional: if setIsSigningOut is available in context
 
-      // FIXED: Immediately clear local state first for more responsive UX
+      // Step 1: Attempt Supabase sign out (global, then fallback)
+      let signOutSuccess = false;
+      let lastError = null;
+      try {
+        console.log('📤 [signOut] Signing out from Supabase (global)...');
+        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
+        if (globalError) {
+          console.warn('⚠️ [signOut] Global sign out error:', globalError);
+          const { error } = await supabase.auth.signOut();
+          if (error) {
+            console.warn('⚠️ [signOut] Regular sign out error:', error);
+            lastError = error;
+          } else {
+            signOutSuccess = true;
+          }
+        } else {
+          signOutSuccess = true;
+        }
+      } catch (err) {
+        console.error('❌ [signOut] Exception during Supabase sign out:', err);
+        lastError = err;
+      }
+
+      // Step 2: Manually clear all storage
+      try {
+        console.log('🧹 [signOut] Manually clearing storage...');
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const keys = Object.keys(localStorage);
+          const supabaseKeys = keys.filter(key => 
+            key.includes('supabase') || 
+            key.includes('sb-') || 
+            key.includes('auth-token')
+          );
+          supabaseKeys.forEach(key => {
+            localStorage.removeItem(key);
+            console.log('🗑️ [signOut] Removed localStorage key:', key);
+          });
+          try {
+            sessionStorage.clear();
+            console.log('��️ [signOut] Cleared session storage');
+          } catch (e) {
+            console.warn('⚠️ [signOut] Session storage clear error:', e);
+          }
+        }
+      } catch (storageError) {
+        console.warn('⚠️ [signOut] Storage clearing error:', storageError);
+      }
+
+      // Step 3: Clear local state
       setUser(null);
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
-      
-      // Sign out from Supabase
-      console.log('📤 Signing out from Supabase...');
-      
-      // Try global sign out first
-      const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
-      if (globalError) {
-        console.warn('⚠️ Global sign out error:', globalError);
-        
-        // Try regular sign out as fallback
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.warn('⚠️ Regular sign out error:', error);
-        }
-      }
+      setIsSigningOut?.(false); // Optional: if setIsSigningOut is available in context
 
-      // Step 3: Manually clear all storage
-      console.log('🧹 Manually clearing storage...');
-      if (typeof window !== 'undefined' && window.localStorage) {
-        const keys = Object.keys(localStorage);
-        const supabaseKeys = keys.filter(key => 
-          key.includes('supabase') || 
-          key.includes('sb-') || 
-          key.includes('auth-token')
-        );
-        
-        supabaseKeys.forEach(key => {
-          localStorage.removeItem(key);
-          console.log('🗑️ Removed localStorage key:', key);
-        });
-        
-        // Also clear session storage
-        try {
-          sessionStorage.clear();
-          console.log('🗑️ Cleared session storage');
-        } catch (e) {
-          console.warn('⚠️ Session storage clear error:', e);
-        }
-      }
-
-      // Step 4: Force auth navigation immediately
-      console.log('📱 Force navigating to auth screen...');
-      
-      if (Platform.OS === 'web') {
-        // Navigate to auth screen
+      // Step 4: Navigation
+      if (signOutSuccess) {
+        console.log('📱 [signOut] Navigating to /auth (success)...');
         router.replace('/auth');
-        console.log('✅ Web navigation triggered');
-        return;
       } else {
-        // On native platforms
-        router.replace('/auth');
-        console.log('✅ Native navigation triggered');
-        return;
+        console.error('❌ [signOut] Sign out failed, not navigating.');
+        if (typeof window !== 'undefined' && window.alert) {
+          window.alert('Sign out failed. Please try again.');
+        }
       }
     } catch (error) {
-      console.error('❌ Error during sign out:', error);
-      
-      // Force state clearing and navigation
+      console.error('❌ [signOut] Unexpected error during sign out:', error);
       setUser(null);
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
-      
-      router.replace('/auth');
+      setIsSigningOut?.(false); // Optional: if setIsSigningOut is available in context
+      if (typeof window !== 'undefined' && window.alert) {
+        window.alert('Sign out failed due to an unexpected error.');
+      }
     } finally {
-      // Reset the flag after a longer delay to ensure auth state changes are ignored
-      const timeout = setTimeout(() => {
-        console.log('🔓 Resetting sign out flag after delay');
+      setTimeout(() => {
+        console.log('🔓 [signOut] Resetting sign out flag after delay');
         isSigningOutRef.current = false;
-      }, 3000); // Reduced to 3 seconds for faster recovery
+      }, 3000);
     }
   };
 

@@ -6,7 +6,6 @@ import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSubscriptionStatus } from '@/utils/database';
-import { SignOutTestButton } from '@/components/SignOutTestButton';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -58,7 +57,7 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
-    console.log('🚪 Sign out pressed');
+    console.log('\ud83d\udeaa Sign out pressed');
     
     Alert.alert(
       'Sign Out',
@@ -69,14 +68,12 @@ export default function SettingsScreen() {
           text: 'Sign Out', 
           style: 'destructive',
           onPress: () => {
-            console.log('🚪 Confirming sign out...');
+            console.log('\ud83d\udeaa Confirming sign out...');
             setIsSigningOut(true);
 
-            // Use non-awaited promise approach to prevent component unmounting issues
+            // Only call signOut; navigation is handled inside signOut itself
             signOut().catch(error => {
-              console.error('❌ Sign out error:', error);
-              // Force navigation as fallback
-              router.replace('/auth');
+              console.error('\u274c Sign out error:', error);
             });
             
             // No need to reset isSigningOut as the component will unmount
@@ -180,9 +177,6 @@ export default function SettingsScreen() {
             onPress={handleHelpSupport}
           />
         </View>
-
-        {/* CRITICAL: Add test button for debugging */}
-        <SignOutTestButton />
 
         <View style={styles.section}>
           <SettingItem

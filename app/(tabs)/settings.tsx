@@ -13,6 +13,8 @@ export default function SettingsScreen() {
   const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
+  console.log('signOut from useAuth at render:', signOut);
+
   useEffect(() => {
     loadSubscriptionStatus();
   }, []);
@@ -57,7 +59,7 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
-    console.log('signOut from useAuth:', signOut);
+    console.log('signOut from useAuth (in handleSignOut):', signOut);
     console.log('\ud83d\udeaa Sign out pressed');
     
     Alert.alert(
@@ -69,15 +71,11 @@ export default function SettingsScreen() {
           text: 'Sign Out', 
           style: 'destructive',
           onPress: () => {
-            console.log('\ud83d\udeaa Confirming sign out...');
+            console.log('Sign out Alert onPress fired, signOut is:', signOut);
             setIsSigningOut(true);
-
-            // Only call signOut; navigation is handled inside signOut itself
-            signOut().catch(error => {
-              console.error('\u274c Sign out error:', error);
+            signOut?.().catch(error => {
+              console.error('Sign out error:', error);
             });
-            
-            // No need to reset isSigningOut as the component will unmount
           }
         }
       ]

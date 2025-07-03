@@ -7,7 +7,8 @@ interface NoteEntryProps {
   entry: any;
   onUpdate: () => void;
 }
-
+//TESTING in my new game
+//let's see
 export function NoteEntry({ entry }: NoteEntryProps) {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 

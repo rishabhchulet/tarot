@@ -279,7 +279,7 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
   }
 };
 
-export const signOut = async () => {
+export const supabaseSignOut = async () => {
   try {
     logAuthEvent('Starting sign out process');
     
@@ -349,7 +349,7 @@ export const signOut = async () => {
     logAuthEvent('Sign out successful');
     return { error: null };
   } catch (error: any) {
-    const enhancedError = getEnhancedErrorMessage(error, 'signOut');
+    const enhancedError = getEnhancedErrorMessage(error, 'supabaseSignOut');
     return { error: enhancedError };
   }
 };

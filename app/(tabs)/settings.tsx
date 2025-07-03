@@ -57,6 +57,7 @@ export default function SettingsScreen() {
   };
 
   const handleSignOut = () => {
+    console.log('signOut from useAuth:', signOut);
     console.log('\ud83d\udeaa Sign out pressed');
     
     Alert.alert(

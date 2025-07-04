@@ -179,13 +179,6 @@ export default function SettingsScreen() {
         </View>
 
         <View style={styles.section}>
-          <SettingItem
-            icon={LogOut}
-            title={isSigningOut ? "Signing Out..." : "Sign Out"}
-            subtitle="Sign out of your account"
-            onPress={handleSignOut}
-            disabled={isSigningOut}
-          />
           <SignOutTestButton />
         </View>
 

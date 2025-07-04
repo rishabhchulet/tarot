@@ -148,6 +148,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     console.log('[AuthContext signOut] Context sign out called');
+    debugger;
     try {
       console.log('🚪 [signOut] Starting sign out process...');
       isSigningOutRef.current = true;

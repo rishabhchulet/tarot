@@ -146,7 +146,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshUser();
   };
 
-  const signOut = async () => {
+  // Move the original signOut logic to a private function
+  const _doSignOut = async () => {
     try {
       console.log('[AuthContext signOut] Context sign out called');
       let test = 1 + 1;
@@ -243,33 +244,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // CRITICAL: Add a test function to verify sign out
-  const testSignOut = async () => {
-    console.log('🧪 Testing sign out process...');
+  const signOut = async () => {
+    console.log('[AuthContext signOut] testSignOut logic called');
     const beforeState = {
       hasUser: !!user,
       hasSession: !!session,
       userId: user?.id
     };
-    
-    console.log('🧪 State before sign out:', beforeState);
-    
-    await signOut();
-    
-    // Check state after a delay
+    console.log('[AuthContext signOut] State before sign out:', beforeState);
+    await _doSignOut();
     setTimeout(() => {
       const afterState = {
         hasUser: !!user,
         hasSession: !!session,
         isSigningOut: isSigningOutRef.current
       };
-      
-      console.log('🧪 State after sign out:', afterState);
-      
+      console.log('[AuthContext signOut] State after sign out:', afterState);
       if (!afterState.hasUser && !afterState.hasSession) {
-        console.log('✅ Sign out test PASSED - user and session cleared');
+        console.log('[AuthContext signOut] Sign out PASSED - user and session cleared');
       } else {
-        console.error('❌ Sign out test FAILED - state not cleared properly');
+        console.error('[AuthContext signOut] Sign out FAILED - state not cleared properly');
       }
     }, 1000);
   };
@@ -283,7 +277,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser,
     connectionStatus,
     retryConnection,
-    testSignOut
+    testSignOut: signOut
   };
 
   useEffect(() => {

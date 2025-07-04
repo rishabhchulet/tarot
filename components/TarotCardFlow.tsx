@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
   useSharedValue, 
@@ -13,6 +13,7 @@ import Animated, {
 import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
+import { router } from 'expo-router';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 

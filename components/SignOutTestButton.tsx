@@ -29,10 +29,10 @@ export function SignOutTestButton() {
       <Pressable style={styles.button} onPress={handleTestSignOut} disabled={testRunning}>
         <LogOut size={16} color={testResult === 'success' ? '#10B981' : testResult === 'failure' ? '#EF4444' : '#3B82F6'} />
         <Text style={styles.buttonText}>
-          {testRunning ? 'Signing Out...' : testResult === 'success' ? 'Sign Out Success' : testResult === 'failure' ? 'Sign Out Failed' : 'Test Sign Out'}
+          {testRunning ? 'Signing Out...' : testResult === 'success' ? 'Sign Out Success' : testResult === 'failure' ? 'Sign Out Failed' : 'Sign Out'}
         </Text>
       </Pressable>
-      <Text style={styles.description}>Test sign out functionality independently</Text>
+      <Text style={styles.description}>Sign out of your account</Text>
     </View>
   );
 }

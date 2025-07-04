@@ -6,6 +6,7 @@ import { router } from 'expo-router';
 import { scheduleNotification, cancelAllNotifications } from '@/utils/notifications';
 import { useAuth } from '@/contexts/AuthContext';
 import { getSubscriptionStatus } from '@/utils/database';
+import { SignOutTestButton } from '@/components/SignOutTestButton';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -185,6 +186,7 @@ export default function SettingsScreen() {
             onPress={handleSignOut}
             disabled={isSigningOut}
           />
+          <SignOutTestButton />
         </View>
 
         <View style={styles.footer}>

@@ -151,8 +151,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[AuthContext signOut] Context sign out called');
       let test = 1 + 1;
       console.log('[AuthContext signOut] Test log after first line');
-      console.log('🚪 [signOut] Starting sign out process...');
+      console.log('[AuthContext signOut] Before isSigningOutRef.current = true');
       isSigningOutRef.current = true;
+      console.log('[AuthContext signOut] After isSigningOutRef.current = true');
+      console.log('[AuthContext signOut] Before starting sign out process log');
+      console.log('🚪 [signOut] Starting sign out process...');
       setIsSigningOut?.(true); // Optional: if setIsSigningOut is available in context
 
       // Step 1: Attempt Supabase sign out (global, then fallback)

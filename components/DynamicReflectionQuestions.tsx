@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { Platform } from 'react-native';
 import { MessageCircle, Lightbulb } from 'lucide-react-native';
 import { getAIReflectionPrompts, extractRecentThemes } from '@/utils/ai';
 import { getJournalEntries } from '@/utils/database';
@@ -74,6 +75,16 @@ export function DynamicReflectionQuestions({
     return { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion };
   };
 
+  // Check if we should skip AI requests (mobile development environment)
+  const shouldSkipAI = () => {
+    // Skip AI on mobile in development to avoid network errors
+    if (Platform.OS !== 'web' && __DEV__) {
+      console.log('📱 Mobile development detected - skipping AI requests');
+      return true;
+    }
+    return false;
+  };
+
   const generateQuestions = async () => {
     console.log('🤔 Generating personal reflection questions...');
     setLoading(true);
@@ -81,6 +92,16 @@ export function DynamicReflectionQuestions({
     
     // Reset the daily question sent flag when generating new questions
     dailyQuestionSentRef.current = false;
+
+    // Check if we should skip AI requests for mobile
+    if (shouldSkipAI()) {
+      console.log('📱 Using fallback questions for mobile development');
+      const { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion } = createPersonalizedFallbackQuestions();
+      setQuestions(fallbackQuestions);
+      setShadowQuestion(fallbackShadowQuestion);
+      setLoading(false);
+      return;
+    }
 
     try {
       // Get recent journal entries for context

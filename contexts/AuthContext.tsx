@@ -157,7 +157,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('[AuthContext signOut] After isSigningOutRef.current = true');
       console.log('[AuthContext signOut] Before starting sign out process log');
       console.log('🚪 [signOut] Starting sign out process...');
-      setIsSigningOut?.(true); // Optional: if setIsSigningOut is available in context
 
       // Step 1: Attempt Supabase sign out (global, then fallback)
       let signOutSuccess = false;
@@ -214,7 +213,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
-      setIsSigningOut?.(false); // Optional: if setIsSigningOut is available in context
 
       // Step 4: Navigation
       if (signOutSuccess) {
@@ -232,7 +230,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setError(null);
       setConnectionStatus('disconnected');
-      setIsSigningOut?.(false); // Optional: if setIsSigningOut is available in context
       if (typeof window !== 'undefined' && window.alert) {
         window.alert('Sign out failed due to an unexpected error.');
       }

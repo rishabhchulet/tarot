@@ -30,9 +30,8 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <Home size={size} color={color} strokeWidth={2} />
           ),
-          // CRITICAL FIX: Handle pop to top for iOS
-          headerShown: Platform.OS === 'ios' ? true : false,
-          headerTitle: 'Today',
+          // Remove native header for all platforms
+          headerShown: false,
         }}
       />
       <Tabs.Screen

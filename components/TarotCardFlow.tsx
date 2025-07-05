@@ -70,27 +70,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
   const handleReflectionComplete = () => {
     console.log('⭐ Reflection complete callback triggered');
-    
-    // Use a more reliable navigation approach
-    try {
-      console.log('🏠 Attempting navigation to home from completion handler');
-      router.navigate('/(tabs)');
-    } catch (error) {
-      console.error('❌ Navigation error in handleReflectionComplete:', error);
-      
-      // Fallback: try direct replace to home screen
-      try {
-        router.replace('/');
-      } catch (fallbackError) {
-        console.error('❌ Fallback navigation error:', fallbackError);
-        
-        // Web-only fallback with window.location
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          window.location.href = '/';
-        }
-      }
-    }
-    // Always call onComplete if provided
+    // Only call onComplete, let parent handle navigation/state
     if (onComplete) {
       onComplete();
     }

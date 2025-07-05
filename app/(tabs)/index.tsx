@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Dimensions, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { TarotCardFlow } from '@/components/TarotCardFlow';
@@ -424,129 +424,131 @@ export default function TodayScreen() {
       colors={['#1F2937', '#374151', '#6B46C1']}
       style={styles.container}
     >
-      {/* Animated background shimmer */}
-      <Animated.View style={[styles.backgroundShimmer, backgroundShimmerStyle]} />
-      
-      {/* Floating particles */}
-      <View style={styles.particleContainer}>
-        {[...Array(12)].map((_, index) => (
-          <FloatingParticle
-            key={index}
-            delay={index * 500}
-            duration={3000 + (index * 200)}
-            size={Math.random() * 6 + 2}
-            color={['#F59E0B', '#8B5CF6', '#3B82F6', '#10B981'][index % 4]}
-          />
-        ))}
-      </View>
-
-      {/* Constellation background */}
-      <View style={styles.constellationContainer}>
-        <Animated.View style={[styles.star, styles.star1, starRotationStyle]}>
-          <Star size={8} color="#F59E0B" fill="#F59E0B" />
-        </Animated.View>
-        <Animated.View style={[styles.star, styles.star2, starRotationStyle]}>
-          <Star size={6} color="#8B5CF6" fill="#8B5CF6" />
-        </Animated.View>
-        <Animated.View style={[styles.star, styles.star3, starRotationStyle]}>
-          <Star size={10} color="#3B82F6" fill="#3B82F6" />
-        </Animated.View>
-        <Animated.View style={[styles.star, styles.star4, starRotationStyle]}>
-          <Star size={7} color="#10B981" fill="#10B981" />
-        </Animated.View>
-        <Animated.View style={[styles.star, styles.star5, starRotationStyle]}>
-          <Star size={5} color="#F59E0B" fill="#F59E0B" />
-        </Animated.View>
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <TrialBanner subscriptionStatus={subscriptionStatus} />
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}> 
+        {/* Animated background shimmer */}
+        <Animated.View style={[styles.backgroundShimmer, backgroundShimmerStyle]} />
         
-        <View style={styles.header}>
-          {/* FIXED: Time-based icon using the SAME timeData state */}
-          <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
-            <View style={[styles.iconGlow, { shadowColor: iconColor }]}>
-              <IconComponent size={36} color={iconColor} strokeWidth={1.5} />
-            </View>
-          </Animated.View>
-
-          {/* FIXED: Greeting text using the SAME timeData state */}
-          <Text style={styles.greeting}>
-            {greeting}, {user?.name || 'friend'}
-          </Text>
-          <Text style={styles.date}>
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </Text>
+        {/* Floating particles */}
+        <View style={styles.particleContainer}>
+          {[...Array(12)].map((_, index) => (
+            <FloatingParticle
+              key={index}
+              delay={index * 500}
+              duration={3000 + (index * 200)}
+              size={Math.random() * 6 + 2}
+              color={['#F59E0B', '#8B5CF6', '#3B82F6', '#10B981'][index % 4]}
+            />
+          ))}
         </View>
 
-        <View style={styles.pullContainer}>
-          {/* Enhanced intention box with breathing animation */}
-          <Animated.View style={[styles.intentionBox, intentionBoxStyle]}>
-            {/* Magical border effect */}
-            <LinearGradient
-              colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.intentionBorder}
-            >
-              <View style={styles.intentionContent}>
-                {/* Floating sparkle in the box */}
-                <View style={styles.intentionSparkleContainer}>
-                  <Animated.View style={starRotationStyle}>
-                    <Sparkles size={24} color="#F59E0B" />
-                  </Animated.View>
-                </View>
-                
-                <Text style={styles.intentionText}>
-                  Take a breath and ask your heart:
-                </Text>
-                <Text style={styles.intentionQuestion}>
-                  "Show me the message I most need today to connect with my True Self"
-                </Text>
-                
-                {/* Mystical runes/symbols */}
-                <View style={styles.mysticalSymbols}>
-                  <Text style={styles.runeSymbol}>✦</Text>
-                  <Text style={styles.runeSymbol}>◊</Text>
-                  <Text style={styles.runeSymbol}>✦</Text>
-                </View>
-              </View>
-            </LinearGradient>
+        {/* Constellation background */}
+        <View style={styles.constellationContainer}>
+          <Animated.View style={[styles.star, styles.star1, starRotationStyle]}>
+            <Star size={8} color="#F59E0B" fill="#F59E0B" />
           </Animated.View>
+          <Animated.View style={[styles.star, styles.star2, starRotationStyle]}>
+            <Star size={6} color="#8B5CF6" fill="#8B5CF6" />
+          </Animated.View>
+          <Animated.View style={[styles.star, styles.star3, starRotationStyle]}>
+            <Star size={10} color="#3B82F6" fill="#3B82F6" />
+          </Animated.View>
+          <Animated.View style={[styles.star, styles.star4, starRotationStyle]}>
+            <Star size={7} color="#10B981" fill="#10B981" />
+          </Animated.View>
+          <Animated.View style={[styles.star, styles.star5, starRotationStyle]}>
+            <Star size={5} color="#F59E0B" fill="#F59E0B" />
+          </Animated.View>
+        </View>
 
-          {/* Enhanced button with pulse animation */}
-          <Animated.View style={buttonPulseStyle}>
-            <Pressable style={styles.pullButton} onPress={handleCardPull}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <TrialBanner subscriptionStatus={subscriptionStatus} />
+          
+          <View style={styles.header}>
+            {/* FIXED: Time-based icon using the SAME timeData state */}
+            <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
+              <View style={[styles.iconGlow, { shadowColor: iconColor }]}>
+                <IconComponent size={36} color={iconColor} strokeWidth={1.5} />
+              </View>
+            </Animated.View>
+
+            {/* FIXED: Greeting text using the SAME timeData state */}
+            <Text style={styles.greeting}>
+              {greeting}, {user?.name || 'friend'}
+            </Text>
+            <Text style={styles.date}>
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+          </View>
+
+          <View style={styles.pullContainer}>
+            {/* Enhanced intention box with breathing animation */}
+            <Animated.View style={[styles.intentionBox, intentionBoxStyle]}>
+              {/* Magical border effect */}
               <LinearGradient
-                colors={['#F59E0B', '#D97706', '#F59E0B']}
+                colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={styles.pullButtonGradient}
+                style={styles.intentionBorder}
               >
-                {/* Button glow effect */}
-                <View style={styles.buttonGlow} />
-                
-                {/* Button content */}
-                <View style={styles.buttonContent}>
-                  <Zap size={20} color="#FFFFFF" />
-                  <Text style={styles.pullButtonText}>Reveal your message</Text>
-                  <Sparkles size={16} color="#FFFFFF" />
+                <View style={styles.intentionContent}>
+                  {/* Floating sparkle in the box */}
+                  <View style={styles.intentionSparkleContainer}>
+                    <Animated.View style={starRotationStyle}>
+                      <Sparkles size={24} color="#F59E0B" />
+                    </Animated.View>
+                  </View>
+                  
+                  <Text style={styles.intentionText}>
+                    Take a breath and ask your heart:
+                  </Text>
+                  <Text style={styles.intentionQuestion}>
+                    "Show me the message I most need today to connect with my True Self"
+                  </Text>
+                  
+                  {/* Mystical runes/symbols */}
+                  <View style={styles.mysticalSymbols}>
+                    <Text style={styles.runeSymbol}>✦</Text>
+                    <Text style={styles.runeSymbol}>◊</Text>
+                    <Text style={styles.runeSymbol}>✦</Text>
+                  </View>
                 </View>
               </LinearGradient>
-            </Pressable>
-          </Animated.View>
+            </Animated.View>
 
-          {/* Enhanced mystical footer text with better visibility */}
-          <Text style={styles.mysticalFooter}>
-            ✨ One card, one day, one sacred moment ✨
-          </Text>
-        </View>
-      </ScrollView>
+            {/* Enhanced button with pulse animation */}
+            <Animated.View style={buttonPulseStyle}>
+              <Pressable style={styles.pullButton} onPress={handleCardPull}>
+                <LinearGradient
+                  colors={['#F59E0B', '#D97706', '#F59E0B']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.pullButtonGradient}
+                >
+                  {/* Button glow effect */}
+                  <View style={styles.buttonGlow} />
+                  
+                  {/* Button content */}
+                  <View style={styles.buttonContent}>
+                    <Zap size={20} color="#FFFFFF" />
+                    <Text style={styles.pullButtonText}>Reveal your message</Text>
+                    <Sparkles size={16} color="#FFFFFF" />
+                  </View>
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
+
+            {/* Enhanced mystical footer text with better visibility */}
+            <Text style={styles.mysticalFooter}>
+              ✨ One card, one day, one sacred moment ✨
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }

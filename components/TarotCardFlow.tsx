@@ -19,7 +19,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-only' | 'reflection-questions';
 
-export function TarotCardFlow() {
+export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('card-back');
   const [selectedCard] = useState(() => {
     const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
@@ -89,6 +89,10 @@ export function TarotCardFlow() {
           window.location.href = '/';
         }
       }
+    }
+    // Always call onComplete if provided
+    if (onComplete) {
+      onComplete();
     }
   };
 

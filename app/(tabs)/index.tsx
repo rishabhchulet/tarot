@@ -279,6 +279,12 @@ export default function TodayScreen() {
     router.push('/(tabs)/journal');
   };
 
+  // Add a handler to close the card flow and refresh status
+  const handleCardFlowComplete = () => {
+    setShowCardFlow(false);
+    checkTodaysStatus();
+  };
+
   // Animated styles
   const intentionBoxStyle = useAnimatedStyle(() => ({
     transform: [{ scale: intentionBoxScale.value }],
@@ -336,7 +342,7 @@ export default function TodayScreen() {
         colors={['#1F2937', '#374151', '#6B46C1']}
         style={styles.container}
       >
-        <TarotCardFlow />
+        <TarotCardFlow onComplete={handleCardFlowComplete} />
       </LinearGradient>
     );
   }

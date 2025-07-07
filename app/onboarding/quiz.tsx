@@ -1,13 +1,10 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions, FlatList, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions, ScrollView, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User } from 'lucide-react-native';
+import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User, Check } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
-
-const CARD_WIDTH = width * 0.8;
-const CARD_SPACING = 16;
 
 const ARCHETYPES = [
   {
@@ -34,7 +31,7 @@ const ARCHETYPES = [
   {
     id: 'mirror',
     name: 'The Mirror',
-    icon: User, // fallback icon for Mirror
+    icon: User,
     color: '#60A5FA',
     description: 'You have a unique gift for sensing the emotions and energies of those around you. You learn best by reflecting on your experiences, through meaningful relationships, and by trusting your emotions.'
   },
@@ -61,7 +58,6 @@ export default function ArchetypeQuiz() {
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [loading, setLoading] = useState(false);
-  const flatListRef = useRef<FlatList>(null);
 
   const handleContinue = () => {
     if (!selected) return;
@@ -71,267 +67,326 @@ export default function ArchetypeQuiz() {
     }, 500);
   };
 
-  const renderCard = ({ item, index }: { item: typeof ARCHETYPES[0]; index: number }) => {
-    const IconComponent = item.icon;
-    const isSelected = selected === item.id;
-    return (
-      <Pressable
-        style={[styles.card, isSelected && { borderColor: item.color, shadowColor: item.color, transform: [{ scale: 1.06 }] }]}
-        onPress={() => setSelected(item.id)}
-        accessibilityLabel={item.name}
-        accessibilityRole="button"
-      >
-        <View style={[styles.iconCircle, { backgroundColor: item.color + '22', borderColor: item.color }]}> 
-          <IconComponent size={54} color={item.color} strokeWidth={2.5} />
-          {isSelected && <View style={[styles.selectedGlow, { borderColor: item.color }]} />}
-        </View>
-        <Text style={[styles.cardTitle, { color: item.color }]}>{item.name}</Text>
-        <Text style={styles.cardDesc}>{item.description}</Text>
-      </Pressable>
-    );
-  };
-
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={["#232946", "#6B46C1", "#F59E0B"]}
-        start={{ x: 0.2, y: 0 }}
-        end={{ x: 0.8, y: 1 }}
+        colors={["#0F172A", "#1E293B", "#6B46C1", "#F59E0B"]}
+        locations={[0, 0.3, 0.7, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.headerContainer}>
-        <Text style={styles.header}>This app is your mirror.</Text>
-        <Text style={styles.intro}>
-          It will help you uncover who you are, and your deeper inner mysteries...{"\n\n"}
-          In your journey, an archetype has arrived to be your guide. Choose the one you currently feel the most drawn to now.
-        </Text>
-        <View style={styles.infoRow}>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header Section */}
+        <View style={styles.headerSection}>
+          <Text style={styles.mainTitle}>This app is your mirror.</Text>
+          <Text style={styles.subtitle}>
+            It will help you uncover who you are, and your deeper inner mysteries...
+          </Text>
+          <Text style={styles.description}>
+            In your journey, an archetype has arrived to be your guide. Choose the one you currently feel the most drawn to now.
+          </Text>
+          
           <TouchableOpacity onPress={() => setShowInfo(true)} style={styles.infoButton}>
-            <Info size={20} color="#F59E0B" />
+            <Info size={18} color="#F59E0B" />
             <Text style={styles.infoText}>What is an archetype?</Text>
           </TouchableOpacity>
+          
+          <Text style={styles.chooseHint}>
+            (Choose with your gut for now. Don't worry, you will be able to adjust your choice later.)
+          </Text>
         </View>
-        <Text style={styles.chooseText}>
-          (Choose with your gut for now. Don't worry, you will be able to adjust your choice later.)
-        </Text>
-      </View>
-      <View style={styles.carouselWrapper}>
-        <FlatList
-          ref={flatListRef}
-          data={ARCHETYPES}
-          keyExtractor={item => item.id}
-          renderItem={renderCard}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={CARD_WIDTH + CARD_SPACING}
-          decelerationRate={Platform.OS === 'ios' ? 0 : 0.98}
-          contentContainerStyle={styles.cardsContainer}
-          ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
-          getItemLayout={(_, index) => ({ length: CARD_WIDTH + CARD_SPACING, offset: (CARD_WIDTH + CARD_SPACING) * index, index })}
-        />
-      </View>
-      <View style={styles.stickyButtonWrapper}>
+
+        {/* Cards Section */}
+        <View style={styles.cardsSection}>
+          {ARCHETYPES.map((archetype) => {
+            const IconComponent = archetype.icon;
+            const isSelected = selected === archetype.id;
+            
+            return (
+              <Pressable
+                key={archetype.id}
+                style={[
+                  styles.archetypeCard,
+                  isSelected && [styles.selectedCard, { borderColor: archetype.color }]
+                ]}
+                onPress={() => setSelected(archetype.id)}
+                accessibilityLabel={archetype.name}
+                accessibilityRole="button"
+              >
+                <View style={styles.cardContent}>
+                  <View style={[styles.iconContainer, { backgroundColor: archetype.color + '15' }]}>
+                    <IconComponent 
+                      size={32} 
+                      color={archetype.color} 
+                      strokeWidth={2.5} 
+                    />
+                    {isSelected && (
+                      <View style={[styles.checkmark, { backgroundColor: archetype.color }]}>
+                        <Check size={16} color="#FFFFFF" strokeWidth={3} />
+                      </View>
+                    )}
+                  </View>
+                  
+                  <View style={styles.cardText}>
+                    <Text style={[styles.cardTitle, { color: archetype.color }]}>
+                      {archetype.name}
+                    </Text>
+                    <Text style={styles.cardDescription}>
+                      {archetype.description}
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      {/* Sticky Continue Button */}
+      <View style={styles.buttonContainer}>
         <Pressable
-          style={[styles.continueButton, (!selected || loading) && styles.continueButtonDisabled]}
+          style={[styles.continueButton, (!selected || loading) && styles.buttonDisabled]}
           onPress={handleContinue}
           disabled={!selected || loading}
         >
           <LinearGradient
-            colors={selected && !loading ? ["#F59E0B", "#6B46C1"] : ["#6B7280", "#4B5563"]}
-            style={styles.continueButtonGradient}
+            colors={selected && !loading ? ["#F59E0B", "#EF4444"] : ["#64748B", "#475569"]}
+            style={styles.buttonGradient}
           >
-            <Text style={styles.continueButtonText}>{loading ? 'Saving...' : 'Continue'}</Text>
+            <Text style={styles.buttonText}>
+              {loading ? 'Saving...' : 'Continue'}
+            </Text>
           </LinearGradient>
         </Pressable>
       </View>
-      <Modal visible={showInfo} transparent animationType="fade">
+
+      {/* Info Modal */}
+      <Modal visible={showInfo} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>What is an archetype?</Text>
             <Text style={styles.modalText}>{ARCHETYPE_EXPLANATION}</Text>
-            <Pressable style={styles.modalClose} onPress={() => setShowInfo(false)}>
-              <Text style={styles.modalCloseText}>Close</Text>
+            <Pressable style={styles.modalCloseButton} onPress={() => setShowInfo(false)}>
+              <Text style={styles.modalCloseText}>Got it</Text>
             </Pressable>
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 56,
-    paddingBottom: 12,
+  container: {
+    flex: 1,
+    backgroundColor: '#0F172A',
   },
-  header: {
-    fontSize: 28,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Space for sticky button
+  },
+  headerSection: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 32,
+    alignItems: 'center',
+  },
+  mainTitle: {
+    fontSize: 32,
     fontFamily: 'Inter-Bold',
     color: '#F59E0B',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 16,
+    letterSpacing: -0.5,
   },
-  intro: {
+  subtitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#F1F5F9',
+    textAlign: 'center',
+    marginBottom: 12,
+    lineHeight: 26,
+  },
+  description: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#CBD5E1',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 20,
     lineHeight: 24,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 4,
+    maxWidth: width * 0.9,
   },
   infoButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    padding: 4,
+    gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+    marginBottom: 16,
   },
   infoText: {
     color: '#F59E0B',
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
-  chooseText: {
+  chooseHint: {
     fontSize: 14,
-    color: '#D1D5DB',
+    color: '#94A3B8',
     textAlign: 'center',
-    marginBottom: 8,
     fontFamily: 'Inter-Regular',
+    fontStyle: 'italic',
   },
-  carouselWrapper: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 320,
+  cardsSection: {
+    paddingHorizontal: 20,
+    gap: 16,
   },
-  cardsContainer: {
-    alignItems: 'center',
-    paddingHorizontal: (width - CARD_WIDTH) / 2,
-    // This centers the first and last card
-  },
-  card: {
-    width: CARD_WIDTH,
-    backgroundColor: 'rgba(31,41,55,0.97)',
-    borderRadius: 28,
-    padding: 28,
-    alignItems: 'center',
+  archetypeCard: {
+    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    elevation: 6,
-    borderWidth: 2,
-    borderColor: 'transparent',
-    position: 'relative',
-    marginBottom: 16,
-    transform: [{ scale: 1 }],
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  iconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  selectedCard: {
+    borderWidth: 2,
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    transform: [{ scale: 1.02 }],
+  },
+  cardContent: {
+    flexDirection: 'row',
+    padding: 20,
+    alignItems: 'flex-start',
+  },
+  iconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
-    borderWidth: 3,
-    backgroundColor: '#232946',
-    shadowColor: '#F59E0B',
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
+    marginRight: 16,
     position: 'relative',
   },
-  selectedGlow: {
+  checkmark: {
     position: 'absolute',
-    top: -6,
-    left: -6,
-    right: -6,
-    bottom: -6,
-    borderRadius: 44,
-    borderWidth: 3,
-    opacity: 0.25,
-    zIndex: -1,
+    top: -8,
+    right: -8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  cardText: {
+    flex: 1,
   },
   cardTitle: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
     marginBottom: 8,
-    textAlign: 'center',
+    letterSpacing: -0.3,
   },
-  cardDesc: {
+  cardDescription: {
     fontSize: 15,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
-    textAlign: 'center',
-    marginBottom: 2,
-    lineHeight: 20,
+    color: '#E2E8F0',
+    lineHeight: 22,
   },
-  stickyButtonWrapper: {
-    paddingHorizontal: 24,
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
     paddingBottom: 32,
-    backgroundColor: 'transparent',
+    paddingTop: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
   continueButton: {
-    borderRadius: 25,
+    borderRadius: 16,
     overflow: 'hidden',
-    width: '100%',
-    alignSelf: 'center',
-    marginTop: 10,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  continueButtonDisabled: {
-    opacity: 0.6,
+  buttonDisabled: {
+    opacity: 0.5,
+    shadowOpacity: 0.1,
   },
-  continueButtonGradient: {
-    paddingVertical: 16,
+  buttonGradient: {
+    paddingVertical: 18,
     alignItems: 'center',
   },
-  continueButtonText: {
+  buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
   },
   modalContent: {
-    backgroundColor: '#232946',
-    borderRadius: 18,
-    padding: 24,
-    width: 300,
+    backgroundColor: '#1E293B',
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    maxWidth: 340,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#F59E0B',
-    marginBottom: 10,
+    marginBottom: 16,
     textAlign: 'center',
   },
   modalText: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#E2E8F0',
     textAlign: 'center',
-    marginBottom: 18,
+    lineHeight: 24,
+    marginBottom: 24,
   },
-  modalClose: {
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 12,
+  modalCloseButton: {
     backgroundColor: '#F59E0B',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    minWidth: 100,
   },
   modalCloseText: {
-    color: '#232946',
+    color: '#0F172A',
     fontFamily: 'Inter-SemiBold',
-    fontSize: 15,
+    fontSize: 16,
+    textAlign: 'center',
   },
 });

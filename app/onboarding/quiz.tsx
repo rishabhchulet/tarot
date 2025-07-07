@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Modal, TouchableOpacity, Dimensions, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, Mirror } from 'lucide-react-native';
+import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -31,7 +31,7 @@ const ARCHETYPES = [
   {
     id: 'mirror',
     name: 'The Mirror',
-    icon: Mirror,
+    icon: User,
     color: '#60A5FA',
     description: 'You have a unique gift for sensing the emotions and energies of those around you. You learn best by reflecting on your experiences, through meaningful relationships, and by trusting your emotions.'
   },

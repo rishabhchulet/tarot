@@ -1,8 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions, ScrollView, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User, Check } from 'lucide-react-native';
+import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User, Check, X } from 'lucide-react-native';
+import { GlassCard, ModernButton, FloatingAction, ParticleSystem, designTokens, animationHelpers } from '@/components/DesignSystem';
+import { HapticManager } from '@/utils/nativeFeatures';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  withTiming,
+  withDelay,
+  interpolate,
+  runOnJS
+} from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 
@@ -51,342 +62,515 @@ const ARCHETYPES = [
   },
 ];
 
-const ARCHETYPE_EXPLANATION =
-  'An archetype is a universal personality or pattern that shows how people tend to think, feel, or act across time and cultures.';
+const ARCHETYPE_EXPLANATION = 'An archetype is a universal personality or pattern that shows how people tend to think, feel, or act across time and cultures.';
 
 export default function ArchetypeQuiz() {
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
+  // Enhanced animation values
+  const headerOpacity = useSharedValue(0);
+  const headerTranslateY = useSharedValue(50);
+  const cardsOpacity = useSharedValue(0);
+  const buttonOpacity = useSharedValue(0);
+  const buttonTranslateY = useSharedValue(30);
+  const backgroundGlow = useSharedValue(0);
+  const modalScale = useSharedValue(0.8);
+  const modalOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    startEnhancedQuizAnimations();
+  }, []);
+
+  useEffect(() => {
+    if (showInfo) {
+      startModalAnimations();
+    }
+  }, [showInfo]);
+
+  const startEnhancedQuizAnimations = () => {
+    // Background glow
+    backgroundGlow.value = withTiming(1, { duration: 3000 });
+    
+    // Staggered entrance animations
+    setTimeout(() => {
+      animationHelpers.fadeIn(headerOpacity, 1000);
+      headerTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+    }, 300);
+
+    setTimeout(() => {
+      animationHelpers.fadeIn(cardsOpacity, 1200);
+    }, 800);
+
+    setTimeout(() => {
+      animationHelpers.fadeIn(buttonOpacity, 800);
+      buttonTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+    }, 1200);
+  };
+
+  const startModalAnimations = () => {
+    animationHelpers.fadeIn(modalOpacity, 300);
+    modalScale.value = withSpring(1, designTokens.animations.spring.bouncy);
+  };
+
+  const closeModal = () => {
+    modalOpacity.value = withTiming(0, { duration: 200 });
+    modalScale.value = withTiming(0.8, { duration: 200 }, () => {
+      runOnJS(setShowInfo)(false);
+    });
+  };
+
+  const handleArchetypeSelect = async (archetypeId: string) => {
+    await HapticManager.triggerSelection();
+    setSelected(archetypeId);
+  };
+
+  const handleInfoPress = async () => {
+    await HapticManager.triggerSelection();
+    setShowInfo(true);
+  };
+
+  const handleContinue = async () => {
     if (!selected) return;
+    
+    await HapticManager.triggerSuccess();
     setLoading(true);
+    
     setTimeout(() => {
       router.replace('/onboarding/intro');
     }, 500);
   };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={["#0F172A", "#1E293B", "#6B46C1", "#F59E0B"]}
-        locations={[0, 0.3, 0.7, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-      
-      <ScrollView 
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header Section */}
-        <View style={styles.headerSection}>
-          <Text style={styles.mainTitle}>This app is your mirror.</Text>
-          <Text style={styles.subtitle}>
-            It will help you uncover who you are, and your deeper inner mysteries...
-          </Text>
-          <Text style={styles.description}>
-            In your journey, an archetype has arrived to be your guide. Choose the one you currently feel the most drawn to now.
-          </Text>
-          
-          <TouchableOpacity onPress={() => setShowInfo(true)} style={styles.infoButton}>
-            <Info size={18} color="#F59E0B" />
-            <Text style={styles.infoText}>What is an archetype?</Text>
-          </TouchableOpacity>
-          
-          <Text style={styles.chooseHint}>
-            (Choose with your gut for now. Don't worry, you will be able to adjust your choice later.)
-          </Text>
-        </View>
+  // Enhanced animated styles
+  const headerStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+    transform: [{ translateY: headerTranslateY.value }],
+  }));
 
-        {/* Cards Section */}
-        <View style={styles.cardsSection}>
-          {ARCHETYPES.map((archetype) => {
-            const IconComponent = archetype.icon;
-            const isSelected = selected === archetype.id;
-            
-            return (
-              <Pressable
-                key={archetype.id}
-                style={[
-                  styles.archetypeCard,
-                  isSelected && [styles.selectedCard, { borderColor: archetype.color }]
-                ]}
-                onPress={() => setSelected(archetype.id)}
-                accessibilityLabel={archetype.name}
-                accessibilityRole="button"
-              >
-                <View style={styles.cardContent}>
-                  <View style={[styles.iconContainer, { backgroundColor: archetype.color + '15' }]}>
-                    <IconComponent 
-                      size={32} 
-                      color={archetype.color} 
-                      strokeWidth={2.5} 
-                    />
-                    {isSelected && (
-                      <View style={[styles.checkmark, { backgroundColor: archetype.color }]}>
-                        <Check size={16} color="#FFFFFF" strokeWidth={3} />
-                      </View>
-                    )}
+  const cardsStyle = useAnimatedStyle(() => ({
+    opacity: cardsOpacity.value,
+  }));
+
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: buttonOpacity.value,
+    transform: [{ translateY: buttonTranslateY.value }],
+  }));
+
+  const backgroundGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(backgroundGlow.value, [0, 1], [0, 0.7]),
+  }));
+
+  const modalOverlayStyle = useAnimatedStyle(() => ({
+    opacity: modalOpacity.value,
+  }));
+
+  const modalContentStyle = useAnimatedStyle(() => ({
+    opacity: modalOpacity.value,
+    transform: [{ scale: modalScale.value }],
+  }));
+
+  return (
+    <LinearGradient
+      colors={designTokens.colors.gradients.cosmic}
+      style={styles.container}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <ParticleSystem count={25} animate={true} />
+        
+        {/* Enhanced Background Glow */}
+        <Animated.View style={[styles.backgroundGlow, backgroundGlowStyle]} />
+        
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Enhanced Header Section */}
+          <Animated.View style={[styles.headerSection, headerStyle]}>
+            <GlassCard style={styles.headerCard} intensity="medium">
+              <Text style={styles.mainTitle}>This app is your mirror.</Text>
+              <Text style={styles.subtitle}>
+                It will help you uncover who you are, and your deeper inner mysteries...
+              </Text>
+              <Text style={styles.description}>
+                In your journey, an archetype has arrived to be your guide. Choose the one you currently feel the most drawn to now.
+              </Text>
+              
+              <FloatingAction onPress={handleInfoPress} style={styles.infoButton}>
+                <Info size={18} color={designTokens.colors.accent.gold} />
+                <Text style={styles.infoText}>What is an archetype?</Text>
+              </FloatingAction>
+              
+              <Text style={styles.chooseHint}>
+                (Choose with your gut for now. Don't worry, you will be able to adjust your choice later.)
+              </Text>
+            </GlassCard>
+          </Animated.View>
+
+          {/* Enhanced Cards Section */}
+          <Animated.View style={[styles.cardsSection, cardsStyle]}>
+            {ARCHETYPES.map((archetype, index) => {
+              const IconComponent = archetype.icon;
+              const isSelected = selected === archetype.id;
+              
+              return (
+                <ArchetypeCard
+                  key={archetype.id}
+                  archetype={archetype}
+                  isSelected={isSelected}
+                  onPress={() => handleArchetypeSelect(archetype.id)}
+                  index={index}
+                />
+              );
+            })}
+          </Animated.View>
+        </ScrollView>
+
+        {/* Enhanced Sticky Continue Button */}
+        <Animated.View style={[styles.buttonContainer, buttonStyle]}>
+          <GlassCard style={styles.buttonCard} intensity="strong">
+            <ModernButton
+              title={loading ? 'Saving...' : 'Continue Your Journey'}
+              onPress={handleContinue}
+              variant={selected && !loading ? "gradient" : "disabled"}
+              size="lg"
+              disabled={!selected || loading}
+              style={styles.continueButton}
+            />
+          </GlassCard>
+        </Animated.View>
+
+        {/* Enhanced Info Modal */}
+        {showInfo && (
+          <Modal visible={showInfo} transparent animationType="none">
+            <Animated.View style={[styles.modalOverlay, modalOverlayStyle]}>
+              <Animated.View style={[styles.modalContainer, modalContentStyle]}>
+                <GlassCard style={styles.modalContent} intensity="strong">
+                  <View style={styles.modalHeader}>
+                    <Text style={styles.modalTitle}>What is an archetype?</Text>
+                    <FloatingAction onPress={closeModal} style={styles.modalClose}>
+                      <X size={20} color={designTokens.colors.text.secondary} />
+                    </FloatingAction>
                   </View>
                   
-                  <View style={styles.cardText}>
-                    <Text style={[styles.cardTitle, { color: archetype.color }]}>
-                      {archetype.name}
-                    </Text>
-                    <Text style={styles.cardDescription}>
-                      {archetype.description}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
-        </View>
-      </ScrollView>
-
-      {/* Sticky Continue Button */}
-      <View style={styles.buttonContainer}>
-        <Pressable
-          style={[styles.continueButton, (!selected || loading) && styles.buttonDisabled]}
-          onPress={handleContinue}
-          disabled={!selected || loading}
-        >
-          <LinearGradient
-            colors={selected && !loading ? ["#F59E0B", "#EF4444"] : ["#64748B", "#475569"]}
-            style={styles.buttonGradient}
-          >
-            <Text style={styles.buttonText}>
-              {loading ? 'Saving...' : 'Continue'}
-            </Text>
-          </LinearGradient>
-        </Pressable>
-      </View>
-
-      {/* Info Modal */}
-      <Modal visible={showInfo} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>What is an archetype?</Text>
-            <Text style={styles.modalText}>{ARCHETYPE_EXPLANATION}</Text>
-            <Pressable style={styles.modalCloseButton} onPress={() => setShowInfo(false)}>
-              <Text style={styles.modalCloseText}>Got it</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-    </SafeAreaView>
+                  <Text style={styles.modalText}>{ARCHETYPE_EXPLANATION}</Text>
+                  
+                  <ModernButton
+                    title="Got it"
+                    onPress={closeModal}
+                    variant="gradient"
+                    size="md"
+                    style={styles.modalButton}
+                  />
+                </GlassCard>
+              </Animated.View>
+            </Animated.View>
+          </Modal>
+        )}
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
+
+// Enhanced Archetype Card Component
+const ArchetypeCard = ({ archetype, isSelected, onPress, index }: {
+  archetype: typeof ARCHETYPES[0];
+  isSelected: boolean;
+  onPress: () => void;
+  index: number;
+}) => {
+  const IconComponent = archetype.icon;
+  const cardScale = useSharedValue(0.95);
+  const cardOpacity = useSharedValue(0);
+  const cardTranslateY = useSharedValue(30);
+
+  useEffect(() => {
+    setTimeout(() => {
+      animationHelpers.fadeIn(cardOpacity, 600);
+      cardTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+      cardScale.value = withSpring(1, designTokens.animations.spring.gentle);
+    }, index * 100 + 1000);
+  }, []);
+
+  const cardStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [
+      { scale: cardScale.value },
+      { translateY: cardTranslateY.value }
+    ],
+  }));
+
+  const handlePress = async () => {
+    await HapticManager.triggerSelection();
+    cardScale.value = withSpring(0.95, designTokens.animations.spring.bouncy, () => {
+      cardScale.value = withSpring(1, designTokens.animations.spring.bouncy);
+    });
+    onPress();
+  };
+
+  return (
+    <Animated.View style={cardStyle}>
+      <Pressable onPress={handlePress} style={styles.archetypeCardWrapper}>
+        <GlassCard 
+          style={[
+            styles.archetypeCard,
+            isSelected && styles.selectedCard
+          ]} 
+          intensity={isSelected ? "strong" : "medium"}
+        >
+          <View style={styles.cardContent}>
+            <View style={[styles.iconContainer, { backgroundColor: archetype.color + '20' }]}>
+              <IconComponent 
+                size={32} 
+                color={archetype.color} 
+                strokeWidth={2.5} 
+              />
+              {isSelected && (
+                <FloatingAction style={[styles.checkmark, { backgroundColor: archetype.color }]}>
+                  <Check size={16} color="#FFFFFF" strokeWidth={3} />
+                </FloatingAction>
+              )}
+            </View>
+            
+            <View style={styles.cardText}>
+              <Text style={[styles.cardTitle, { color: archetype.color }]}>
+                {archetype.name}
+              </Text>
+              <Text style={styles.cardDescription}>
+                {archetype.description}
+              </Text>
+            </View>
+          </View>
+          
+          {isSelected && (
+            <View style={[styles.selectedIndicator, { backgroundColor: archetype.color }]} />
+          )}
+        </GlassCard>
+      </Pressable>
+    </Animated.View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
   },
+
+  safeArea: {
+    flex: 1,
+  },
+
+  backgroundGlow: {
+    position: 'absolute',
+    top: '15%',
+    left: '10%',
+    right: '10%',
+    height: '60%',
+    borderRadius: 200,
+    backgroundColor: designTokens.colors.accent.purple,
+    opacity: 0.4,
+  },
+
   scrollView: {
     flex: 1,
   },
+
   scrollContent: {
-    paddingBottom: 100, // Space for sticky button
+    paddingBottom: 120, // Space for sticky button
   },
+
+  // Enhanced Header
   headerSection: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 32,
+    paddingHorizontal: designTokens.spacing.md,
+    paddingTop: designTokens.spacing.lg,
+    paddingBottom: designTokens.spacing.xl,
+  },
+
+  headerCard: {
+    paddingVertical: designTokens.spacing.xl,
+    paddingHorizontal: designTokens.spacing.lg,
     alignItems: 'center',
   },
+
   mainTitle: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
+    fontSize: designTokens.typography.fontSize['4xl'],
+    fontWeight: designTokens.typography.fontWeight.extrabold as any,
+    color: designTokens.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 16,
-    letterSpacing: -0.5,
+    marginBottom: designTokens.spacing.lg,
+    lineHeight: designTokens.typography.lineHeight.tight * designTokens.typography.fontSize['4xl'],
   },
+
   subtitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#F1F5F9',
+    fontSize: designTokens.typography.fontSize.lg,
+    color: designTokens.colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 12,
-    lineHeight: 26,
+    marginBottom: designTokens.spacing.md,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.lg,
   },
+
   description: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#CBD5E1',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.muted,
     textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 24,
-    maxWidth: width * 0.9,
+    marginBottom: designTokens.spacing.lg,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
+    maxWidth: 320,
   },
+
   infoButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
-    marginBottom: 16,
+    gap: designTokens.spacing.sm,
+    paddingVertical: designTokens.spacing.sm,
+    paddingHorizontal: designTokens.spacing.md,
+    marginBottom: designTokens.spacing.md,
   },
+
   infoText: {
-    color: '#F59E0B',
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.accent.gold,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
   },
+
   chooseHint: {
-    fontSize: 14,
-    color: '#94A3B8',
+    fontSize: designTokens.typography.fontSize.xs,
+    color: designTokens.colors.text.muted,
     textAlign: 'center',
-    fontFamily: 'Inter-Regular',
     fontStyle: 'italic',
   },
+
+  // Enhanced Cards
   cardsSection: {
-    paddingHorizontal: 20,
-    gap: 16,
+    paddingHorizontal: designTokens.spacing.md,
+    gap: designTokens.spacing.md,
   },
+
+  archetypeCardWrapper: {
+    marginBottom: designTokens.spacing.sm,
+  },
+
   archetypeCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  selectedCard: {
-    borderWidth: 2,
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-    transform: [{ scale: 1.02 }],
-  },
-  cardContent: {
-    flexDirection: 'row',
-    padding: 20,
-    alignItems: 'flex-start',
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
+    paddingVertical: designTokens.spacing.lg,
+    paddingHorizontal: designTokens.spacing.md,
     position: 'relative',
   },
+
+  selectedCard: {
+    borderWidth: 2,
+    borderColor: designTokens.colors.accent.brightBlue,
+  },
+
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: designTokens.spacing.md,
+  },
+
+  iconContainer: {
+    padding: designTokens.spacing.md,
+    borderRadius: designTokens.borderRadius.lg,
+    position: 'relative',
+  },
+
   checkmark: {
     position: 'absolute',
-    top: -8,
-    right: -8,
-    width: 24,
-    height: 24,
+    top: -4,
+    right: -4,
+    padding: 4,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
+
   cardText: {
     flex: 1,
   },
+
   cardTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    marginBottom: 8,
-    letterSpacing: -0.3,
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    marginBottom: designTokens.spacing.sm,
   },
+
   cardDescription: {
-    fontSize: 15,
-    fontFamily: 'Inter-Regular',
-    color: '#E2E8F0',
-    lineHeight: 22,
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.muted,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.sm,
   },
+
+  selectedIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+    borderTopLeftRadius: designTokens.borderRadius.lg,
+    borderBottomLeftRadius: designTokens.borderRadius.lg,
+  },
+
+  // Enhanced Button
   buttonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 32,
-    paddingTop: 16,
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: designTokens.spacing.md,
+    paddingBottom: designTokens.spacing.xl,
   },
+
+  buttonCard: {
+    paddingVertical: designTokens.spacing.md,
+    paddingHorizontal: designTokens.spacing.lg,
+  },
+
   continueButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    minHeight: 56,
   },
-  buttonDisabled: {
-    opacity: 0.5,
-    shadowOpacity: 0.1,
-  },
-  buttonGradient: {
-    paddingVertical: 18,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
+
+  // Enhanced Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
+
+  modalContainer: {
+    width: width * 0.85,
+    maxWidth: 400,
+  },
+
   modalContent: {
-    backgroundColor: '#1E293B',
-    borderRadius: 24,
-    padding: 32,
-    width: '100%',
-    maxWidth: 340,
+    paddingVertical: designTokens.spacing.xl,
+    paddingHorizontal: designTokens.spacing.lg,
+  },
+
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    marginBottom: designTokens.spacing.lg,
   },
+
   modalTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
-    marginBottom: 16,
-    textAlign: 'center',
+    fontSize: designTokens.typography.fontSize.xl,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    flex: 1,
   },
+
+  modalClose: {
+    padding: designTokens.spacing.xs,
+  },
+
   modalText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#E2E8F0',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 24,
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
+    marginBottom: designTokens.spacing.xl,
   },
-  modalCloseButton: {
-    backgroundColor: '#F59E0B',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-    minWidth: 100,
-  },
-  modalCloseText: {
-    color: '#0F172A',
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    textAlign: 'center',
+
+  modalButton: {
+    minHeight: 48,
   },
 });

@@ -1,9 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle, Mail, Lock } from 'lucide-react-native';
+import { GlassCard, ModernButton, FloatingAction, ParticleSystem, designTokens, animationHelpers } from '@/components/DesignSystem';
+import { HapticManager } from '@/utils/nativeFeatures';
 import { signIn } from '@/utils/auth';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  withTiming,
+  withDelay,
+  interpolate
+} from 'react-native-reanimated';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState('');
@@ -12,33 +22,64 @@ export default function SignInScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Enhanced animation values
+  const headerOpacity = useSharedValue(0);
+  const headerTranslateY = useSharedValue(30);
+  const formOpacity = useSharedValue(0);
+  const formTranslateY = useSharedValue(40);
+  const backgroundGlow = useSharedValue(0);
+
+  useEffect(() => {
+    startSignInAnimations();
+  }, []);
+
+  const startSignInAnimations = () => {
+    // Background glow
+    backgroundGlow.value = withTiming(1, { duration: 2000 });
+    
+    // Staggered entrance
+    setTimeout(() => {
+      animationHelpers.fadeIn(headerOpacity, 800);
+      headerTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+    }, 200);
+
+    setTimeout(() => {
+      animationHelpers.fadeIn(formOpacity, 800);
+      formTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+    }, 600);
+  };
+
   const validateEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
   const handleSignIn = async () => {
-    console.log('🎯 Sign in button pressed');
+    console.log('🎯 Enhanced sign in initiated');
     setError(null);
     
     // Validation
     if (!email.trim()) {
       setError('Please enter your email address');
+      await HapticManager.triggerError();
       return;
     }
 
     if (!validateEmail(email.trim())) {
       setError('Please enter a valid email address');
+      await HapticManager.triggerError();
       return;
     }
 
     if (!password.trim()) {
       setError('Please enter your password');
+      await HapticManager.triggerError();
       return;
     }
 
     setLoading(true);
-    console.log('🚀 Starting sign in process...');
+    await HapticManager.triggerSelection();
+    console.log('🚀 Starting enhanced sign in process...');
 
     try {
       const { user, error } = await signIn(email.trim(), password);
@@ -48,113 +89,183 @@ export default function SignInScreen() {
       if (error) {
         console.error('❌ Sign in failed:', error);
         setError(error);
+        await HapticManager.triggerError();
       } else if (user) {
         console.log('✅ Sign in successful, navigating to main app...');
-        // Navigation will be handled by the auth context
+        await HapticManager.triggerSuccess();
         router.replace('/(tabs)');
       } else {
         console.error('❓ Unexpected sign in result: no user and no error');
         setError('An unexpected error occurred. Please try again.');
+        await HapticManager.triggerError();
       }
     } catch (error) {
       console.error('💥 Unexpected error during sign in:', error);
       setError('An unexpected error occurred. Please try again.');
+      await HapticManager.triggerError();
     } finally {
       setLoading(false);
     }
   };
 
+  const handleBackPress = async () => {
+    await HapticManager.triggerSelection();
+    router.back();
+  };
+
+  const handleForgotPassword = async () => {
+    await HapticManager.triggerSelection();
+    router.push('/auth/forgot-password');
+  };
+
+  const handleSignUpPress = async () => {
+    await HapticManager.triggerSelection();
+    router.push('/auth/signup');
+  };
+
+  const togglePasswordVisibility = async () => {
+    await HapticManager.triggerSelection();
+    setShowPassword(!showPassword);
+  };
+
+  // Enhanced animated styles
+  const headerStyle = useAnimatedStyle(() => ({
+    opacity: headerOpacity.value,
+    transform: [{ translateY: headerTranslateY.value }],
+  }));
+
+  const formStyle = useAnimatedStyle(() => ({
+    opacity: formOpacity.value,
+    transform: [{ translateY: formTranslateY.value }],
+  }));
+
+  const backgroundGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(backgroundGlow.value, [0, 1], [0, 0.6]),
+  }));
+
   return (
     <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
+      colors={designTokens.colors.gradients.cosmic}
       style={styles.container}
     >
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#F3F4F6" />
-          </Pressable>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Continue your inner journey</Text>
-        </View>
-
-        <View style={styles.form}>
-          {error && (
-            <View style={styles.errorContainer}>
-              <AlertCircle size={20} color="#EF4444" />
-              <Text style={styles.errorText}>{error}</Text>
+      <SafeAreaView style={styles.safeArea}>
+        <ParticleSystem count={12} animate={true} />
+        
+        {/* Enhanced Background Glow */}
+        <Animated.View style={[styles.backgroundGlow, backgroundGlowStyle]} />
+        
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Enhanced Header */}
+          <Animated.View style={[styles.header, headerStyle]}>
+            <FloatingAction style={styles.backButton} onPress={handleBackPress}>
+              <ArrowLeft size={24} color={designTokens.colors.text.primary} />
+            </FloatingAction>
+            
+            <View style={styles.headerContent}>
+              <Text style={styles.title}>Welcome Back</Text>
+              <Text style={styles.subtitle}>Continue your inner journey</Text>
             </View>
-          )}
+          </Animated.View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
+          {/* Enhanced Form */}
+          <Animated.View style={[styles.formContainer, formStyle]}>
+            <GlassCard style={styles.formCard} intensity="medium">
+              {error && (
+                <GlassCard style={styles.errorContainer} intensity="strong">
+                  <AlertCircle size={20} color={designTokens.colors.accent.rose} />
+                  <Text style={styles.errorText}>{error}</Text>
+                </GlassCard>
+              )}
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={styles.passwordInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Enter your password"
-                placeholderTextColor="#9CA3AF"
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              {/* Enhanced Email Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Email Address</Text>
+                <GlassCard style={styles.inputCard} intensity="light">
+                  <View style={styles.inputWrapper}>
+                    <Mail size={20} color={designTokens.colors.text.muted} />
+                    <TextInput
+                      style={styles.input}
+                      value={email}
+                      onChangeText={setEmail}
+                      placeholder="Enter your email"
+                      placeholderTextColor={designTokens.colors.text.muted}
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                      autoComplete="email"
+                    />
+                  </View>
+                </GlassCard>
+              </View>
+
+              {/* Enhanced Password Input */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Password</Text>
+                <GlassCard style={styles.inputCard} intensity="light">
+                  <View style={styles.inputWrapper}>
+                    <Lock size={20} color={designTokens.colors.text.muted} />
+                    <TextInput
+                      style={styles.passwordInput}
+                      value={password}
+                      onChangeText={setPassword}
+                      placeholder="Enter your password"
+                      placeholderTextColor={designTokens.colors.text.muted}
+                      secureTextEntry={!showPassword}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                      editable={!loading}
+                      autoComplete="password"
+                    />
+                    <Pressable
+                      style={styles.eyeButton}
+                      onPress={togglePasswordVisibility}
+                      disabled={loading}
+                    >
+                      {showPassword ? (
+                        <EyeOff size={20} color={designTokens.colors.text.muted} />
+                      ) : (
+                        <Eye size={20} color={designTokens.colors.text.muted} />
+                      )}
+                    </Pressable>
+                  </View>
+                </GlassCard>
+              </View>
+
+              {/* Forgot Password Link */}
               <Pressable
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
+                style={styles.forgotPassword}
+                onPress={handleForgotPassword}
+                disabled={loading}
               >
-                {showPassword ? (
-                  <EyeOff size={20} color="#9CA3AF" />
-                ) : (
-                  <Eye size={20} color="#9CA3AF" />
-                )}
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </Pressable>
-            </View>
-          </View>
 
-          <Pressable
-            style={styles.forgotPassword}
-            onPress={() => router.push('/auth/forgot-password')}
-          >
-            <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-          </Pressable>
+              {/* Enhanced Sign In Button */}
+              <ModernButton
+                title={loading ? 'Signing In...' : 'Sign In to Your Journey'}
+                onPress={handleSignIn}
+                variant="gradient"
+                size="lg"
+                disabled={loading}
+                style={styles.signInButton}
+              />
 
-          <Pressable
-            style={[styles.signInButton, loading && styles.buttonDisabled]}
-            onPress={handleSignIn}
-            disabled={loading}
-          >
-            <LinearGradient
-              colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
-              style={styles.buttonGradient}
-            >
-              <Text style={styles.signInButtonText}>
-                {loading ? 'Signing In...' : 'Sign In'}
-              </Text>
-            </LinearGradient>
-          </Pressable>
-
-          <Pressable style={styles.signUpLink} onPress={() => router.push('/auth/signup')}>
-            <Text style={styles.signUpLinkText}>
-              Don't have an account? <Text style={styles.linkHighlight}>Create Account</Text>
-            </Text>
-          </Pressable>
-        </View>
-      </ScrollView>
+              {/* Sign Up Link */}
+              <Pressable 
+                style={styles.signUpLink} 
+                onPress={handleSignUpPress}
+                disabled={loading}
+              >
+                <Text style={styles.signUpLinkText}>
+                  Don't have an account?{' '}
+                  <Text style={styles.linkHighlight}>Create Account</Text>
+                </Text>
+              </Pressable>
+            </GlassCard>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -163,131 +274,163 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+
+  safeArea: {
+    flex: 1,
+  },
+
+  backgroundGlow: {
+    position: 'absolute',
+    top: '15%',
+    left: '15%',
+    right: '15%',
+    height: '40%',
+    borderRadius: 150,
+    backgroundColor: designTokens.colors.accent.purple,
+    opacity: 0.4,
+  },
+
   scrollView: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: designTokens.spacing.md,
   },
+
+  // Enhanced Header
   header: {
-    paddingTop: 60,
-    paddingBottom: 40,
-    alignItems: 'center',
+    paddingTop: designTokens.spacing.xl,
+    paddingBottom: designTokens.spacing.xl,
+    position: 'relative',
   },
+
   backButton: {
     position: 'absolute',
     left: 0,
-    top: 60,
-    padding: 8,
+    top: designTokens.spacing.xl,
+    padding: designTokens.spacing.sm,
   },
+
+  headerContent: {
+    alignItems: 'center',
+    paddingTop: designTokens.spacing.lg,
+  },
+
   title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
-    marginBottom: 8,
+    fontSize: designTokens.typography.fontSize['3xl'],
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: designTokens.spacing.sm,
   },
+
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.muted,
+    textAlign: 'center',
   },
-  form: {
+
+  // Enhanced Form
+  formContainer: {
     flex: 1,
-    paddingBottom: 40,
+    paddingBottom: designTokens.spacing.xxxl,
   },
+
+  formCard: {
+    paddingVertical: designTokens.spacing.xl,
+    paddingHorizontal: designTokens.spacing.lg,
+  },
+
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 24,
+    gap: designTokens.spacing.sm,
+    paddingVertical: designTokens.spacing.md,
+    paddingHorizontal: designTokens.spacing.lg,
+    marginBottom: designTokens.spacing.lg,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: designTokens.colors.accent.rose,
   },
+
   errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EF4444',
-    marginLeft: 8,
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.accent.rose,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
     flex: 1,
   },
+
+  // Enhanced Input Styles
   inputContainer: {
-    marginBottom: 24,
+    marginBottom: designTokens.spacing.lg,
   },
+
   label: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
-    marginBottom: 8,
+    fontSize: designTokens.typography.fontSize.sm,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.secondary,
+    marginBottom: designTokens.spacing.sm,
   },
-  input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+
+  inputCard: {
+    paddingVertical: designTokens.spacing.sm,
+    paddingHorizontal: designTokens.spacing.md,
   },
-  passwordContainer: {
+
+  inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    gap: designTokens.spacing.md,
   },
+
+  input: {
+    flex: 1,
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.primary,
+    paddingVertical: designTokens.spacing.sm,
+    minHeight: 24,
+  },
+
   passwordInput: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.primary,
+    paddingVertical: designTokens.spacing.sm,
+    paddingRight: designTokens.spacing.sm,
+    minHeight: 24,
   },
+
   eyeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    padding: designTokens.spacing.xs,
   },
+
+  // Action Elements
   forgotPassword: {
     alignItems: 'flex-end',
-    marginBottom: 32,
+    marginBottom: designTokens.spacing.xl,
   },
+
   forgotPasswordText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#F59E0B',
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.accent,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
   },
+
   signInButton: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    marginBottom: 24,
+    marginBottom: designTokens.spacing.lg,
+    minHeight: 56,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  signInButtonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-  },
+
   signUpLink: {
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: designTokens.spacing.md,
   },
+
   signUpLinkText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    textAlign: 'center',
   },
+
   linkHighlight: {
-    color: '#F59E0B',
-    fontFamily: 'Inter-SemiBold',
+    color: designTokens.colors.text.accent,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
   },
 });

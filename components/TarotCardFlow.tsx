@@ -8,12 +8,16 @@ import Animated, {
   interpolate,
   withSequence,
   withDelay,
-  Easing
+  Easing,
+  withSpring
 } from 'react-native-reanimated';
 import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
+import { GlassCard, ModernButton, FloatingAction, ParticleSystem, designTokens, animationHelpers } from './DesignSystem';
+import { HapticManager } from '@/utils/nativeFeatures';
 import { router } from 'expo-router';
+import { Sparkles, Star, Eye, Heart, Zap, Play } from 'lucide-react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -30,327 +34,284 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     return I_CHING_HEXAGRAMS[randomIndex];
   });
 
+  // Enhanced animation values
   const flipAnimation = useSharedValue(0);
   const glowAnimation = useSharedValue(0);
   const scaleAnimation = useSharedValue(0.8);
   const borderAnimation = useSharedValue(0);
+  const textFadeIn = useSharedValue(0);
+  const particlesOpacity = useSharedValue(0);
+  const backgroundGlow = useSharedValue(0);
 
-  const handleRevealCard = () => {
-    console.log('🎴 Card reveal triggered!');
+  const handleRevealCard = async () => {
+    console.log('🎴 Enhanced card reveal triggered!');
     
-    // Start the magical sequence
-    glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
-    borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
+    // Trigger haptic feedback
+    await HapticManager.triggerCardReveal();
     
-    // Scale up slightly before flip
+    // Start enhanced magical sequence
+    glowAnimation.value = withTiming(1, { duration: 1200, easing: Easing.out(Easing.cubic) });
+    borderAnimation.value = withTiming(1, { duration: 1800, easing: Easing.out(Easing.cubic) });
+    backgroundGlow.value = withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.cubic) });
+    
+    // Enhanced scale animation
     scaleAnimation.value = withSequence(
-      withTiming(1.05, { duration: 800, easing: Easing.out(Easing.cubic) }),
-      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
+      withTiming(1.1, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(1.05, { duration: 400, easing: Easing.inOut(Easing.cubic) }),
+      withTiming(1, { duration: 600, easing: Easing.inOut(Easing.cubic) })
     );
     
-    // Delayed flip animation for more dramatic effect
-    flipAnimation.value = withDelay(1200, withTiming(1, { 
-      duration: 1200, 
-      easing: Easing.inOut(Easing.cubic) 
+    // Activate particles
+    setTimeout(() => {
+      particlesOpacity.value = withTiming(1, { duration: 800 });
+    }, 600);
+    
+    // Enhanced flip animation with spring
+    flipAnimation.value = withDelay(1500, withSpring(1, { 
+      damping: 20, 
+      stiffness: 150 
     }));
     
-    // Change step after the full animation sequence
+    // Text fade in after flip
+    setTimeout(() => {
+      textFadeIn.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    }, 2800);
+    
+    // Change step after full sequence
     setTimeout(() => {
       setCurrentStep('card-and-iching');
-    }, 2000);
+    }, 3200);
   };
 
-  const handleShowKeywords = () => {
+  const handleShowKeywords = async () => {
+    await HapticManager.triggerSelection();
     setCurrentStep('keywords-only');
   };
 
-  const handleShowReflection = () => {
+  const handleShowReflection = async () => {
+    await HapticManager.triggerSelection();
     setCurrentStep('reflection-questions');
   };
 
   const handleReflectionComplete = () => {
-    console.log('⭐ Reflection complete callback triggered');
-    // Only call onComplete, let parent handle navigation/state
+    console.log('⭐ Enhanced reflection complete');
     if (onComplete) {
       onComplete();
     }
   };
 
-  const frontAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipAnimation.value, [0, 1], [0, 180], 'clamp');
-    return {
-      transform: [
-        { scale: scaleAnimation.value },
-        { rotateY: `${rotateY}deg` }
-      ],
-      opacity: interpolate(flipAnimation.value, [0, 0.5], [1, 0], 'clamp'),
-    };
-  });
-
-  const backAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipAnimation.value, [0, 1], [180, 360], 'clamp');
-    return {
-      transform: [
-        { scale: scaleAnimation.value },
-        { rotateY: `${rotateY}deg` }
-      ],
-      opacity: interpolate(flipAnimation.value, [0.5, 1], [0, 1], 'clamp'),
-    };
-  });
-
-  const glowAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: glowAnimation.value,
-      transform: [
-        { scale: interpolate(glowAnimation.value, [0, 1], [0.8, 1.2], 'clamp') }
-      ],
-    };
-  });
-
-  const borderAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: borderAnimation.value,
-      transform: [
-        { scale: interpolate(borderAnimation.value, [0, 1], [0.9, 1.1], 'clamp') }
-      ],
-    };
-  });
-
-  // Get a simple one-word essence of the I Ching hexagram
+  // Helper function to get I Ching essence
   const getIChingEssence = (hexagram: any) => {
-    const essenceMap: { [key: string]: string } = {
-      'The Creative': 'Creation',
-      'The Receptive': 'Receptivity',
-      'Difficulty at the Beginning': 'Challenge',
-      'Youthful Folly': 'Learning',
-      'Waiting': 'Patience',
-      'Conflict': 'Resolution',
-      'The Army': 'Leadership',
-      'Holding Together': 'Unity',
-      'Small Taming': 'Restraint',
-      'Treading': 'Caution',
-      'Peace': 'Harmony',
-      'Standstill': 'Stillness',
-      'Fellowship': 'Community',
-      'Great Possession': 'Abundance',
-      'Modesty': 'Humility',
-      'Enthusiasm': 'Inspiration',
-      'Following': 'Adaptation',
-      'Work on the Decayed': 'Healing',
-      'Approach': 'Progress',
-      'Contemplation': 'Reflection'
-    };
-    
-    return essenceMap[hexagram.name] || 'Wisdom';
+    const essences = [
+      'Flow', 'Balance', 'Growth', 'Wisdom', 'Peace', 'Strength',
+      'Clarity', 'Trust', 'Change', 'Harmony', 'Focus', 'Release'
+    ];
+    return essences[hexagram.number % essences.length];
   };
 
-  // Get I Ching keywords based on the hexagram
-  const getIChingKeywords = (hexagram: any) => {
-    const keywordMap: { [key: string]: string[] } = {
-      'The Creative': ['Initiative', 'Leadership', 'Power'],
-      'The Receptive': ['Acceptance', 'Nurturing', 'Support'],
-      'Difficulty at the Beginning': ['Perseverance', 'Growth', 'Breakthrough'],
-      'Youthful Folly': ['Learning', 'Guidance', 'Wisdom'],
-      'Waiting': ['Patience', 'Timing', 'Trust'],
-      'Conflict': ['Resolution', 'Balance', 'Harmony'],
-      'The Army': ['Organization', 'Strategy', 'Discipline'],
-      'Holding Together': ['Unity', 'Cooperation', 'Bond'],
-      'Small Taming': ['Restraint', 'Gentleness', 'Patience'],
-      'Treading': ['Caution', 'Respect', 'Mindfulness'],
-      'Peace': ['Harmony', 'Balance', 'Prosperity'],
-      'Standstill': ['Stillness', 'Reflection', 'Pause'],
-      'Fellowship': ['Community', 'Friendship', 'Collaboration'],
-      'Great Possession': ['Abundance', 'Responsibility', 'Sharing'],
-      'Modesty': ['Humility', 'Grace', 'Simplicity'],
-      'Enthusiasm': ['Inspiration', 'Energy', 'Motivation'],
-      'Following': ['Adaptation', 'Flow', 'Flexibility'],
-      'Work on the Decayed': ['Healing', 'Restoration', 'Renewal'],
-      'Approach': ['Progress', 'Advancement', 'Growth'],
-      'Contemplation': ['Reflection', 'Insight', 'Understanding']
-    };
-    
-    return keywordMap[hexagram.name] || ['Wisdom', 'Growth', 'Understanding'];
-  };
+  // Enhanced animated styles
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { scale: scaleAnimation.value },
+      { 
+        rotateY: `${interpolate(
+          flipAnimation.value,
+          [0, 1],
+          [0, 180]
+        )}deg` 
+      }
+    ],
+  }));
 
+  const glowStyle = useAnimatedStyle(() => ({
+    opacity: glowAnimation.value,
+    transform: [
+      { scale: interpolate(glowAnimation.value, [0, 1], [0.8, 1.2]) }
+    ],
+  }));
+
+  const borderStyle = useAnimatedStyle(() => ({
+    opacity: borderAnimation.value,
+    transform: [
+      { rotate: `${interpolate(borderAnimation.value, [0, 1], [0, 360])}deg` }
+    ],
+  }));
+
+  const textStyle = useAnimatedStyle(() => ({
+    opacity: textFadeIn.value,
+    transform: [
+      { translateY: interpolate(textFadeIn.value, [0, 1], [20, 0]) }
+    ],
+  }));
+
+  const backgroundGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(backgroundGlow.value, [0, 1], [0, 0.6]),
+  }));
+
+  const particleStyle = useAnimatedStyle(() => ({
+    opacity: particlesOpacity.value,
+  }));
+
+  // Enhanced card back render
   const renderCardBack = () => (
-    <View style={styles.stepContainer}>
-      {/* Background Effects */}
-      <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
-      <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
-      <Animated.View style={[styles.glowEffect3, glowAnimatedStyle]} />
+    <LinearGradient
+      colors={designTokens.colors.gradients.cosmic}
+      style={styles.container}
+    >
+      <ParticleSystem count={15} animate={true} />
       
-      {/* Animated Border Ring */}
-      <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
+      {/* Enhanced background glow */}
+      <Animated.View style={[styles.enhancedBackgroundGlow, backgroundGlowStyle]} />
       
-      {/* FIXED: Make the entire card area clickable with proper z-index */}
-      <Pressable 
-        style={styles.cardTouchArea} 
-        onPress={handleRevealCard}
-        accessible={true}
-        accessibilityLabel="Tap to reveal your message"
-        accessibilityRole="button"
-      >
-        <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
-          {/* Mystical Border */}
-          <LinearGradient
-            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
-          >
-            <View style={styles.innerBorder}>
-              <Image
-                source={require('@/assets/images/back of the deck.jpeg')}
-                style={styles.cardBackImage}
-                resizeMode="cover"
-              />
-              {/* Floating Light Effects */}
-              <View style={styles.lightEffect1} />
-              <View style={styles.lightEffect2} />
-              <View style={styles.lightEffect3} />
-              <View style={styles.lightEffect4} />
-              
-              {/* FIXED: Tap hint positioned properly and not blocking touch */}
-              <View style={styles.tapHintOverlay}>
-                <Text style={styles.tapHint}>✨ Tap to reveal your message ✨</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
-      </Pressable>
-    </View>
-  );
-
-  const renderCardAndIching = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.cardCenterContainer}>
-        <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
-          <LinearGradient
-            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
-          >
-            <View style={styles.innerBorder}>
-              <Image
-                source={{ uri: selectedCard.imageUrl }}
-                style={styles.cardFrontImage}
-                resizeMode="cover"
-              />
-              <View style={styles.cardInfo}>
-                <Text style={styles.cardName}>{selectedCard.name}</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
-      </View>
-
-      {/* COMPACT: Smaller I Ching container */}
-      <View style={styles.ichingContainer}>
-        <Text style={styles.ichingTitle}>Your I Ching Guidance</Text>
-        <View style={styles.ichingCard}>
-          <View style={styles.ichingHeader}>
-            <Text style={styles.ichingNumber}>#{selectedHexagram.number}</Text>
-            <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
-          </View>
+      <View style={styles.stepContainer}>
+        <Animated.View style={[styles.cardContainer, cardAnimatedStyle]}>
+          {/* Enhanced magical border */}
+          <Animated.View style={[styles.magicalBorder, borderStyle]}>
+            <LinearGradient
+              colors={[
+                designTokens.colors.accent.gold,
+                designTokens.colors.accent.purple,
+                designTokens.colors.accent.blue,
+                designTokens.colors.accent.gold
+              ]}
+              style={styles.borderGradient}
+            />
+          </Animated.View>
           
-          <View style={styles.ichingContent}>
-            <View style={styles.hexagramSymbol}>
-              {selectedHexagram.lines.map((line: boolean, index: number) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.line,
-                    line ? styles.solidLine : styles.brokenLine
-                  ]}
-                />
-              ))}
+          {/* Enhanced card glow */}
+          <Animated.View style={[styles.cardGlow, glowStyle]} />
+          
+          {/* Enhanced card back */}
+          <GlassCard style={styles.enhancedCard} intensity="strong">
+            <LinearGradient
+              colors={[
+                designTokens.colors.background.tertiary,
+                designTokens.colors.background.secondary
+              ]}
+              style={styles.cardBackGradient}
+            >
+              <View style={styles.cardBackContent}>
+                <FloatingAction style={styles.cardBackIcon}>
+                  <Star size={48} color={designTokens.colors.accent.gold} />
+                </FloatingAction>
+                <Text style={styles.cardBackText}>Your Guidance Awaits</Text>
+                <View style={styles.mysticalSymbols}>
+                  <Sparkles size={16} color={designTokens.colors.accent.purple} />
+                  <Text style={styles.mysticalText}>✦</Text>
+                  <Sparkles size={16} color={designTokens.colors.accent.blue} />
+                </View>
+              </View>
+            </LinearGradient>
+          </GlassCard>
+        </Animated.View>
+
+        <View style={styles.enhancedInstructions}>
+          <Text style={styles.instructionTitle}>Ready for Your Message?</Text>
+          <Text style={styles.instructionSubtitle}>
+            Take a deep breath and set your intention
+          </Text>
+          
+          <ModernButton
+            title="Reveal Your Card"
+            onPress={handleRevealCard}
+            variant="gradient"
+            size="lg"
+            icon={Eye}
+            style={styles.revealButton}
+          />
+        </View>
+      </View>
+    </LinearGradient>
+  );
+
+  // Enhanced card and I Ching render
+  const renderCardAndIching = () => (
+    <LinearGradient
+      colors={designTokens.colors.gradients.mystical}
+      style={styles.container}
+    >
+      <Animated.View style={particleStyle}>
+        <ParticleSystem count={12} animate={true} color={designTokens.colors.accent.emerald} />
+      </Animated.View>
+      
+      <View style={styles.stepContainer}>
+        {/* Enhanced Card Display */}
+        <Animated.View style={[styles.revealedCardContainer, textStyle]}>
+          <GlassCard style={styles.revealedCard} intensity="medium">
+            <View style={styles.cardHeader}>
+              <Heart size={24} color={designTokens.colors.accent.rose} />
+              <Text style={styles.cardTitle}>{selectedCard.name}</Text>
+              <Heart size={24} color={designTokens.colors.accent.rose} />
             </View>
-            <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
-          </View>
+            
+            <View style={styles.cardImageContainer}>
+              <View style={styles.cardImagePlaceholder}>
+                <Zap size={64} color={designTokens.colors.accent.gold} />
+              </View>
+            </View>
+            
+            <Text style={styles.cardMeaning}>{selectedCard.meaning}</Text>
+          </GlassCard>
+        </Animated.View>
+
+        {/* Enhanced I Ching Display */}
+        <Animated.View style={[styles.iChingContainer, textStyle]}>
+          <GlassCard style={styles.iChingCard} intensity="light">
+            <View style={styles.iChingHeader}>
+              <Text style={styles.iChingTitle}>Sacred Wisdom</Text>
+              <Text style={styles.iChingName}>{selectedHexagram.name}</Text>
+            </View>
+            <Text style={styles.iChingWisdom}>{selectedHexagram.wisdom}</Text>
+          </GlassCard>
+        </Animated.View>
+
+        {/* Enhanced Essence Display */}
+        <Animated.View style={[styles.essenceContainer, textStyle]}>
+          <GlassCard style={styles.essenceCard}>
+            <Text style={styles.essenceTitle}>Today's Sacred Essence</Text>
+            <View style={styles.essenceContent}>
+              <Text style={styles.essenceText}>
+                {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
+              </Text>
+            </View>
+            <Text style={styles.essenceDescription}>
+              Let these energies guide your reflection today
+            </Text>
+          </GlassCard>
+        </Animated.View>
+
+        {/* Enhanced Continue Button */}
+        <View style={styles.buttonContainer}>
+          <ModernButton
+            title="Begin Sacred Reflection"
+            onPress={handleShowReflection}
+            variant="gradient"
+            size="lg"
+            icon={Play}
+            style={styles.continueButton}
+          />
         </View>
       </View>
-
-      <Pressable style={styles.continueButton} onPress={handleShowKeywords}>
-        <LinearGradient
-          colors={['#F59E0B', '#D97706']}
-          style={styles.continueButtonGradient}
-        >
-          <Text style={styles.continueButtonText}>Show Keywords</Text>
-        </LinearGradient>
-      </Pressable>
-    </View>
+    </LinearGradient>
   );
 
-  const renderKeywordsOnly = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.keywordsMainContainer}>
-        {/* COMPACT: Smaller header */}
-        <View style={styles.keywordsHeader}>
-          <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
-          <Text style={styles.keywordsSubtitle}>
-            These energies are guiding you today
-          </Text>
-        </View>
+  // Enhanced keywords render (simplified for now)
+  const renderKeywordsOnly = () => renderCardAndIching();
 
-        {/* COMPACT: Tarot Keywords Section */}
-        <View style={styles.keywordSection}>
-          <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
-          <View style={styles.keywordGrid}>
-            {selectedCard.keywords.slice(0, 4).map((keyword, index) => (
-              <View key={index} style={styles.tarotKeyword}>
-                <Text style={styles.tarotKeywordText}>{keyword}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* COMPACT: I Ching Keywords Section */}
-        <View style={styles.keywordSection}>
-          <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
-          <View style={styles.keywordGrid}>
-            {getIChingKeywords(selectedHexagram).map((keyword, index) => (
-              <View key={index} style={styles.ichingKeyword}>
-                <Text style={styles.ichingKeywordText}>{keyword}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* COMPACT: Combined Essence */}
-        <View style={styles.essenceContainer}>
-          <Text style={styles.essenceTitle}>Today's Essence</Text>
-          <Text style={styles.essenceText}>
-            {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
-          </Text>
-          <Text style={styles.essenceDescription}>
-            Let these energies guide your reflection today
-          </Text>
-        </View>
-      </View>
-
-      {/* FIXED: Button positioned to be always visible */}
-      <View style={styles.buttonContainer}>
-        <Pressable style={styles.continueButton} onPress={handleShowReflection}>
-          <LinearGradient
-            colors={['#10B981', '#059669']}
-            style={styles.continueButtonGradient}
-          >
-            <Text style={styles.continueButtonText}>Begin Reflection</Text>
-          </LinearGradient>
-        </Pressable>
-      </View>
-    </View>
-  );
-
+  // Enhanced reflection render
   const renderReflectionQuestions = () => (
-    <View style={styles.stepContainer}>
-      <ReflectionPrompt
-        card={selectedCard}
-        hexagram={selectedHexagram}
-        onComplete={handleReflectionComplete}
-      />
-    </View>
+    <LinearGradient
+      colors={designTokens.colors.gradients.cosmic}
+      style={styles.container}
+    >
+      <View style={styles.stepContainer}>
+        <ReflectionPrompt
+          card={selectedCard}
+          hexagram={selectedHexagram}
+          onComplete={handleReflectionComplete}
+        />
+      </View>
+    </LinearGradient>
   );
 
   switch (currentStep) {
@@ -368,452 +329,252 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  // OPTIMIZED: Container that ensures everything fits in viewport
+  container: {
+    flex: 1,
+  },
+
   stepContainer: {
     flex: 1,
-    width: '100%',
-    height: screenHeight - 140, // Account for tab bar and status bar
-    paddingHorizontal: 20,
-    paddingVertical: 10, // REDUCED: Less vertical padding
+    paddingHorizontal: designTokens.spacing.md,
+    paddingVertical: designTokens.spacing.xl,
+    justifyContent: 'space-between',
   },
-  
-  // FIXED: Center container using flexbox
-  cardCenterContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20, // REDUCED: Less margin (was 30)
-  },
-  
-  // FIXED: Touch area that covers the entire card and is properly positioned
-  cardTouchArea: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 10, // Ensure it's above other elements
-    position: 'relative',
-  },
-  
-  // INCREASED: Card container with larger dimensions
+
+  // Enhanced Card Back Styles
   cardContainer: {
-    width: Math.min(screenWidth * 0.85, 360), // Increased from 0.75 to 0.85 and max from 300 to 360
-    height: Math.min(screenHeight * 0.6, 540), // Increased from 0.5 to 0.6 and max from 450 to 540
-    borderRadius: 24,
-    backfaceVisibility: 'hidden',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     position: 'relative',
   },
-  
-  // Glow effects positioned relative to container - adjusted for larger card
-  glowEffect1: {
+
+  magicalBorder: {
     position: 'absolute',
-    width: 240, // Increased from 200
-    height: 240, // Increased from 200
-    borderRadius: 120, // Increased from 100
-    backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    top: '8%', // Adjusted positioning
-    left: '3%', // Adjusted positioning
-    zIndex: 1,
+    width: screenWidth * 0.7 + 20,
+    height: screenWidth * 0.9 + 20,
+    borderRadius: designTokens.borderRadius.xl,
   },
-  glowEffect2: {
-    position: 'absolute',
-    width: 180, // Increased from 150
-    height: 180, // Increased from 150
-    borderRadius: 90, // Increased from 75
-    backgroundColor: 'rgba(139, 92, 246, 0.06)',
-    bottom: '12%', // Adjusted positioning
-    right: '5%', // Adjusted positioning
-    zIndex: 1,
+
+  borderGradient: {
+    flex: 1,
+    borderRadius: designTokens.borderRadius.xl,
+    padding: 3,
   },
-  glowEffect3: {
+
+  cardGlow: {
     position: 'absolute',
-    width: 150, // Increased from 120
-    height: 150, // Increased from 120
-    borderRadius: 75, // Increased from 60
-    backgroundColor: 'rgba(59, 130, 246, 0.04)',
-    top: '55%', // Adjusted positioning
-    left: '8%', // Adjusted positioning
-    zIndex: 1,
+    width: screenWidth * 0.8,
+    height: screenWidth * 1.0,
+    borderRadius: screenWidth * 0.4,
+    backgroundColor: designTokens.colors.accent.gold,
+    opacity: 0.3,
   },
-  
-  // Border ring effect - adjusted for larger card
-  borderRing: {
+
+  enhancedCard: {
+    width: screenWidth * 0.7,
+    height: screenWidth * 0.9,
+    padding: 0,
+    overflow: 'hidden',
+  },
+
+  cardBackGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: designTokens.borderRadius.lg,
+  },
+
+  cardBackContent: {
+    alignItems: 'center',
+    gap: designTokens.spacing.lg,
+  },
+
+  cardBackIcon: {
+    padding: designTokens.spacing.lg,
+  },
+
+  cardBackText: {
+    fontSize: designTokens.typography.fontSize['2xl'],
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    textAlign: 'center',
+  },
+
+  mysticalSymbols: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: designTokens.spacing.md,
+  },
+
+  mysticalText: {
+    fontSize: designTokens.typography.fontSize.lg,
+    color: designTokens.colors.accent.lavender,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+  },
+
+  enhancedBackgroundGlow: {
     position: 'absolute',
-    width: Math.min(screenWidth * 0.95, 400), // Increased from 0.85 to 0.95 and max from 340 to 400
-    height: Math.min(screenWidth * 0.95, 400), // Increased from 0.85 to 0.95 and max from 340 to 400
-    borderRadius: Math.min(screenWidth * 0.475, 200), // Adjusted accordingly
+    top: screenHeight * 0.2,
+    left: screenWidth * 0.1,
+    right: screenWidth * 0.1,
+    height: screenHeight * 0.6,
+    borderRadius: screenWidth * 0.4,
+    backgroundColor: designTokens.colors.accent.purple,
+    opacity: 0.4,
+  },
+
+  // Enhanced Instructions
+  enhancedInstructions: {
+    alignItems: 'center',
+    gap: designTokens.spacing.lg,
+    paddingVertical: designTokens.spacing.xl,
+  },
+
+  instructionTitle: {
+    fontSize: designTokens.typography.fontSize['3xl'],
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    textAlign: 'center',
+  },
+
+  instructionSubtitle: {
+    fontSize: designTokens.typography.fontSize.lg,
+    color: designTokens.colors.text.muted,
+    textAlign: 'center',
+    marginBottom: designTokens.spacing.md,
+  },
+
+  revealButton: {
+    minWidth: 200,
+  },
+
+  // Enhanced Revealed Card Styles
+  revealedCardContainer: {
+    marginBottom: designTokens.spacing.xl,
+  },
+
+  revealedCard: {
+    paddingVertical: designTokens.spacing.xl,
+  },
+
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: designTokens.spacing.md,
+    marginBottom: designTokens.spacing.lg,
+  },
+
+  cardTitle: {
+    fontSize: designTokens.typography.fontSize['2xl'],
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    textAlign: 'center',
+  },
+
+  cardImageContainer: {
+    alignItems: 'center',
+    marginBottom: designTokens.spacing.lg,
+  },
+
+  cardImagePlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: designTokens.borderRadius.full,
+    backgroundColor: designTokens.colors.glass.background,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(245, 158, 11, 0.2)',
-    borderStyle: 'dashed',
-    zIndex: 2,
+    borderColor: designTokens.colors.accent.gold,
   },
-  
-  // Mystical border with enhanced glow
-  mysticalBorder: {
-    flex: 1,
-    padding: 4,
-    borderRadius: 24,
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.7,
-    shadowRadius: 25,
-    elevation: 25,
+
+  cardMeaning: {
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
   },
-  
-  // Inner border
-  innerBorder: {
-    flex: 1,
-    borderRadius: 20,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    position: 'relative',
+
+  // Enhanced I Ching Styles
+  iChingContainer: {
+    marginBottom: designTokens.spacing.lg,
   },
-  
-  // Card images
-  cardBackImage: {
-    width: '100%',
-    height: '100%',
-    position: 'absolute',
-    top: 0,
-    left: 0,
+
+  iChingCard: {
+    paddingVertical: designTokens.spacing.lg,
   },
-  cardFrontImage: {
-    width: '100%',
-    height: '85%', // INCREASED: Show more of the card image (was 75%)
-  },
-  
-  // Light effects - adjusted positions for larger card
-  lightEffect1: {
-    position: 'absolute',
-    top: 18, // Slightly adjusted
-    left: 18, // Slightly adjusted
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    zIndex: 5,
-  },
-  lightEffect2: {
-    position: 'absolute',
-    top: 42, // Slightly adjusted
-    right: 30, // Slightly adjusted
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#8B5CF6',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
-    zIndex: 5,
-  },
-  lightEffect3: {
-    position: 'absolute',
-    bottom: 85, // Adjusted for larger card
-    left: 36, // Slightly adjusted
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#3B82F6',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    zIndex: 5,
-  },
-  lightEffect4: {
-    position: 'absolute',
-    bottom: 85, // Adjusted for larger card
-    right: 18, // Slightly adjusted
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 7,
-    zIndex: 5,
-  },
-  
-  // REDUCED: Tap hint overlay with smaller black area
-  tapHintOverlay: {
-    position: 'absolute',
-    bottom: 12, // REDUCED: Moved up from 24 to reduce black space
-    left: 18, // Slightly adjusted
-    right: 18, // Slightly adjusted
+
+  iChingHeader: {
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)', // REDUCED: Less opaque background
-    paddingVertical: 8, // REDUCED: Less padding (was 14)
-    paddingHorizontal: 16, // REDUCED: Less padding (was 18)
-    borderRadius: 16, // Slightly smaller radius
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-    zIndex: 3, // Lower than touch area
+    marginBottom: designTokens.spacing.md,
   },
-  tapHint: {
-    fontSize: 14, // REDUCED: Smaller font (was 16)
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+
+  iChingTitle: {
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.accent,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: designTokens.spacing.xs,
+  },
+
+  iChingName: {
+    fontSize: designTokens.typography.fontSize.xl,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.primary,
     textAlign: 'center',
   },
-  
-  // Card front styling
-  cardFront: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 20,
-  },
-  
-  // REDUCED: Card info with smaller black area
-  cardInfo: {
-    padding: 12, // REDUCED: Less padding (was 20)
-    flex: 1,
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.85)', // REDUCED: Less opaque background
-    minHeight: 60, // REDUCED: Minimum height to contain text
-  },
-  cardName: {
-    fontSize: 22, // REDUCED: Slightly smaller (was 26)
-    fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
-    textAlign: 'center',
-    textShadowColor: 'rgba(245, 158, 11, 0.4)',
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
-  },
-  
-  // COMPACT: Smaller I Ching container
-  ichingContainer: {
-    width: '100%',
-    marginBottom: 16, // REDUCED: Less margin (was 20)
-  },
-  ichingTitle: {
-    fontSize: 16, // REDUCED: Smaller font (was 18)
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-    textAlign: 'center',
-    marginBottom: 12, // REDUCED: Less margin (was 16)
-  },
-  ichingCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12, // REDUCED: Smaller radius (was 14)
-    padding: 16, // REDUCED: Less padding (was 20)
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  
-  // COMPACT: Reorganized I Ching header and content
-  ichingHeader: {
-    alignItems: 'center',
-    marginBottom: 12, // REDUCED: Less margin (was 16)
-  },
-  ichingNumber: {
-    fontSize: 12, // REDUCED: Smaller font (was 14)
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-    marginBottom: 4, // REDUCED: Less margin (was 6)
-  },
-  ichingName: {
-    fontSize: 18, // REDUCED: Smaller font (was 20)
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
-    textAlign: 'center',
-  },
-  
-  // COMPACT: Horizontal layout for hexagram and essence
-  ichingContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  hexagramSymbol: {
-    gap: 2, // REDUCED: Less gap (was 3)
-  },
-  line: {
-    height: 2, // REDUCED: Thinner lines (was 3)
-    width: 50, // REDUCED: Shorter lines (was 70)
-    backgroundColor: '#F59E0B',
-  },
-  solidLine: {
-    // Solid line style
-  },
-  brokenLine: {
-    // Broken line - create gap in middle
-    borderWidth: 1,
-    borderColor: '#F59E0B',
-    backgroundColor: 'transparent',
-    borderStyle: 'dashed',
-  },
-  ichingEssence: {
-    fontSize: 14, // REDUCED: Smaller font (was 16)
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+
+  iChingWisdom: {
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.muted,
     textAlign: 'center',
     fontStyle: 'italic',
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.sm,
   },
-  
-  // OPTIMIZED: Keywords screen to fit in viewport
-  keywordsMainContainer: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'space-between', // ADDED: Distribute space evenly
-  },
-  
-  // COMPACT: Smaller header section
-  keywordsHeader: {
-    alignItems: 'center',
-    marginBottom: 20, // REDUCED: Less space (was 40)
-  },
-  keywordsTitle: {
-    fontSize: 28, // REDUCED: Smaller title (was 32)
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
-    textAlign: 'center',
-    marginBottom: 8, // REDUCED: Less space (was 12)
-    lineHeight: 32, // REDUCED: Tighter line height
-  },
-  keywordsSubtitle: {
-    fontSize: 16, // REDUCED: Smaller subtitle (was 18)
-    fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
-    textAlign: 'center',
-    lineHeight: 20, // REDUCED: Tighter line height
-    maxWidth: 280,
-  },
-  
-  // COMPACT: Smaller keyword sections
-  keywordSection: {
-    marginBottom: 20, // REDUCED: Less space between sections (was 36)
-  },
-  keywordSectionTitle: {
-    fontSize: 18, // REDUCED: Smaller section titles (was 22)
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-    textAlign: 'center',
-    lineHeight: 22, // REDUCED: Tighter line height
-    marginBottom: 12, // REDUCED: Less space (was 20)
-  },
-  
-  // COMPACT: Tighter keyword grid
-  keywordGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10, // REDUCED: Less space between keywords (was 14)
-  },
-  
-  // COMPACT: Smaller tarot keywords
-  tarotKeyword: {
-    backgroundColor: 'rgba(245, 158, 11, 0.25)',
-    paddingHorizontal: 14, // REDUCED: Less padding (was 18)
-    paddingVertical: 8, // REDUCED: Less padding (was 12)
-    borderRadius: 18, // REDUCED: Less rounded (was 22)
-    borderWidth: 1.5,
-    borderColor: 'rgba(245, 158, 11, 0.5)',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tarotKeywordText: {
-    fontSize: 14, // REDUCED: Smaller text (was 16)
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-    textAlign: 'center',
-  },
-  
-  // COMPACT: Smaller I Ching keywords
-  ichingKeyword: {
-    backgroundColor: 'rgba(59, 130, 246, 0.25)',
-    paddingHorizontal: 14, // REDUCED: Less padding (was 18)
-    paddingVertical: 8, // REDUCED: Less padding (was 12)
-    borderRadius: 18, // REDUCED: Less rounded (was 22)
-    borderWidth: 1.5,
-    borderColor: 'rgba(59, 130, 246, 0.5)',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  ichingKeywordText: {
-    fontSize: 14, // REDUCED: Smaller text (was 16)
-    fontFamily: 'Inter-SemiBold',
-    color: '#3B82F6',
-    textAlign: 'center',
-  },
-  
-  // COMPACT: Smaller essence container
+
+  // Enhanced Essence Styles
   essenceContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16, // REDUCED: Less rounded (was 20)
-    padding: 20, // REDUCED: Less padding (was 28)
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 5,
+    marginBottom: designTokens.spacing.xl,
   },
+
+  essenceCard: {
+    paddingVertical: designTokens.spacing.lg,
+    alignItems: 'center',
+  },
+
   essenceTitle: {
-    fontSize: 16, // REDUCED: Smaller title (was 20)
-    fontFamily: 'Inter-SemiBold',
-    color: '#D1D5DB',
-    marginBottom: 10, // REDUCED: Less space (was 16)
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.accent,
+    marginBottom: designTokens.spacing.md,
     textAlign: 'center',
   },
+
+  essenceContent: {
+    marginBottom: designTokens.spacing.md,
+  },
+
   essenceText: {
-    fontSize: 20, // REDUCED: Smaller essence text (was 24)
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    fontSize: designTokens.typography.fontSize.xl,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    textAlign: 'center',
+  },
+
+  essenceDescription: {
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.muted,
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 26, // REDUCED: Tighter line height
-    marginBottom: 8, // REDUCED: Less space (was 12)
   },
-  
-  // COMPACT: Smaller essence description
-  essenceDescription: {
-    fontSize: 14, // REDUCED: Smaller text (was 16)
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 18, // REDUCED: Tighter line height
-    maxWidth: 240, // REDUCED: Narrower width
-  },
-  
-  // FIXED: Button container to ensure visibility
+
+  // Enhanced Button Styles
   buttonContainer: {
-    paddingTop: 10, // ADDED: Small padding at top
-    paddingBottom: 20, // ADDED: Padding at bottom for tab bar
     alignItems: 'center',
+    paddingTop: designTokens.spacing.lg,
   },
-  
-  // Continue button
+
   continueButton: {
-    borderRadius: 22,
-    overflow: 'hidden',
-    minWidth: 180,
-  },
-  continueButtonGradient: {
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    alignItems: 'center',
-  },
-  continueButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    minWidth: 250,
   },
 });

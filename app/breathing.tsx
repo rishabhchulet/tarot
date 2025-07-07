@@ -1,92 +1,158 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { GlassCard, FloatingAction, ParticleSystem, designTokens, animationHelpers } from '@/components/DesignSystem';
+import { HapticManager } from '@/utils/nativeFeatures';
 import { router } from 'expo-router';
-import { Heart, Sparkles } from 'lucide-react-native';
+import { Heart, Sparkles, Wind, Zap, Star, Sun } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withRepeat, 
   withTiming,
   withSequence,
+  withSpring,
+  withDelay,
   Easing,
   interpolate,
+  runOnJS,
 } from 'react-native-reanimated';
 
 export default function BreathingScreen() {
-  const [phase, setPhase] = useState<'prepare' | 'breathing'>('prepare');
+  const [phase, setPhase] = useState<'prepare' | 'breathing' | 'complete'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
+  const [currentInstruction, setCurrentInstruction] = useState('');
   
-  // Animation values
+  // Enhanced animation values
   const circleScale = useSharedValue(0.8);
   const circleOpacity = useSharedValue(0.6);
+  const circleGlow = useSharedValue(0);
   const heartPulse = useSharedValue(1);
   const sparkleRotation = useSharedValue(0);
-  const backgroundShimmer = useSharedValue(0);
+  const backgroundGlow = useSharedValue(0);
+  const contentOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(30);
+  const instructionOpacity = useSharedValue(0);
+  const completionScale = useSharedValue(0);
 
   useEffect(() => {
-    // Start ambient animations immediately
+    startEntranceAnimations();
     startAmbientAnimations();
   }, []);
 
   useEffect(() => {
     if (phase === 'breathing') {
       startBreathingCycle();
+    } else if (phase === 'complete') {
+      startCompletionAnimations();
     }
   }, [phase]);
 
-  const startAmbientAnimations = () => {
-    // Heart pulse animation
-    heartPulse.value = withRepeat(
-      withTiming(1.2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
+  const startEntranceAnimations = () => {
+    // Background glow entrance
+    backgroundGlow.value = withTiming(1, { duration: 2000 });
+    
+    // Content entrance
+    setTimeout(() => {
+      animationHelpers.fadeIn(contentOpacity, 800);
+      contentTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+    }, 300);
+  };
 
-    // Sparkle rotation
-    sparkleRotation.value = withRepeat(
-      withTiming(360, { duration: 8000, easing: Easing.linear }),
+  const startAmbientAnimations = () => {
+    // Enhanced heart pulse animation
+    heartPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.2, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) })
+      ),
       -1,
       false
     );
 
-    // Background shimmer
-    backgroundShimmer.value = withRepeat(
-      withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.ease) }),
+    // Enhanced sparkle rotation
+    sparkleRotation.value = withRepeat(
+      withTiming(360, { duration: 12000, easing: Easing.linear }),
       -1,
-      true
+      false
+    );
+
+    // Circle glow animation
+    circleGlow.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.3, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      false
     );
   };
 
-  const startBreathingCycle = () => {
+  const updateInstruction = (instruction: string) => {
+    setCurrentInstruction(instruction);
+    instructionOpacity.value = withSequence(
+      withTiming(0, { duration: 200 }),
+      withTiming(1, { duration: 400 })
+    );
+  };
+
+  const startBreathingCycle = async () => {
+    await HapticManager.triggerSelection();
     let currentBreath = 0;
     
-    const breathingCycle = () => {
-      // Inhale (4 seconds)
-      circleScale.value = withTiming(1.4, { 
-        duration: 4000, 
-        easing: Easing.inOut(Easing.ease) 
-      });
-      circleOpacity.value = withTiming(0.9, { 
-        duration: 4000, 
-        easing: Easing.inOut(Easing.ease) 
-      });
-
-      // Hold briefly then exhale (4 seconds)
+    const breathingCycle = (breathNumber: number) => {
+      // Prepare phase
+      runOnJS(updateInstruction)('Prepare yourself...');
+      
       setTimeout(() => {
-        circleScale.value = withTiming(0.8, { 
+        // Inhale phase (4 seconds)
+        runOnJS(updateInstruction)('Breathe in slowly...');
+        
+        circleScale.value = withTiming(1.6, { 
+          duration: 4000, 
+          easing: Easing.bezier(0.25, 0.46, 0.45, 0.94)
+        });
+        circleOpacity.value = withTiming(0.9, { 
           duration: 4000, 
           easing: Easing.inOut(Easing.ease) 
+        });
+        
+        // Haptic feedback for inhale
+        setTimeout(() => HapticManager.triggerSelection(), 0);
+      }, 1000);
+
+      // Hold phase (2 seconds)
+      setTimeout(() => {
+        runOnJS(updateInstruction)('Hold gently...');
+      }, 5000);
+
+      // Exhale phase (4 seconds)
+      setTimeout(() => {
+        runOnJS(updateInstruction)('Breathe out slowly...');
+        
+        circleScale.value = withTiming(0.8, { 
+          duration: 4000, 
+          easing: Easing.bezier(0.55, 0.06, 0.68, 0.19)
         });
         circleOpacity.value = withTiming(0.4, { 
           duration: 4000, 
           easing: Easing.inOut(Easing.ease) 
         });
-      }, 4000);
+        
+        // Haptic feedback for exhale
+        setTimeout(() => HapticManager.triggerSelection(), 0);
+      }, 7000);
+
+      // Rest phase
+      setTimeout(() => {
+        if (breathNumber < 3) {
+          runOnJS(updateInstruction)('Rest and prepare...');
+        }
+      }, 11000);
     };
 
     // Start first cycle
-    breathingCycle();
+    breathingCycle(1);
     currentBreath = 1;
     setBreathCount(1);
 
@@ -96,32 +162,60 @@ export default function BreathingScreen() {
       setBreathCount(currentBreath);
       
       if (currentBreath <= 3) {
-        breathingCycle();
+        breathingCycle(currentBreath);
       }
       
       if (currentBreath >= 3) {
         clearInterval(interval);
-        // Wait for last cycle to complete, then navigate directly to main app
+        // Transition to completion
         setTimeout(() => {
-          console.log('🎉 Breathing complete, navigating to main app...');
-          router.replace('/(tabs)');
-        }, 8000); // Wait for last cycle to complete
+          setPhase('complete');
+        }, 12000);
       }
-    }, 8000); // 8 seconds per complete cycle
+    }, 13000); // 13 seconds per complete cycle
 
     return () => clearInterval(interval);
   };
 
-  const handleStartBreathing = () => {
+  const startCompletionAnimations = async () => {
+    await HapticManager.triggerSelection();
+    
+    // Completion scale animation
+    completionScale.value = withSpring(1, designTokens.animations.spring.bouncy);
+    
+    // Auto-navigate after showing completion
+    setTimeout(() => {
+      console.log('🎉 Breathing complete, navigating to main app...');
+      router.replace('/(tabs)');
+    }, 3000);
+  };
+
+  const handleStartBreathing = async () => {
+    await HapticManager.triggerSelection();
     console.log('🫁 Starting breathing exercise...');
     setPhase('breathing');
     setBreathCount(0);
   };
 
-  // Animated styles
+  const handleSkip = async () => {
+    await HapticManager.triggerSelection();
+    router.replace('/(tabs)');
+  };
+
+  // Enhanced animated styles
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ translateY: contentTranslateY.value }],
+  }));
+
   const circleStyle = useAnimatedStyle(() => ({
     transform: [{ scale: circleScale.value }],
     opacity: circleOpacity.value,
+  }));
+
+  const circleGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(circleGlow.value, [0, 1], [0.2, 0.8]),
+    transform: [{ scale: interpolate(circleGlow.value, [0, 1], [0.9, 1.1]) }],
   }));
 
   const heartStyle = useAnimatedStyle(() => ({
@@ -132,15 +226,33 @@ export default function BreathingScreen() {
     transform: [{ rotate: `${sparkleRotation.value}deg` }],
   }));
 
-  const backgroundStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(backgroundShimmer.value, [0, 1], [0.1, 0.3]),
+  const backgroundGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(backgroundGlow.value, [0, 1], [0, 0.6]),
+  }));
+
+  const instructionStyle = useAnimatedStyle(() => ({
+    opacity: instructionOpacity.value,
+  }));
+
+  const completionStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: completionScale.value }],
+    opacity: completionScale.value,
   }));
 
   const getBreathingText = () => {
-    if (breathCount === 1) return 'Breathe in... and out...';
-    if (breathCount === 2) return 'Feel your body relaxing...';
-    if (breathCount === 3) return 'One more deep breath...';
-    return 'Breathe in... and out...';
+    if (breathCount === 1) return 'Begin your journey within';
+    if (breathCount === 2) return 'Feel peace flowing through you';
+    if (breathCount === 3) return 'Embrace this moment of calm';
+    return 'Breathe with intention';
+  };
+
+  const getPhaseIcon = () => {
+    switch (phase) {
+      case 'prepare': return Heart;
+      case 'breathing': return Wind;
+      case 'complete': return Star;
+      default: return Heart;
+    }
   };
 
   const renderContent = () => {
@@ -150,26 +262,53 @@ export default function BreathingScreen() {
           <>
             <View style={styles.iconContainer}>
               <Animated.View style={heartStyle}>
-                <Heart size={60} color="#F59E0B" fill="#F59E0B" />
+                <FloatingAction style={styles.mainIcon}>
+                  <Heart size={48} color={designTokens.colors.accent.rose} fill={designTokens.colors.accent.rose} />
+                </FloatingAction>
               </Animated.View>
             </View>
 
-            <Text style={styles.title}>Take a Deep Breath</Text>
-            <Text style={styles.subtitle}>
-              Let's center yourself before you receive your first inner message.
-            </Text>
-            <Text style={styles.description}>
-              Find a comfortable position and prepare to breathe deeply with intention.
-            </Text>
+            <GlassCard style={styles.contentCard} intensity="medium">
+              <Text style={styles.title}>Take a Deep Breath</Text>
+              <Text style={styles.subtitle}>
+                Let's center yourself before you receive your first inner message.
+              </Text>
+              <Text style={styles.description}>
+                Find a comfortable position and prepare to breathe deeply with intention. 
+                This practice will help you connect with your inner wisdom.
+              </Text>
 
-            <Pressable style={styles.startButton} onPress={handleStartBreathing}>
-              <LinearGradient
-                colors={['#3B82F6', '#1D4ED8']}
-                style={styles.startButtonGradient}
-              >
-                <Text style={styles.startButtonText}>Begin Breathing</Text>
-              </LinearGradient>
-            </Pressable>
+              <View style={styles.benefitsContainer}>
+                <View style={styles.benefit}>
+                  <Zap size={16} color={designTokens.colors.accent.gold} />
+                  <Text style={styles.benefitText}>Reduces stress</Text>
+                </View>
+                <View style={styles.benefit}>
+                  <Sun size={16} color={designTokens.colors.accent.brightBlue} />
+                  <Text style={styles.benefitText}>Improves focus</Text>
+                </View>
+                <View style={styles.benefit}>
+                  <Heart size={16} color={designTokens.colors.accent.rose} />
+                  <Text style={styles.benefitText}>Calms the mind</Text>
+                </View>
+              </View>
+            </GlassCard>
+
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.startButton} onPress={handleStartBreathing}>
+                <LinearGradient
+                  colors={designTokens.colors.gradients.mystical}
+                  style={styles.startButtonGradient}
+                >
+                  <Wind size={20} color={designTokens.colors.text.primary} />
+                  <Text style={styles.startButtonText}>Begin Breathing</Text>
+                </LinearGradient>
+              </Pressable>
+
+              <Pressable style={styles.skipButton} onPress={handleSkip}>
+                <Text style={styles.skipButtonText}>Skip for now</Text>
+              </Pressable>
+            </View>
           </>
         );
       
@@ -177,27 +316,70 @@ export default function BreathingScreen() {
         return (
           <>
             <View style={styles.breathingContainer}>
+              {/* Enhanced breathing circle with glow effect */}
+              <Animated.View style={[styles.breathingGlow, circleGlowStyle]} />
               <Animated.View style={[styles.breathingCircle, circleStyle]}>
                 <View style={styles.innerCircle}>
                   <Animated.View style={sparkleStyle}>
-                    <Sparkles size={32} color="#FFFFFF" />
+                    <Sparkles size={24} color={designTokens.colors.text.primary} />
                   </Animated.View>
                 </View>
               </Animated.View>
             </View>
 
-            <Text style={styles.breathingText}>
-              {getBreathingText()}
-            </Text>
-            
-            <Text style={styles.breathingCount}>
-              Breath {breathCount} of 3
-            </Text>
+            <GlassCard style={styles.breathingCard} intensity="light">
+              <Text style={styles.breathingText}>
+                {getBreathingText()}
+              </Text>
+              
+              <Animated.View style={instructionStyle}>
+                <Text style={styles.instructionText}>
+                  {currentInstruction}
+                </Text>
+              </Animated.View>
+              
+              <View style={styles.progressContainer}>
+                <Text style={styles.breathingCount}>
+                  Breath {breathCount} of 3
+                </Text>
+                <View style={styles.progressBar}>
+                  {[1, 2, 3].map((num) => (
+                    <View 
+                      key={num} 
+                      style={[
+                        styles.progressDot, 
+                        num <= breathCount && styles.progressDotActive
+                      ]} 
+                    />
+                  ))}
+                </View>
+              </View>
+            </GlassCard>
 
-            <Text style={styles.breathingInstruction}>
-              Follow the circle as it expands and contracts
+            <Text style={styles.guidanceText}>
+              Follow the circle's rhythm and let your breath guide you
             </Text>
           </>
+        );
+        
+      case 'complete':
+        return (
+          <Animated.View style={[styles.completionContainer, completionStyle]}>
+            <GlassCard style={styles.completionCard} intensity="medium">
+              <View style={styles.completionIcon}>
+                <Star size={64} color={designTokens.colors.accent.gold} fill={designTokens.colors.accent.gold} />
+              </View>
+              <Text style={styles.completionTitle}>Beautiful</Text>
+              <Text style={styles.completionText}>
+                You've created a moment of peace. Carry this calm energy with you as you explore your inner wisdom.
+              </Text>
+              <View style={styles.completionSparkles}>
+                <Sparkles size={20} color={designTokens.colors.accent.gold} />
+                <Sparkles size={16} color={designTokens.colors.accent.brightBlue} />
+                <Sparkles size={18} color={designTokens.colors.accent.rose} />
+              </View>
+            </GlassCard>
+          </Animated.View>
         );
       
       default:
@@ -207,34 +389,19 @@ export default function BreathingScreen() {
 
   return (
     <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
+      colors={designTokens.colors.gradients.cosmic}
       style={styles.container}
     >
-      {/* Animated background effects */}
-      <Animated.View style={[styles.backgroundShimmer, backgroundStyle]} />
-      
-      {/* Floating particles */}
-      <View style={styles.particleContainer}>
-        {[...Array(8)].map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.particle,
-              {
-                left: Math.random() * 300 + 50,
-                top: Math.random() * 600 + 100,
-                animationDelay: `${index * 0.5}s`,
-              }
-            ]}
-          >
-            <Sparkles size={8} color="#F59E0B" />
-          </View>
-        ))}
-      </View>
+      <SafeAreaView style={styles.safeArea}>
+        <ParticleSystem count={16} animate={true} />
+        
+        {/* Enhanced Background Glow */}
+        <Animated.View style={[styles.backgroundGlow, backgroundGlowStyle]} />
 
-      <View style={styles.content}>
-        {renderContent()}
-      </View>
+        <Animated.View style={[styles.content, contentStyle]}>
+          {renderContent()}
+        </Animated.View>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -244,139 +411,215 @@ const styles = StyleSheet.create({
     flex: 1,
     position: 'relative',
   },
-  
-  // Background effects
-  backgroundShimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+
+  safeArea: {
+    flex: 1,
   },
   
-  particleContainer: {
+  backgroundGlow: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
-  },
-  
-  particle: {
-    position: 'absolute',
-    opacity: 0.6,
+    top: '30%',
+    left: '20%',
+    right: '20%',
+    height: '40%',
+    borderRadius: 200,
+    backgroundColor: designTokens.colors.accent.brightBlue,
+    opacity: 0.3,
   },
   
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
+    paddingHorizontal: designTokens.spacing.lg,
+    paddingVertical: designTokens.spacing.xl,
   },
   
+  // Prepare Phase
   iconContainer: {
-    marginBottom: 32,
-    shadowColor: '#F59E0B',
+    marginBottom: designTokens.spacing.xl,
+  },
+
+  mainIcon: {
+    padding: designTokens.spacing.lg,
+    shadowColor: designTokens.colors.accent.rose,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
+    shadowOpacity: 0.6,
     shadowRadius: 20,
     elevation: 20,
+  },
+
+  contentCard: {
+    paddingVertical: designTokens.spacing.xl,
+    paddingHorizontal: designTokens.spacing.lg,
+    marginBottom: designTokens.spacing.xl,
+    maxWidth: 360,
+    alignItems: 'center',
   },
   
   title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    fontSize: designTokens.typography.fontSize['3xl'],
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: designTokens.spacing.md,
   },
   
   subtitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
+    color: designTokens.colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 26,
+    marginBottom: designTokens.spacing.lg,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.lg,
   },
   
   description: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.muted,
     textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-    maxWidth: 300,
+    marginBottom: designTokens.spacing.lg,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
+  },
+
+  benefitsContainer: {
+    flexDirection: 'row',
+    gap: designTokens.spacing.lg,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+
+  benefit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: designTokens.spacing.xs,
+    paddingVertical: designTokens.spacing.sm,
+    paddingHorizontal: designTokens.spacing.md,
+    backgroundColor: designTokens.colors.glass.background,
+    borderRadius: designTokens.borderRadius.md,
+    borderWidth: 1,
+    borderColor: designTokens.colors.glass.border,
+  },
+
+  benefitText: {
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.secondary,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
+  },
+
+  buttonContainer: {
+    gap: designTokens.spacing.md,
+    alignItems: 'center',
   },
   
-  // Breathing animation
+  // Enhanced Breathing Animation
   breathingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: designTokens.spacing.xl,
+    position: 'relative',
+  },
+
+  breathingGlow: {
+    position: 'absolute',
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: designTokens.colors.accent.brightBlue,
+    opacity: 0.2,
   },
   
   breathingCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(59, 130, 246, 0.3)',
-    borderWidth: 3,
-    borderColor: '#3B82F6',
+    width: 240,
+    height: 240,
+    borderRadius: 120,
+    backgroundColor: designTokens.colors.glass.background,
+    borderWidth: 2,
+    borderColor: designTokens.colors.accent.brightBlue,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#3B82F6',
+    shadowColor: designTokens.colors.accent.brightBlue,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
+    shadowOpacity: 0.6,
+    shadowRadius: 30,
+    elevation: 30,
   },
   
   innerCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: designTokens.colors.glass.background,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderWidth: 1,
+    borderColor: designTokens.colors.glass.border,
+  },
+
+  breathingCard: {
+    paddingVertical: designTokens.spacing.lg,
+    paddingHorizontal: designTokens.spacing.md,
+    marginBottom: designTokens.spacing.lg,
+    alignItems: 'center',
+    maxWidth: 320,
   },
   
   breathingText: {
-    fontSize: 24,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
+    fontSize: designTokens.typography.fontSize.xl,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.primary,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: designTokens.spacing.md,
+  },
+
+  instructionText: {
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
+    color: designTokens.colors.accent.brightBlue,
+    textAlign: 'center',
+    marginBottom: designTokens.spacing.lg,
+  },
+
+  progressContainer: {
+    alignItems: 'center',
+    gap: designTokens.spacing.sm,
   },
   
   breathingCount: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    fontSize: designTokens.typography.fontSize.base,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
+    color: designTokens.colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 12,
   },
-  
-  breathingInstruction: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
+
+  progressBar: {
+    flexDirection: 'row',
+    gap: designTokens.spacing.sm,
+  },
+
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: designTokens.colors.glass.border,
+  },
+
+  progressDotActive: {
+    backgroundColor: designTokens.colors.accent.gold,
+  },
+
+  guidanceText: {
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.muted,
     textAlign: 'center',
     fontStyle: 'italic',
   },
   
-  // Buttons
+  // Enhanced Buttons
   startButton: {
-    borderRadius: 25,
+    borderRadius: designTokens.borderRadius.xl,
     overflow: 'hidden',
-    shadowColor: '#3B82F6',
+    shadowColor: designTokens.colors.accent.brightBlue,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -384,14 +627,70 @@ const styles = StyleSheet.create({
   },
   
   startButtonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: designTokens.spacing.lg,
+    paddingHorizontal: designTokens.spacing.xl,
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: designTokens.spacing.sm,
   },
   
   startButtonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.primary,
+  },
+
+  skipButton: {
+    paddingVertical: designTokens.spacing.md,
+    paddingHorizontal: designTokens.spacing.lg,
+  },
+
+  skipButtonText: {
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.muted,
+    textAlign: 'center',
+  },
+
+  // Completion Phase
+  completionContainer: {
+    alignItems: 'center',
+  },
+
+  completionCard: {
+    paddingVertical: designTokens.spacing.xxxl,
+    paddingHorizontal: designTokens.spacing.xl,
+    alignItems: 'center',
+    maxWidth: 340,
+  },
+
+  completionIcon: {
+    marginBottom: designTokens.spacing.xl,
+    shadowColor: designTokens.colors.accent.gold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 20,
+  },
+
+  completionTitle: {
+    fontSize: designTokens.typography.fontSize['2xl'],
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
+    textAlign: 'center',
+    marginBottom: designTokens.spacing.md,
+  },
+
+  completionText: {
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
+    marginBottom: designTokens.spacing.lg,
+  },
+
+  completionSparkles: {
+    flexDirection: 'row',
+    gap: designTokens.spacing.md,
+    alignItems: 'center',
   },
 });

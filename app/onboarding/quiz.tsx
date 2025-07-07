@@ -1,178 +1,132 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Heart, DollarSign, Brain, Users } from 'lucide-react-native';
-import { updateUserProfile } from '@/utils/auth';
-import { useAuth } from '@/contexts/AuthContext';
+import { Info } from 'lucide-react-native';
 
-const QUIZ_OPTIONS = [
+import imgAlchemist from '../../assets/images/image.png';
+import imgSeer from '../../assets/images/image copy.png';
+import imgCreator from '../../assets/images/image copy copy.png';
+import imgMirror from '../../assets/images/back of the deck.jpeg';
+import imgTrickster from '../../assets/images/icon.png';
+import imgShapeshifter from '../../assets/images/favicon.png';
+
+const ARCHETYPES = [
   {
-    id: 'inner',
-    title: 'Inner Development',
-    icon: Heart,
-    description: 'Connecting with your inner wisdom and higher self',
+    id: 'alchemist',
+    name: 'The Alchemist',
+    image: imgAlchemist,
+    description: 'You walk the path of transformation and depth. Turning challenges into your power. Every obstacle is simply power in disguise.'
   },
   {
-    id: 'relationships',
-    title: 'Relationships',
-    icon: Users,
-    description: 'Building meaningful connections with others',
+    id: 'seer',
+    name: 'The Seer',
+    image: imgSeer,
+    description: 'The Seer navigates the world with an innate sense of direction, relying on inner knowing and intuition to guide decisions. Trust your inner voice—it always knows the way forward.'
   },
   {
-    id: 'money',
-    title: 'Money & Resources',
-    icon: DollarSign,
-    description: 'Creating abundance and financial wellbeing',
+    id: 'creator',
+    name: 'The Creator',
+    image: imgCreator,
+    description: 'You are dedicated to creating something enduring and lasting, whether it be a home, a business, a personal legacy, or a work of art.'
   },
   {
-    id: 'health',
-    title: 'Physical & Mental Health',
-    icon: Brain,
-    description: 'Nurturing your body, mind, and overall wellness',
+    id: 'mirror',
+    name: 'The Mirror',
+    image: imgMirror,
+    description: 'You have a unique gift for sensing the emotions and energies of those around you. You learn best by reflecting on your experiences, through meaningful relationships, and by trusting your emotions.'
+  },
+  {
+    id: 'trickster',
+    name: 'The Trickster',
+    image: imgTrickster,
+    description: 'You love shaking things up and challenging norms. With your humor, adaptability, and playful disruptions, you push others (and yourself) to grow and evolve.'
+  },
+  {
+    id: 'shapeshifter',
+    name: 'The Shapeshifter',
+    image: imgShapeshifter,
+    description: 'You effortlessly move between different roles and identities. Your strength lies in your adaptability and versatility. Yet, deep down, you might sometimes wonder: "Which of these forms is truly me?"'
   },
 ];
 
-export default function QuizScreen() {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const { user, refreshUser } = useAuth();
+const ARCHETYPE_EXPLANATION =
+  'An archetype is a universal personality or pattern that shows how people tend to think, feel, or act across time and cultures.';
 
-  const handleContinue = async () => {
-    if (!selectedOption) return;
-    
-    console.log('🎯 Quiz continue button pressed with option:', selectedOption);
+export default function ArchetypeQuiz() {
+  const [selected, setSelected] = useState<string | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleContinue = () => {
+    if (!selected) return;
     setLoading(true);
-    
-    try {
-      console.log('💾 Updating user profile with focus area...');
-      
-      // CRITICAL FIX: Try to update but don't block the user experience
-      let updateSuccessful = false;
-      
-      try {
-        const { error } = await updateUserProfile({ focusArea: selectedOption });
-        
-        if (!error) {
-          console.log('✅ Focus area updated successfully');
-          updateSuccessful = true;
-        } else {
-          console.warn('⚠️ Profile update had error:', error);
-        }
-      } catch (updateError: any) {
-        console.warn('⚠️ Profile update failed:', updateError);
-      }
-      
-      // CRITICAL FIX: Always proceed regardless of update success
-      console.log('📱 Proceeding to intro screen...');
+    // TODO: Save archetype to user profile here
+    setTimeout(() => {
       router.replace('/onboarding/intro');
-      
-      // CRITICAL FIX: If update was successful, refresh user data in background
-      if (updateSuccessful) {
-        setTimeout(() => {
-          refreshUser().catch(error => {
-            console.warn('⚠️ Background user refresh failed:', error);
-          });
-        }, 1000);
-      }
-      
-      // CRITICAL FIX: If update failed, show a non-blocking notification
-      if (!updateSuccessful) {
-        setTimeout(() => {
-          Alert.alert(
-            'Settings Saved',
-            'Your preference has been noted. You can change this anytime in settings.',
-            [{ text: 'OK' }]
-          );
-        }, 2000);
-      }
-      
-    } catch (error: any) {
-      console.error('💥 Error in quiz continue:', error);
-      
-      // CRITICAL FIX: Even if everything fails, still proceed
-      console.log('📱 Proceeding despite errors...');
-      router.replace('/onboarding/intro');
-      
-      // Show a friendly message
-      setTimeout(() => {
-        Alert.alert(
-          'Almost There!',
-          'We\'ll save your preferences once you\'re fully set up. You can change this later in settings.',
-          [{ text: 'OK' }]
-        );
-      }, 2000);
-    } finally {
-      // Don't set loading to false since we're navigating away
-    }
+    }, 500);
   };
 
   return (
     <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
+      colors={["#1F2937", "#374151", "#6B46C1"]}
       style={styles.container}
     >
-      <View style={styles.content}>
-        <Text style={styles.greeting}>
-          Welcome, {user?.name || 'friend'}
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Text style={styles.header}>This app is your mirror.</Text>
+        <Text style={styles.intro}>
+          It will help you uncover who you are, and your deeper inner mysteries...{"\n\n"}
+          In your journey, an archetype has arrived to be your guide. Choose the one you currently feel the most drawn to now.
         </Text>
-        <Text style={styles.title}>First, What Matters to You Right Now?</Text>
-        <Text style={styles.subtitle}>
-          Just choose what resonates, you can always change this later.
-        </Text>
-        
-        <View style={styles.optionsContainer}>
-          {QUIZ_OPTIONS.map((option) => {
-            const IconComponent = option.icon;
-            const isSelected = selectedOption === option.id;
-            
-            return (
-              <Pressable
-                key={option.id}
-                style={[styles.option, isSelected && styles.optionSelected]}
-                onPress={() => {
-                  console.log('🎯 Option selected:', option.id);
-                  setSelectedOption(option.id);
-                }}
-                disabled={loading}
-              >
-                <View style={styles.optionContent}>
-                  <View style={[styles.iconContainer, isSelected && styles.iconContainerSelected]}>
-                    <IconComponent 
-                      size={24} 
-                      color={isSelected ? '#F59E0B' : '#9CA3AF'} 
-                      strokeWidth={2}
-                    />
-                  </View>
-                  <View style={styles.textContainer}>
-                    <Text style={[styles.optionTitle, isSelected && styles.optionTitleSelected]}>
-                      {option.title}
-                    </Text>
-                    <Text style={[styles.optionDescription, isSelected && styles.optionDescriptionSelected]}>
-                      {option.description}
-                    </Text>
-                  </View>
-                </View>
-              </Pressable>
-            );
-          })}
+        <View style={styles.infoRow}>
+          <TouchableOpacity onPress={() => setShowInfo(true)} style={styles.infoButton}>
+            <Info size={20} color="#F59E0B" />
+            <Text style={styles.infoText}>What is an archetype?</Text>
+          </TouchableOpacity>
         </View>
-      </View>
-      
-      <Pressable 
-        style={[styles.button, (!selectedOption || loading) && styles.buttonDisabled]} 
-        onPress={handleContinue}
-        disabled={!selectedOption || loading}
-      >
-        <LinearGradient
-          colors={(selectedOption && !loading) ? ['#F59E0B', '#D97706'] : ['#6B7280', '#4B5563']}
-          style={styles.buttonGradient}
+        <Text style={styles.chooseText}>
+          (Choose with your gut for now. Don't worry, you will be able to adjust your choice later.)
+        </Text>
+        <View style={styles.cardsContainer}>
+          {ARCHETYPES.map((a) => (
+            <Pressable
+              key={a.id}
+              style={[styles.card, selected === a.id && styles.cardSelected]}
+              onPress={() => setSelected(a.id)}
+              accessibilityLabel={a.name}
+              accessibilityRole="button"
+            >
+              <Image source={a.image} style={styles.cardImage} resizeMode="cover" />
+              <Text style={styles.cardTitle}>{a.name}</Text>
+              <Text style={styles.cardDesc}>{a.description}</Text>
+              {selected === a.id && <View style={styles.selectedGlow} />}
+            </Pressable>
+          ))}
+        </View>
+        <Pressable
+          style={[styles.continueButton, (!selected || loading) && styles.continueButtonDisabled]}
+          onPress={handleContinue}
+          disabled={!selected || loading}
         >
-          <Text style={styles.buttonText}>
-            {loading ? 'Saving...' : 'Continue'}
-          </Text>
-        </LinearGradient>
-      </Pressable>
+          <LinearGradient
+            colors={selected && !loading ? ["#F59E0B", "#D97706"] : ["#6B7280", "#4B5563"]}
+            style={styles.continueButtonGradient}
+          >
+            <Text style={styles.continueButtonText}>{loading ? 'Saving...' : 'Continue'}</Text>
+          </LinearGradient>
+        </Pressable>
+      </ScrollView>
+      <Modal visible={showInfo} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>What is an archetype?</Text>
+            <Text style={styles.modalText}>{ARCHETYPE_EXPLANATION}</Text>
+            <Pressable style={styles.modalClose} onPress={() => setShowInfo(false)}>
+              <Text style={styles.modalCloseText}>Close</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -180,103 +134,171 @@ export default function QuizScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 80,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 60,
     paddingBottom: 40,
+    alignItems: 'center',
   },
-  content: {
-    flex: 1,
-  },
-  greeting: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  title: {
+  header: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F59E0B',
     textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 36,
+    marginBottom: 12,
   },
-  subtitle: {
+  intro: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
+    color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 10,
     lineHeight: 24,
   },
-  optionsContainer: {
-    flex: 1,
-    gap: 16,
-  },
-  option: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  optionSelected: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderColor: '#F59E0B',
-  },
-  optionContent: {
+  infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
+    marginBottom: 8,
   },
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+  infoButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
+    gap: 6,
+    padding: 4,
   },
-  iconContainerSelected: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-  },
-  textContainer: {
-    flex: 1,
-  },
-  optionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
-    marginBottom: 4,
-  },
-  optionTitleSelected: {
+  infoText: {
     color: '#F59E0B',
-  },
-  optionDescription: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    lineHeight: 20,
+    fontFamily: 'Inter-Medium',
   },
-  optionDescriptionSelected: {
+  chooseText: {
+    fontSize: 14,
     color: '#D1D5DB',
+    textAlign: 'center',
+    marginBottom: 18,
+    fontFamily: 'Inter-Regular',
   },
-  button: {
+  cardsContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+    marginBottom: 32,
+  },
+  card: {
+    width: 170,
+    backgroundColor: 'rgba(31,41,55,0.95)',
+    borderRadius: 18,
+    padding: 14,
+    alignItems: 'center',
+    margin: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    elevation: 4,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    position: 'relative',
+  },
+  cardSelected: {
+    borderColor: '#F59E0B',
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+  },
+  cardImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    backgroundColor: '#222',
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  cardDesc: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    color: '#F3F4F6',
+    textAlign: 'center',
+    marginBottom: 2,
+    lineHeight: 18,
+  },
+  selectedGlow: {
+    position: 'absolute',
+    top: -8,
+    left: -8,
+    right: -8,
+    bottom: -8,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#F59E0B',
+    opacity: 0.25,
+    zIndex: -1,
+  },
+  continueButton: {
     borderRadius: 25,
     overflow: 'hidden',
+    width: 220,
+    alignSelf: 'center',
+    marginTop: 10,
   },
-  buttonDisabled: {
+  continueButtonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  continueButtonGradient: {
     paddingVertical: 16,
-    paddingHorizontal: 32,
     alignItems: 'center',
   },
-  buttonText: {
+  continueButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#232946',
+    borderRadius: 18,
+    padding: 24,
+    width: 300,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#F59E0B',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  modalText: {
+    fontSize: 15,
+    fontFamily: 'Inter-Regular',
+    color: '#F3F4F6',
+    textAlign: 'center',
+    marginBottom: 18,
+  },
+  modalClose: {
+    paddingVertical: 8,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    backgroundColor: '#F59E0B',
+  },
+  modalCloseText: {
+    color: '#232946',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 15,
   },
 });

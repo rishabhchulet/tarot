@@ -1,10 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Modal, TouchableOpacity, Dimensions, Animated } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions, FlatList, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+const CARD_WIDTH = width * 0.8;
+const CARD_SPACING = 16;
 
 const ARCHETYPES = [
   {
@@ -31,7 +34,7 @@ const ARCHETYPES = [
   {
     id: 'mirror',
     name: 'The Mirror',
-    icon: User,
+    icon: User, // fallback icon for Mirror
     color: '#60A5FA',
     description: 'You have a unique gift for sensing the emotions and energies of those around you. You learn best by reflecting on your experiences, through meaningful relationships, and by trusting your emotions.'
   },
@@ -58,7 +61,7 @@ export default function ArchetypeQuiz() {
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [loading, setLoading] = useState(false);
-  const scrollRef = useRef<ScrollView>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   const handleContinue = () => {
     if (!selected) return;
@@ -68,21 +71,34 @@ export default function ArchetypeQuiz() {
     }, 500);
   };
 
-  // Scroll to selected card
-  const handleCardPress = (id: string, idx: number) => {
-    setSelected(id);
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({ x: idx * (width * 0.8 + 16) - 24, animated: true });
-    }
+  const renderCard = ({ item, index }: { item: typeof ARCHETYPES[0]; index: number }) => {
+    const IconComponent = item.icon;
+    const isSelected = selected === item.id;
+    return (
+      <Pressable
+        style={[styles.card, isSelected && { borderColor: item.color, shadowColor: item.color, transform: [{ scale: 1.06 }] }]}
+        onPress={() => setSelected(item.id)}
+        accessibilityLabel={item.name}
+        accessibilityRole="button"
+      >
+        <View style={[styles.iconCircle, { backgroundColor: item.color + '22', borderColor: item.color }]}> 
+          <IconComponent size={54} color={item.color} strokeWidth={2.5} />
+          {isSelected && <View style={[styles.selectedGlow, { borderColor: item.color }]} />}
+        </View>
+        <Text style={[styles.cardTitle, { color: item.color }]}>{item.name}</Text>
+        <Text style={styles.cardDesc}>{item.description}</Text>
+      </Pressable>
+    );
   };
 
   return (
-    <LinearGradient
-      colors={["#232946", "#6B46C1", "#F59E0B"]}
-      start={{ x: 0.2, y: 0 }}
-      end={{ x: 0.8, y: 1 }}
-      style={styles.container}
-    >
+    <View style={{ flex: 1 }}>
+      <LinearGradient
+        colors={["#232946", "#6B46C1", "#F59E0B"]}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.headerContainer}>
         <Text style={styles.header}>This app is your mirror.</Text>
         <Text style={styles.intro}>
@@ -100,35 +116,19 @@ export default function ArchetypeQuiz() {
         </Text>
       </View>
       <View style={styles.carouselWrapper}>
-        <ScrollView
-          ref={scrollRef}
+        <FlatList
+          ref={flatListRef}
+          data={ARCHETYPES}
+          keyExtractor={item => item.id}
+          renderItem={renderCard}
           horizontal
           showsHorizontalScrollIndicator={false}
+          snapToInterval={CARD_WIDTH + CARD_SPACING}
+          decelerationRate={Platform.OS === 'ios' ? 0 : 0.98}
           contentContainerStyle={styles.cardsContainer}
-          snapToInterval={width * 0.8 + 16}
-          decelerationRate="fast"
-        >
-          {ARCHETYPES.map((a, idx) => {
-            const IconComponent = a.icon;
-            const isSelected = selected === a.id;
-            return (
-              <Pressable
-                key={a.id}
-                style={[styles.card, isSelected && styles.cardSelected]}
-                onPress={() => handleCardPress(a.id, idx)}
-                accessibilityLabel={a.name}
-                accessibilityRole="button"
-              >
-                <View style={[styles.iconCircle, { backgroundColor: a.color + '22', borderColor: a.color }]}> 
-                  <IconComponent size={48} color={a.color} strokeWidth={2.5} />
-                  {isSelected && <View style={[styles.selectedGlow, { borderColor: a.color }]} />}
-                </View>
-                <Text style={[styles.cardTitle, { color: a.color }]}>{a.name}</Text>
-                <Text style={styles.cardDesc}>{a.description}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+          ItemSeparatorComponent={() => <View style={{ width: CARD_SPACING }} />}
+          getItemLayout={(_, index) => ({ length: CARD_WIDTH + CARD_SPACING, offset: (CARD_WIDTH + CARD_SPACING) * index, index })}
+        />
       </View>
       <View style={styles.stickyButtonWrapper}>
         <Pressable
@@ -155,16 +155,11 @@ export default function ArchetypeQuiz() {
           </View>
         </View>
       </Modal>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    backgroundColor: '#232946',
-  },
   headerContainer: {
     paddingHorizontal: 24,
     paddingTop: 56,
@@ -217,12 +212,11 @@ const styles = StyleSheet.create({
   },
   cardsContainer: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    gap: 16,
+    paddingHorizontal: (width - CARD_WIDTH) / 2,
+    // This centers the first and last card
   },
   card: {
-    width: width * 0.8,
-    marginHorizontal: 8,
+    width: CARD_WIDTH,
     backgroundColor: 'rgba(31,41,55,0.97)',
     borderRadius: 28,
     padding: 28,
@@ -237,12 +231,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginBottom: 16,
     transform: [{ scale: 1 }],
-  },
-  cardSelected: {
-    borderColor: '#F59E0B',
-    shadowOpacity: 0.35,
-    shadowRadius: 24,
-    transform: [{ scale: 1.06 }],
   },
   iconCircle: {
     width: 80,

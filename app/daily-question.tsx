@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, BookOpen, Heart, Calendar } from 'lucide-react-native';
+import { GlassCard, FloatingAction, designTokens } from '@/components/DesignSystem';
+import { HapticManager } from '@/utils/nativeFeatures';
 import { getTodaysEntry } from '@/utils/database';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
   withTiming,
+  withSpring,
   Easing,
 } from 'react-native-reanimated';
 
@@ -16,9 +19,10 @@ export default function DailyQuestionScreen() {
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   
-  // Animation values
+  // Clean animation values
   const heartPulse = useSharedValue(1);
-  const shimmer = useSharedValue(0);
+  const contentOpacity = useSharedValue(0);
+  const contentTranslateY = useSharedValue(30);
 
   useEffect(() => {
     loadTodaysEntry();
@@ -38,27 +42,38 @@ export default function DailyQuestionScreen() {
   };
 
   const startAnimations = () => {
-    // Heart pulse animation
+    // Gentle entrance animation
+    setTimeout(() => {
+      contentOpacity.value = withTiming(1, { duration: 800 });
+      contentTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
+    }, 300);
+
+    // Subtle heart pulse
     heartPulse.value = withRepeat(
-      withTiming(1.2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1.1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
-
-    // Shimmer effect
-    shimmer.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.linear }),
-      -1,
-      false
-    );
   };
 
+  const handleBack = async () => {
+    await HapticManager.triggerSelection();
+    router.back();
+  };
+
+  const handleDrawCard = async () => {
+    await HapticManager.triggerSelection();
+    router.replace('/(tabs)');
+  };
+
+  // Animation styles
   const heartPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: heartPulse.value }],
   }));
 
-  const shimmerStyle = useAnimatedStyle(() => ({
-    opacity: 0.3 + (shimmer.value * 0.4),
+  const contentStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+    transform: [{ translateY: contentTranslateY.value }],
   }));
 
   // Extract the daily question from the entry
@@ -86,13 +101,15 @@ export default function DailyQuestionScreen() {
   if (loading) {
     return (
       <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
+        colors={designTokens.colors.gradients.main}
         style={styles.container}
       >
-        <View style={styles.loadingContainer}>
-          <BookOpen size={40} color="#F59E0B" />
-          <Text style={styles.loadingText}>Loading your daily question...</Text>
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.loadingContainer}>
+            <BookOpen size={40} color={designTokens.colors.accent.gold} strokeWidth={1.5} />
+            <Text style={styles.loadingText}>Loading your daily question...</Text>
+          </View>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -100,33 +117,37 @@ export default function DailyQuestionScreen() {
   if (!todaysEntry) {
     return (
       <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
+        colors={designTokens.colors.gradients.main}
         style={styles.container}
       >
-        <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#F3F4F6" />
-          </Pressable>
-          <Text style={styles.headerTitle}>Daily Question</Text>
-          <View style={styles.placeholder} />
-        </View>
+        <SafeAreaView style={styles.safeArea}>
+          {/* Clean Header */}
+          <View style={styles.header}>
+            <FloatingAction onPress={handleBack}>
+              <View style={styles.backButton}>
+                <ArrowLeft size={24} color={designTokens.colors.text.primary} strokeWidth={1.5} />
+              </View>
+            </FloatingAction>
+            <Text style={styles.headerTitle}>Daily Question</Text>
+            <View style={styles.placeholder} />
+          </View>
 
-        <View style={styles.emptyContainer}>
-          <Calendar size={64} color="#6B7280" strokeWidth={1.5} />
-          <Text style={styles.emptyTitle}>No Card Drawn Today</Text>
-          <Text style={styles.emptyDescription}>
-            Draw your daily card first to receive your personal question for reflection.
-          </Text>
-          
-          <Pressable style={styles.drawCardButton} onPress={() => router.replace('/(tabs)')}>
-            <LinearGradient
-              colors={['#F59E0B', '#D97706']}
-              style={styles.drawCardButtonGradient}
-            >
-              <Text style={styles.drawCardButtonText}>Draw Today's Card</Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
+          <View style={styles.emptyContainer}>
+            <GlassCard style={styles.emptyCard}>
+              <Calendar size={64} color={designTokens.colors.text.muted} strokeWidth={1.5} />
+              <Text style={styles.emptyTitle}>No Card Drawn Today</Text>
+              <Text style={styles.emptyDescription}>
+                Draw your daily card first to receive your personal question for reflection.
+              </Text>
+              
+              <FloatingAction onPress={handleDrawCard}>
+                <GlassCard style={styles.drawCardButton} intensity="medium">
+                  <Text style={styles.drawCardButtonText}>Draw Today's Card</Text>
+                </GlassCard>
+              </FloatingAction>
+            </GlassCard>
+          </View>
+        </SafeAreaView>
       </LinearGradient>
     );
   }
@@ -135,51 +156,52 @@ export default function DailyQuestionScreen() {
 
   return (
     <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
+      colors={designTokens.colors.gradients.main}
       style={styles.container}
     >
-      {/* Animated background effects */}
-      <Animated.View style={[styles.backgroundShimmer, shimmerStyle]} />
-      
-      <View style={styles.header}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#F3F4F6" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Daily Question</Text>
-        <View style={styles.placeholder} />
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Date and Card Info */}
-        <View style={styles.dateContainer}>
-          <Text style={styles.dateText}>{formatDate()}</Text>
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardLabel}>Your Card Today</Text>
-            <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
-          </View>
+      <SafeAreaView style={styles.safeArea}>
+        {/* Clean Header */}
+        <View style={styles.header}>
+          <FloatingAction onPress={handleBack}>
+            <View style={styles.backButton}>
+              <ArrowLeft size={24} color={designTokens.colors.text.primary} strokeWidth={1.5} />
+            </View>
+          </FloatingAction>
+          <Text style={styles.headerTitle}>Daily Question</Text>
+          <View style={styles.placeholder} />
         </View>
 
-        {/* Main Question Container */}
-        <View style={styles.questionContainer}>
-          <LinearGradient
-            colors={['rgba(245, 158, 11, 0.1)', 'rgba(139, 92, 246, 0.1)', 'rgba(59, 130, 246, 0.1)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.questionBorder}
-          >
-            <View style={styles.questionContent}>
+        <ScrollView 
+          style={styles.scrollView} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          <Animated.View style={[styles.content, contentStyle]}>
+            {/* Date and Card Info */}
+            <GlassCard style={styles.dateCard}>
+              <Text style={styles.dateText}>{formatDate()}</Text>
+              <View style={styles.cardInfo}>
+                <Text style={styles.cardLabel}>Your Card Today</Text>
+                <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
+              </View>
+            </GlassCard>
+
+            {/* Main Question Container */}
+            <GlassCard style={styles.questionCard}>
               {/* Animated heart icon */}
               <Animated.View style={[styles.heartContainer, heartPulseStyle]}>
-                <Heart size={32} color="#F59E0B" fill="#F59E0B" />
+                <Heart size={32} color={designTokens.colors.accent.gold} fill={designTokens.colors.accent.gold} />
               </Animated.View>
 
               <Text style={styles.questionTitle}>
                 Return to this question throughout the day:
               </Text>
 
-              <Text style={styles.questionText}>
-                "{dailyQuestion}"
-              </Text>
+              <GlassCard style={styles.questionTextCard} intensity="light">
+                <Text style={styles.questionText}>
+                  "{dailyQuestion}"
+                </Text>
+              </GlassCard>
 
               {/* Decorative elements */}
               <View style={styles.decorativeElements}>
@@ -187,58 +209,24 @@ export default function DailyQuestionScreen() {
                 <Text style={styles.decorativeSymbol}>◊</Text>
                 <Text style={styles.decorativeSymbol}>✦</Text>
               </View>
-            </View>
-          </LinearGradient>
-        </View>
+            </GlassCard>
 
-        {/* Guidance Text */}
-        <View style={styles.guidanceContainer}>
-          <Text style={styles.guidanceTitle}>How to Use This Question</Text>
-          <Text style={styles.guidanceText}>
-            Let this question gently guide your awareness throughout the day. Notice what arises when you pause and reflect on it during quiet moments.
-          </Text>
-          <Text style={styles.guidanceText}>
-            There's no need to force an answer—simply hold the question with curiosity and openness.
-          </Text>
-        </View>
-
-        {/* Keywords Reminder */}
-        {todaysEntry.card_keywords && (
-          <View style={styles.keywordsContainer}>
-            <Text style={styles.keywordsTitle}>Today's Energies</Text>
-            <View style={styles.keywords}>
-              {todaysEntry.card_keywords.slice(0, 4).map((keyword: string, index: number) => (
-                <View key={index} style={styles.keyword}>
-                  <Text style={styles.keywordText}>{keyword}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <Pressable style={styles.actionButton} onPress={() => router.push('/(tabs)/journal')}>
-            <LinearGradient
-              colors={['#3B82F6', '#1D4ED8']}
-              style={styles.actionButtonGradient}
-            >
-              <BookOpen size={18} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>View Journal</Text>
-            </LinearGradient>
-          </Pressable>
-
-          <Pressable style={styles.actionButton} onPress={() => router.replace('/(tabs)')}>
-            <LinearGradient
-              colors={['#10B981', '#059669']}
-              style={styles.actionButtonGradient}
-            >
-              <Calendar size={18} color="#FFFFFF" />
-              <Text style={styles.actionButtonText}>Back to Today</Text>
-            </LinearGradient>
-          </Pressable>
-        </View>
-      </ScrollView>
+            {/* Guidance Section */}
+            <GlassCard style={styles.guidanceCard}>
+              <Text style={styles.guidanceTitle}>How to Use This Question</Text>
+              <Text style={styles.guidanceText}>
+                Let this question gently guide your awareness throughout the day. Notice what arises when you pause and reflect on it during quiet moments.
+              </Text>
+              <Text style={styles.guidanceText}>
+                There are no right or wrong answers—only deeper understanding of your inner landscape.
+              </Text>
+              <Text style={styles.guidanceText}>
+                Journal your insights when inspiration strikes, or simply hold the question in your heart as you move through your day.
+              </Text>
+            </GlassCard>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
     </LinearGradient>
   );
 }
@@ -246,249 +234,195 @@ export default function DailyQuestionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    position: 'relative',
   },
-  
-  // Background effects
-  backgroundShimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(245, 158, 11, 0.05)',
+
+  safeArea: {
+    flex: 1,
   },
-  
+
+  // Loading State
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: designTokens.spacing.md,
+  },
+
+  loadingText: {
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+  },
+
   // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
+    paddingHorizontal: designTokens.spacing.md,
+    paddingVertical: designTokens.spacing.md,
   },
+
   backButton: {
-    padding: 8,
+    padding: designTokens.spacing.sm,
+    backgroundColor: designTokens.colors.glass.background,
+    borderRadius: designTokens.borderRadius.md,
+    borderWidth: 1,
+    borderColor: designTokens.colors.glass.border,
   },
+
   headerTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    fontSize: designTokens.typography.fontSize.xl,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
   },
+
   placeholder: {
-    width: 40,
+    width: 48,
   },
-  
-  // Loading state
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
-    textAlign: 'center',
-  },
-  
-  // Empty state
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 20,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-SemiBold',
-    color: '#9CA3AF',
-    textAlign: 'center',
-  },
-  emptyDescription: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 280,
-  },
-  drawCardButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginTop: 20,
-  },
-  drawCardButtonGradient: {
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  drawCardButtonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-  },
-  
-  // Main content
+
+  // Content
   scrollView: {
     flex: 1,
-    paddingHorizontal: 24,
   },
-  
-  // Date and card info
-  dateContainer: {
+
+  scrollContent: {
+    paddingHorizontal: designTokens.spacing.md,
+    paddingBottom: designTokens.spacing.xxxl,
+  },
+
+  content: {
+    gap: designTokens.spacing.lg,
+  },
+
+  // Date Card
+  dateCard: {
+    backgroundColor: designTokens.colors.background.tertiary,
+    padding: designTokens.spacing.lg,
     alignItems: 'center',
-    marginBottom: 32,
   },
+
   dateText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    marginBottom: 16,
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    marginBottom: designTokens.spacing.md,
   },
+
   cardInfo: {
     alignItems: 'center',
+    gap: designTokens.spacing.xs,
   },
+
   cardLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
-    marginBottom: 8,
+    fontSize: designTokens.typography.fontSize.sm,
+    color: designTokens.colors.text.muted,
   },
+
   cardName: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
-    textAlign: 'center',
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.primary,
   },
-  
-  // Question container
-  questionContainer: {
-    marginBottom: 32,
-  },
-  questionBorder: {
-    borderRadius: 24,
-    padding: 3,
-  },
-  questionContent: {
-    backgroundColor: 'rgba(31, 41, 55, 0.95)',
-    borderRadius: 21,
-    padding: 32,
+
+  // Question Card
+  questionCard: {
+    backgroundColor: designTokens.colors.background.tertiary,
+    padding: designTokens.spacing.xl,
     alignItems: 'center',
   },
+
   heartContainer: {
-    marginBottom: 20,
+    marginBottom: designTokens.spacing.lg,
   },
+
   questionTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: designTokens.spacing.lg,
   },
+
+  questionTextCard: {
+    backgroundColor: designTokens.colors.background.elevated,
+    padding: designTokens.spacing.lg,
+    width: '100%',
+    marginBottom: designTokens.spacing.lg,
+  },
+
   questionText: {
-    fontSize: 22,
-    fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
+    fontSize: designTokens.typography.fontSize.lg,
+    color: designTokens.colors.text.primary,
     textAlign: 'center',
-    lineHeight: 32,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.lg,
     fontStyle: 'italic',
-    marginBottom: 24,
   },
+
   decorativeElements: {
     flexDirection: 'row',
-    gap: 20,
+    gap: designTokens.spacing.md,
   },
+
   decorativeSymbol: {
-    fontSize: 18,
-    color: '#8B5CF6',
-    fontFamily: 'Inter-Bold',
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.accent.gold,
   },
-  
-  // Guidance section
-  guidanceContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+
+  // Guidance Card
+  guidanceCard: {
+    backgroundColor: designTokens.colors.background.tertiary,
+    padding: designTokens.spacing.lg,
   },
+
   guidanceTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
-    marginBottom: 16,
-    textAlign: 'center',
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.primary,
+    marginBottom: designTokens.spacing.md,
   },
+
   guidanceText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
-    lineHeight: 24,
-    marginBottom: 12,
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
+    marginBottom: designTokens.spacing.md,
+  },
+
+  // Empty State
+  emptyContainer: {
+    flex: 1,
+    paddingHorizontal: designTokens.spacing.md,
+    justifyContent: 'center',
+  },
+
+  emptyCard: {
+    backgroundColor: designTokens.colors.background.tertiary,
+    padding: designTokens.spacing.xl,
+    alignItems: 'center',
+    gap: designTokens.spacing.lg,
+  },
+
+  emptyTitle: {
+    fontSize: designTokens.typography.fontSize.xl,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
+    color: designTokens.colors.text.primary,
     textAlign: 'center',
   },
-  
-  // Keywords section
-  keywordsContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
+
+  emptyDescription: {
+    fontSize: designTokens.typography.fontSize.base,
+    color: designTokens.colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
   },
-  keywordsTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
-    marginBottom: 16,
+
+  drawCardButton: {
+    backgroundColor: designTokens.colors.accent.primary,
+    paddingVertical: designTokens.spacing.md,
+    paddingHorizontal: designTokens.spacing.xl,
   },
-  keywords: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  keyword: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
-  },
-  keywordText: {
-    fontSize: 12,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
-  },
-  
-  // Action buttons
-  actionButtons: {
-    gap: 12,
-    marginBottom: 40,
-  },
-  actionButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  actionButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+
+  drawCardButtonText: {
+    fontSize: designTokens.typography.fontSize.base,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
+    color: designTokens.colors.text.primary,
   },
 });

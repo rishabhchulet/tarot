@@ -8,9 +8,9 @@ import { Sparkles, Calendar, BookOpen, Settings, User } from 'lucide-react-nativ
 import { useAuth } from '@/contexts/AuthContext';
 import { getTodaysEntry, getJournalEntries } from '@/utils/database';
 import { getRandomCard } from '@/data/tarotCards';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -20,7 +20,7 @@ export default function HomeScreen() {
   const [dailyCard, setDailyCard] = useState<any>(null);
   const [recentEntries, setRecentEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
+  
   // Clean, simple animations
   const headerOpacity = useSharedValue(0);
   const contentOpacity = useSharedValue(0);
@@ -145,7 +145,7 @@ export default function HomeScreen() {
         style={styles.container}
       >
         <SafeAreaView style={styles.safeArea}>
-          <View style={styles.loadingContainer}>
+        <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading your daily wisdom...</Text>
           </View>
         </SafeAreaView>
@@ -165,7 +165,7 @@ export default function HomeScreen() {
             <View style={styles.userInfo}>
               <Text style={styles.greeting}>{getGreeting()}</Text>
               <Text style={styles.userName}>{user?.name || 'Seeker'}</Text>
-            </View>
+        </View>
             <FloatingAction onPress={handleProfilePress}>
               <View style={styles.profileButton}>
                 <User size={20} color={designTokens.colors.text.primary} strokeWidth={1.5} />
@@ -192,7 +192,7 @@ export default function HomeScreen() {
                       <Text style={styles.cardTitle}>Your Daily Guidance</Text>
                     </View>
                   </View>
-
+                  
                   <FloatingAction onPress={handleCardPress}>
                     <GlassCard style={styles.dailyCard} intensity="medium">
                       <View style={styles.cardContent}>
@@ -200,7 +200,7 @@ export default function HomeScreen() {
                         <Text style={styles.cardMeaning}>{dailyCard.meaning}</Text>
                         <Text style={styles.cardDescription} numberOfLines={3}>
                           {dailyCard.description}
-                        </Text>
+                  </Text>
                       </View>
                       <View style={styles.cardFooter}>
                         <Text style={styles.readMoreText}>Tap to explore deeper</Text>
@@ -230,7 +230,7 @@ export default function HomeScreen() {
                     <Text style={styles.actionHint}>View your journey</Text>
                   </GlassCard>
                 </FloatingAction>
-              </View>
+                  </View>
             </GlassCard>
 
             {/* Recent Entries - Clean and readable */}
@@ -250,8 +250,8 @@ export default function HomeScreen() {
                         <Text style={styles.entryCard}>{entry.card_name}</Text>
                         <Text style={styles.entryDate}>
                           {new Date(entry.date).toLocaleDateString()}
-                        </Text>
-                      </View>
+            </Text>
+          </View>
                       {entry.keywords && entry.keywords.length > 0 && (
                         <View style={styles.entryKeywords}>
                           {entry.keywords.slice(0, 2).map((keyword: string, keywordIndex: number) => (
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-
+  
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -451,7 +451,7 @@ const styles = StyleSheet.create({
     color: designTokens.colors.text.muted,
     textAlign: 'center',
   },
-
+  
   // Recent Entries
   recentCard: {
     backgroundColor: designTokens.colors.background.tertiary,

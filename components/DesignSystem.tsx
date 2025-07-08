@@ -54,6 +54,7 @@ export const designTokens = {
       card: ['#1C1C20', '#242428'],              // Card gradients
       primary: ['#007AFF', '#5856D6'],           // Primary action
       accent: ['#5856D6', '#007AFF'],            // Accent elements
+      cosmic: ['#0A0A0B', '#5856D6', '#007AFF'], // Cosmic gradient for auth screens
     },
   },
   

@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, SafeAreaView, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Sparkles, Heart, Star, Moon } from 'lucide-react-native';
-import { GlassCard, ModernButton, FloatingAction, ParticleSystem, designTokens, animationHelpers } from '@/components/DesignSystem';
+import { Sparkles, Heart, Star, Moon, Zap } from 'lucide-react-native';
+import { GlassCard, FloatingAction, ParticleSystem, designTokens, animationHelpers } from '@/components/DesignSystem';
 import { HapticManager } from '@/utils/nativeFeatures';
 import Animated, { 
   useSharedValue, 
@@ -11,77 +11,107 @@ import Animated, {
   withSpring,
   withTiming,
   withRepeat,
-  interpolate
+  interpolate,
+  withSequence,
+  withDelay
 } from 'react-native-reanimated';
 
+const { width, height } = Dimensions.get('window');
+
 export default function WelcomeScreen() {
-  // Enhanced animation values
+  // Enhanced animation values for celestial theme
   const logoOpacity = useSharedValue(0);
   const logoScale = useSharedValue(0.8);
-  const logoRotation = useSharedValue(0);
+  const logoGlow = useSharedValue(0);
   const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(30);
+  const titleTranslateY = useSharedValue(50);
   const contentOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(40);
+  const contentScale = useSharedValue(0.95);
   const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(30);
-  const backgroundGlow = useSharedValue(0);
-  const sparkleGlow = useSharedValue(0);
-  const floatingElements = useSharedValue(0);
+  const buttonTranslateY = useSharedValue(40);
+  const cosmicGlow = useSharedValue(0);
+  const starsOpacity = useSharedValue(0);
+  const moonPhase = useSharedValue(0);
+  const nebulaFlow = useSharedValue(0);
 
   useEffect(() => {
-    startEnhancedWelcomeAnimations();
+    startCelestialWelcomeAnimation();
   }, []);
 
-  const startEnhancedWelcomeAnimations = () => {
-    // Background and magical effects
-    backgroundGlow.value = withTiming(1, { duration: 3000 });
-    sparkleGlow.value = withRepeat(
-      withTiming(1, { duration: 2000 }),
+  const startCelestialWelcomeAnimation = () => {
+    // Cosmic background effects
+    cosmicGlow.value = withTiming(1, { duration: 3000 });
+    nebulaFlow.value = withRepeat(
+      withTiming(1, { duration: 8000 }),
       -1,
       true
     );
-    floatingElements.value = withRepeat(
-      withTiming(1, { duration: 4000 }),
+    
+    // Stars twinkling effect
+    starsOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.3, { duration: 1500 }),
+        withTiming(1, { duration: 1500 }),
+        withTiming(0.6, { duration: 1000 })
+      ),
+      -1,
+      false
+    );
+
+    // Moon phase animation
+    moonPhase.value = withRepeat(
+      withTiming(1, { duration: 6000 }),
       -1,
       true
     );
 
-    // Staggered entrance animations
+    // Staggered celestial entrance
     setTimeout(() => {
-      animationHelpers.fadeIn(logoOpacity, 1000);
-      logoScale.value = withSpring(1, designTokens.animations.spring.bouncy);
-      logoRotation.value = withSpring(360, { duration: 1000 });
-    }, 300);
+      // Logo with mystical glow
+      logoOpacity.value = withTiming(1, { duration: 1200 });
+      logoScale.value = withSpring(1, { damping: 12, stiffness: 100 });
+      logoGlow.value = withRepeat(
+        withTiming(1, { duration: 2000 }),
+        -1,
+        true
+      );
+    }, 400);
 
     setTimeout(() => {
-      animationHelpers.fadeIn(titleOpacity, 800);
-      titleTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
-    }, 800);
+      // Title with ethereal entrance
+      titleOpacity.value = withTiming(1, { duration: 1000 });
+      titleTranslateY.value = withSpring(0, { damping: 15, stiffness: 120 });
+    }, 1000);
 
     setTimeout(() => {
-      animationHelpers.fadeIn(contentOpacity, 800);
-      contentTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
-    }, 1200);
+      // Content with cosmic scale
+      contentOpacity.value = withTiming(1, { duration: 1200 });
+      contentScale.value = withSpring(1, { damping: 14, stiffness: 100 });
+    }, 1500);
 
     setTimeout(() => {
-      animationHelpers.fadeIn(buttonOpacity, 600);
-      buttonTranslateY.value = withSpring(0, designTokens.animations.spring.bouncy);
-    }, 1600);
+      // Button with stellar entrance
+      buttonOpacity.value = withTiming(1, { duration: 800 });
+      buttonTranslateY.value = withSpring(0, { damping: 12, stiffness: 150 });
+    }, 2000);
   };
 
   const handleContinue = async () => {
-    console.log('📱 Enhanced welcome: Navigating to name screen...');
+    console.log('🌟 Celestial welcome: Beginning journey...');
     await HapticManager.triggerSelection();
     router.push('/onboarding/name');
   };
 
-  // Enhanced animated styles
+  // Enhanced celestial animated styles
   const logoStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+
+  const logoGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(logoGlow.value, [0, 1], [0.6, 1]),
     transform: [
-      { scale: logoScale.value },
-      { rotate: `${logoRotation.value}deg` }
+      { scale: interpolate(logoGlow.value, [0, 1], [1, 1.05]) }
     ],
   }));
 
@@ -92,7 +122,7 @@ export default function WelcomeScreen() {
 
   const contentStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
-    transform: [{ translateY: contentTranslateY.value }],
+    transform: [{ scale: contentScale.value }],
   }));
 
   const buttonStyle = useAnimatedStyle(() => ({
@@ -100,98 +130,126 @@ export default function WelcomeScreen() {
     transform: [{ translateY: buttonTranslateY.value }],
   }));
 
-  const backgroundGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(backgroundGlow.value, [0, 1], [0, 0.7]),
+  const cosmicGlowStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(cosmicGlow.value, [0, 1], [0, 0.8]),
+    transform: [
+      { scale: interpolate(cosmicGlow.value, [0, 1], [0.8, 1.2]) }
+    ],
   }));
 
-  const sparkleGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(sparkleGlow.value, [0, 1], [0.6, 1]),
+  const starsStyle = useAnimatedStyle(() => ({
+    opacity: starsOpacity.value,
+  }));
+
+  const moonStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(moonPhase.value, [0, 1], [0.4, 0.9]),
     transform: [
       { 
-        scale: interpolate(sparkleGlow.value, [0, 1], [1, 1.1]) 
+        rotate: `${interpolate(moonPhase.value, [0, 1], [0, 15])}deg` 
       }
     ],
   }));
 
-  const floatingStyle = useAnimatedStyle(() => ({
+  const nebulaStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(nebulaFlow.value, [0, 1], [0.3, 0.7]),
     transform: [
       { 
-        translateY: interpolate(
-          floatingElements.value,
-          [0, 1],
-          [0, -15]
-        )
+        translateX: interpolate(nebulaFlow.value, [0, 1], [-20, 20]) 
+      },
+      { 
+        scale: interpolate(nebulaFlow.value, [0, 1], [1, 1.1]) 
       }
     ],
   }));
 
   return (
-    <LinearGradient
-      colors={designTokens.colors.gradients.cosmic}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      {/* Enhanced Cosmic Background */}
+      <LinearGradient
+        colors={['#0B0B1F', '#1A1A3A', '#2D2D5A']}
+        locations={[0, 0.6, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      
+      {/* Nebula Flow Effect */}
+      <Animated.View style={[styles.nebulaLayer, nebulaStyle]}>
+        <LinearGradient
+          colors={['rgba(79, 195, 247, 0.1)', 'rgba(156, 39, 176, 0.15)', 'rgba(63, 81, 181, 0.1)']}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+
       <SafeAreaView style={styles.safeArea}>
-        <ParticleSystem count={35} animate={true} />
+        {/* Enhanced Particle System */}
+        <ParticleSystem count={25} animate={true} />
         
-        {/* Enhanced Background Glow */}
-        <Animated.View style={[styles.backgroundGlow, backgroundGlowStyle]} />
+        {/* Cosmic Glow */}
+        <Animated.View style={[styles.cosmicGlow, cosmicGlowStyle]} />
         
-        {/* Floating Decorative Elements */}
-        <Animated.View style={[styles.floatingElement, styles.floatingElement1, floatingStyle]}>
-          <Heart size={18} color={designTokens.colors.accent.rose} opacity={0.7} />
+        {/* Floating Celestial Elements */}
+        <Animated.View style={[styles.celestialElement, styles.star1, starsStyle]}>
+          <Star size={12} color="#FFC107" fill="#FFC107" opacity={0.8} />
         </Animated.View>
         
-        <Animated.View style={[styles.floatingElement, styles.floatingElement2, floatingStyle]}>
-          <Star size={20} color={designTokens.colors.accent.gold} opacity={0.6} />
+        <Animated.View style={[styles.celestialElement, styles.star2, starsStyle]}>
+          <Star size={8} color="#4FC3F7" fill="#4FC3F7" opacity={0.6} />
         </Animated.View>
         
-        <Animated.View style={[styles.floatingElement, styles.floatingElement3, floatingStyle]}>
-          <Moon size={16} color={designTokens.colors.accent.lavender} opacity={0.5} />
+        <Animated.View style={[styles.celestialElement, styles.star3, starsStyle]}>
+          <Star size={10} color="#B39DDB" fill="#B39DDB" opacity={0.7} />
+        </Animated.View>
+
+        <Animated.View style={[styles.celestialElement, styles.moon1, moonStyle]}>
+          <Moon size={16} color="#E8EAF6" fill="rgba(232, 234, 246, 0.3)" />
         </Animated.View>
 
         <View style={styles.content}>
-          {/* Enhanced Logo Section */}
+          {/* Enhanced Logo Section with Mystical Glow */}
           <Animated.View style={[styles.logoSection, logoStyle]}>
-            <FloatingAction style={styles.iconContainer}>
-              <Animated.View style={sparkleGlowStyle}>
-                <Sparkles size={80} color={designTokens.colors.accent.gold} strokeWidth={1.5} />
+            <View style={styles.logoContainer}>
+              <View style={styles.logoBackground} />
+              <Animated.View style={[styles.logoGlow, logoGlowStyle]}>
+                <Sparkles size={64} color="#FFC107" strokeWidth={1.5} />
               </Animated.View>
-            </FloatingAction>
+            </View>
           </Animated.View>
           
-          {/* Enhanced Title Section */}
+          {/* Enhanced Title with Cosmic Typography */}
           <Animated.View style={[styles.titleSection, titleStyle]}>
-            <Text style={styles.title}>Welcome to{'\n'}Daily Inner Reflection</Text>
+            <Text style={styles.readyText}>Ready to start your journey</Text>
+            <Text style={styles.title}>Daily Inner{'\n'}Reflection</Text>
           </Animated.View>
           
-          {/* Enhanced Content Section */}
+          {/* Enhanced Content with Better Glassmorphism */}
           <Animated.View style={[styles.contentSection, contentStyle]}>
-            <GlassCard style={styles.messageCard} intensity="medium">
+            <GlassCard style={styles.mainCard} intensity="medium">
               <Text style={styles.subtitle}>
-                Connect directly with your inner wisdom through this daily mirror into yourself.
+                Connect directly with your inner wisdom through this daily mirror into yourself
               </Text>
               
-              <View style={styles.descriptionContainer}>
-                <Text style={styles.description}>
-                  Let's set up your personalized journey of self-discovery and growth.
-                </Text>
-              </View>
-              
-              {/* Feature Highlights */}
+              {/* Enhanced Feature Cards */}
               <View style={styles.featuresContainer}>
-                <View style={styles.featureItem}>
-                  <Star size={16} color={designTokens.colors.accent.brightBlue} />
-                  <Text style={styles.featureText}>Daily Guidance</Text>
-                </View>
-                
-                <View style={styles.featureItem}>
-                  <Heart size={16} color={designTokens.colors.accent.rose} />
-                  <Text style={styles.featureText}>Inner Wisdom</Text>
-                </View>
-                
-                <View style={styles.featureItem}>
-                  <Sparkles size={16} color={designTokens.colors.accent.purple} />
-                  <Text style={styles.featureText}>Personal Growth</Text>
+                <View style={styles.featureRow}>
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureIcon}>
+                      <Star size={20} color="#FFC107" />
+                    </View>
+                    <Text style={styles.featureLabel}>Daily Guidance</Text>
+                  </View>
+                  
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureIcon}>
+                      <Heart size={20} color="#FF3B30" />
+                    </View>
+                    <Text style={styles.featureLabel}>Inner Wisdom</Text>
+                  </View>
+                  
+                  <View style={styles.featureCard}>
+                    <View style={styles.featureIcon}>
+                      <Zap size={20} color="#B39DDB" />
+                    </View>
+                    <Text style={styles.featureLabel}>Personal Growth</Text>
+                  </View>
                 </View>
               </View>
             </GlassCard>
@@ -200,19 +258,18 @@ export default function WelcomeScreen() {
         
         {/* Enhanced Action Button */}
         <Animated.View style={[styles.actionContainer, buttonStyle]}>
-          <GlassCard style={styles.buttonCard} intensity="strong">
-            <ModernButton
-              title="Begin Your Journey"
-              onPress={handleContinue}
-              variant="gradient"
-              size="lg"
-              icon={Sparkles}
-              style={styles.continueButton}
-            />
-          </GlassCard>
+          <Pressable onPress={handleContinue} style={styles.continueButton}>
+            <LinearGradient
+              colors={['#4FC3F7', '#3F51B5']}
+              style={styles.buttonGradient}
+            >
+              <Sparkles size={20} color="#FFFFFF" strokeWidth={2} />
+              <Text style={styles.buttonText}>Begin Your Journey</Text>
+            </LinearGradient>
+          </Pressable>
         </Animated.View>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -221,144 +278,194 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  nebulaLayer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+
   safeArea: {
     flex: 1,
-    paddingHorizontal: designTokens.spacing.md,
+    paddingHorizontal: 20,
   },
 
-  backgroundGlow: {
+  cosmicGlow: {
     position: 'absolute',
-    top: '20%',
-    left: '15%',
+    top: '15%',
+    left: '10%',
+    right: '10%',
+    height: '60%',
+    borderRadius: 300,
+    backgroundColor: 'rgba(63, 81, 181, 0.2)',
+  },
+
+  // Celestial Elements
+  celestialElement: {
+    position: 'absolute',
+  },
+
+  star1: {
+    top: '18%',
     right: '15%',
-    height: '50%',
-    borderRadius: 200,
-    backgroundColor: designTokens.colors.accent.purple,
-    opacity: 0.4,
   },
 
-  // Floating Elements
-  floatingElement: {
-    position: 'absolute',
+  star2: {
+    top: '25%',
+    left: '12%',
   },
 
-  floatingElement1: {
-    top: '12%',
+  star3: {
+    bottom: '35%',
     right: '20%',
   },
 
-  floatingElement2: {
-    top: '18%',
-    left: '15%',
+  moon1: {
+    top: '12%',
+    left: '20%',
   },
 
-  floatingElement3: {
-    bottom: '30%',
-    right: '12%',
-  },
-
-  // Main Content
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingVertical: designTokens.spacing.xl,
+    paddingVertical: 40,
   },
 
-  // Enhanced Logo
+  // Enhanced Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: designTokens.spacing.xl,
+    marginBottom: 40,
   },
 
-  iconContainer: {
-    padding: designTokens.spacing.xl,
+  logoContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
-  // Enhanced Title
+  logoBackground: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255, 193, 7, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 193, 7, 0.2)',
+  },
+
+  logoGlow: {
+    padding: 28,
+  },
+
+  // Enhanced Typography
   titleSection: {
     alignItems: 'center',
-    marginBottom: designTokens.spacing.xl,
+    marginBottom: 50,
+  },
+
+  readyText: {
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.7)',
+    marginBottom: 12,
+    textAlign: 'center',
+    fontWeight: '500',
   },
 
   title: {
-    fontSize: designTokens.typography.fontSize['3xl'],
-    fontWeight: designTokens.typography.fontWeight.bold as any,
-    color: designTokens.colors.text.primary,
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: designTokens.typography.lineHeight.tight * designTokens.typography.fontSize['3xl'],
-    textShadowColor: designTokens.colors.accent.gold,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 15,
+    lineHeight: 38,
+    letterSpacing: -0.5,
   },
 
-  // Enhanced Content
+  // Enhanced Content Section
   contentSection: {
-    marginBottom: designTokens.spacing.xl,
+    marginBottom: 50,
   },
 
-  messageCard: {
-    paddingVertical: designTokens.spacing.xl,
-    paddingHorizontal: designTokens.spacing.lg,
-    alignItems: 'center',
+  mainCard: {
+    padding: 32,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
 
   subtitle: {
-    fontSize: designTokens.typography.fontSize.lg,
-    color: designTokens.colors.text.secondary,
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.85)',
     textAlign: 'center',
-    marginBottom: designTokens.spacing.lg,
-    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.lg,
-    maxWidth: 320,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
+    lineHeight: 26,
+    marginBottom: 32,
+    fontWeight: '400',
   },
 
-  descriptionContainer: {
-    marginBottom: designTokens.spacing.lg,
-    paddingBottom: designTokens.spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: designTokens.colors.glass.border,
-  },
-
-  description: {
-    fontSize: designTokens.typography.fontSize.base,
-    color: designTokens.colors.text.muted,
-    textAlign: 'center',
-    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
-    maxWidth: 300,
-  },
-
-  // Feature Highlights
+  // Enhanced Features
   featuresContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-    gap: designTokens.spacing.md,
-  },
-
-  featureItem: {
     alignItems: 'center',
-    gap: designTokens.spacing.xs,
-    flex: 1,
   },
 
-  featureText: {
-    fontSize: designTokens.typography.fontSize.xs,
-    color: designTokens.colors.text.accent,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
+  featureRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 8,
+  },
+
+  featureCard: {
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: 16,
+  },
+
+  featureIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+
+  featureLabel: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
+    fontWeight: '500',
   },
 
   // Enhanced Action Button
   actionContainer: {
-    paddingBottom: designTokens.spacing.xl,
-  },
-
-  buttonCard: {
-    paddingVertical: designTokens.spacing.md,
-    paddingHorizontal: designTokens.spacing.lg,
+    paddingBottom: 40,
+    paddingHorizontal: 4,
   },
 
   continueButton: {
-    minHeight: 56,
+    height: 56,
+    borderRadius: 16,
+    shadowColor: '#4FC3F7',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+
+  buttonGradient: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+
+  buttonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

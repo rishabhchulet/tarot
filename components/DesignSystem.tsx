@@ -30,7 +30,7 @@ export const designTokens = {
       disabled: '#636366',       // Disabled states
     },
     
-    // Refined accent colors - more sophisticated
+    // Enhanced celestial accent colors - more mystical
     accent: {
       primary: '#007AFF',        // iOS blue - trustworthy
       purple: '#5856D6',         // Refined purple
@@ -38,6 +38,13 @@ export const designTokens = {
       rose: '#FF3B30',           // Clean red
       mint: '#00C896',           // Success green
       orange: '#FF9500',         // Warning orange
+      // NEW: Celestial accent colors
+      brightBlue: '#4FC3F7',     // Bright celestial blue
+      moonGlow: '#E8EAF6',       // Soft moon glow
+      starGold: '#FFC107',       // Bright star gold
+      lavender: '#B39DDB',       // Mystical lavender
+      cosmicBlue: '#3F51B5',     // Deep cosmic blue
+      nebulaViolet: '#9C27B0',   // Nebula violet
     },
     
     // Subtle glassmorphism - much more tasteful
@@ -48,12 +55,17 @@ export const designTokens = {
       active: 'rgba(255, 255, 255, 0.1)',       // Active states
     },
     
-    // Clean gradients - no more busy backgrounds
+    // Enhanced celestial gradients - inspired by cosmic themes
     gradients: {
       main: ['#0A0A0B', '#151518'],              // Subtle dark gradient
       card: ['#1C1C20', '#242428'],              // Card gradients
       primary: ['#007AFF', '#5856D6'],           // Primary action
       accent: ['#5856D6', '#007AFF'],            // Accent elements
+      // NEW: Celestial-inspired gradients
+      cosmic: ['#0B0B1F', '#1A1A3A', '#2D2D5A'], // Deep space gradient
+      nebula: ['#1A1A3A', '#2D2D5A', '#4A4A7A'], // Nebula-like gradient
+      moonlight: ['#1C1C2E', '#2C2C54', '#3D3D6B'], // Moonlight glow
+      starfield: ['#0A0A1C', '#181836', '#252547'], // Starfield depth
     },
   },
   

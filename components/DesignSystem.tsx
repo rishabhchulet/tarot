@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
   useSharedValue, 
@@ -218,6 +218,94 @@ export function FloatingAction({ children, onPress, style, disabled }: FloatingA
   );
 }
 
+// MODERN BUTTON COMPONENT
+interface ModernButtonProps {
+  children: React.ReactNode;
+  onPress?: () => void;
+  variant?: 'primary' | 'secondary' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  disabled?: boolean;
+  style?: any;
+}
+
+export function ModernButton({ 
+  children, 
+  onPress, 
+  variant = 'primary', 
+  size = 'md', 
+  disabled = false,
+  style 
+}: ModernButtonProps) {
+  const scaleValue = useSharedValue(1);
+  const opacityValue = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleValue.value }],
+    opacity: opacityValue.value,
+  }));
+
+  const handlePressIn = () => {
+    if (!disabled) {
+      scaleValue.value = withTiming(0.96, designTokens.animations.timing.fast);
+      opacityValue.value = withTiming(0.8, designTokens.animations.timing.fast);
+    }
+  };
+
+  const handlePressOut = () => {
+    if (!disabled) {
+      scaleValue.value = withTiming(1, designTokens.animations.timing.fast);
+      opacityValue.value = withTiming(1, designTokens.animations.timing.fast);
+    }
+  };
+
+  const buttonStyle = [
+    styles.modernButton,
+    styles[`modernButton${size.charAt(0).toUpperCase() + size.slice(1)}`],
+    styles[`modernButton${variant.charAt(0).toUpperCase() + variant.slice(1)}`],
+    disabled && styles.modernButtonDisabled,
+    style
+  ];
+
+  const textStyle = [
+    styles.modernButtonText,
+    styles[`modernButtonText${variant.charAt(0).toUpperCase() + variant.slice(1)}`],
+    disabled && styles.modernButtonTextDisabled
+  ];
+
+  if (variant === 'primary') {
+    return (
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled}
+      >
+        <Animated.View style={animatedStyle}>
+          <LinearGradient
+            colors={designTokens.colors.gradients.primary}
+            style={buttonStyle}
+          >
+            <Text style={textStyle}>{children}</Text>
+          </LinearGradient>
+        </Animated.View>
+      </Pressable>
+    );
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      disabled={disabled}
+    >
+      <Animated.View style={[buttonStyle, animatedStyle]}>
+        <Text style={textStyle}>{children}</Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 // MINIMAL PARTICLE SYSTEM - Much more subtle
 interface ParticleSystemProps {
   count?: number;
@@ -329,5 +417,71 @@ const styles = StyleSheet.create({
     backgroundColor: designTokens.colors.accent.primary,
     borderRadius: 2,
     opacity: 0.3,
+  },
+  
+  // Modern Button Styles
+  modernButton: {
+    borderRadius: designTokens.borderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  
+  modernButtonSm: {
+    paddingHorizontal: designTokens.spacing.md,
+    paddingVertical: designTokens.spacing.sm,
+    minHeight: 36,
+  },
+  
+  modernButtonMd: {
+    paddingHorizontal: designTokens.spacing.lg,
+    paddingVertical: designTokens.spacing.md,
+    minHeight: 44,
+  },
+  
+  modernButtonLg: {
+    paddingHorizontal: designTokens.spacing.xl,
+    paddingVertical: designTokens.spacing.lg,
+    minHeight: 52,
+  },
+  
+  modernButtonPrimary: {
+    // Gradient applied via LinearGradient component
+  },
+  
+  modernButtonSecondary: {
+    backgroundColor: designTokens.colors.background.tertiary,
+    borderWidth: 1,
+    borderColor: designTokens.colors.glass.border,
+  },
+  
+  modernButtonGhost: {
+    backgroundColor: 'transparent',
+  },
+  
+  modernButtonDisabled: {
+    opacity: 0.5,
+  },
+  
+  modernButtonText: {
+    fontSize: designTokens.typography.fontSize.base,
+    fontWeight: designTokens.typography.fontWeight.semibold,
+    textAlign: 'center',
+  },
+  
+  modernButtonTextPrimary: {
+    color: designTokens.colors.text.primary,
+  },
+  
+  modernButtonTextSecondary: {
+    color: designTokens.colors.text.secondary,
+  },
+  
+  modernButtonTextGhost: {
+    color: designTokens.colors.accent.primary,
+  },
+  
+  modernButtonTextDisabled: {
+    opacity: 0.6,
   },
 }); 

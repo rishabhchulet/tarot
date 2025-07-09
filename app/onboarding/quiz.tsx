@@ -11,42 +11,42 @@ const ARCHETYPES = [
     id: 'alchemist',
     name: 'The Alchemist',
     icon: FlaskConical,
-    color: '#F59E0B',
+    color: '#1e3a8a',
     description: 'You walk the path of transformation and depth. Turning challenges into your power. Every obstacle is simply power in disguise.'
   },
   {
     id: 'seer',
     name: 'The Seer',
     icon: Eye,
-    color: '#6B46C1',
+    color: '#1e40af',
     description: 'The Seer navigates the world with an innate sense of direction, relying on inner knowing and intuition to guide decisions. Trust your inner voice—it always knows the way forward.'
   },
   {
     id: 'creator',
     name: 'The Creator',
     icon: PenTool,
-    color: '#10B981',
+    color: '#1e3a8a',
     description: 'You are dedicated to creating something enduring and lasting, whether it be a home, a business, a personal legacy, or a work of art.'
   },
   {
     id: 'mirror',
     name: 'The Mirror',
     icon: User,
-    color: '#60A5FA',
+    color: '#1e40af',
     description: 'You have a unique gift for sensing the emotions and energies of those around you. You learn best by reflecting on your experiences, through meaningful relationships, and by trusting your emotions.'
   },
   {
     id: 'trickster',
     name: 'The Trickster',
     icon: Sparkles,
-    color: '#EC4899',
+    color: '#1e3a8a',
     description: 'You love shaking things up and challenging norms. With your humor, adaptability, and playful disruptions, you push others (and yourself) to grow and evolve.'
   },
   {
     id: 'shapeshifter',
     name: 'The Shapeshifter',
     icon: Shuffle,
-    color: '#F472B6',
+    color: '#1e40af',
     description: 'You effortlessly move between different roles and identities. Your strength lies in your adaptability and versatility. Yet, deep down, you might sometimes wonder: "Which of these forms is truly me?"'
   },
 ];
@@ -70,8 +70,7 @@ export default function ArchetypeQuiz() {
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={["#0F172A", "#1E293B", "#6B46C1", "#F59E0B"]}
-        locations={[0, 0.3, 0.7, 1]}
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
         style={StyleSheet.absoluteFill}
       />
       
@@ -91,7 +90,7 @@ export default function ArchetypeQuiz() {
           </Text>
           
           <TouchableOpacity onPress={() => setShowInfo(true)} style={styles.infoButton}>
-            <Info size={18} color="#F59E0B" />
+            <Info size={18} color="#1e3a8a" />
             <Text style={styles.infoText}>What is an archetype?</Text>
           </TouchableOpacity>
           
@@ -153,14 +152,11 @@ export default function ArchetypeQuiz() {
           onPress={handleContinue}
           disabled={!selected || loading}
         >
-          <LinearGradient
-            colors={selected && !loading ? ["#F59E0B", "#EF4444"] : ["#64748B", "#475569"]}
-            style={styles.buttonGradient}
-          >
+          <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
             <Text style={styles.buttonText}>
               {loading ? 'Saving...' : 'Continue'}
             </Text>
-          </LinearGradient>
+          </View>
         </Pressable>
       </View>
 
@@ -183,7 +179,7 @@ export default function ArchetypeQuiz() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#0a0a0a',
   },
   scrollView: {
     flex: 1,
@@ -200,7 +196,7 @@ const styles = StyleSheet.create({
   mainTitle: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 16,
     letterSpacing: -0.5,
@@ -208,7 +204,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     fontFamily: 'Inter-Medium',
-    color: '#F1F5F9',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 12,
     lineHeight: 26,
@@ -216,7 +212,7 @@ const styles = StyleSheet.create({
   description: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#CBD5E1',
+    color: '#D1D5DB',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 24,
@@ -228,20 +224,20 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
     marginBottom: 16,
   },
   infoText: {
-    color: '#F59E0B',
+    color: '#1e3a8a',
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
   chooseHint: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: '#9CA3AF',
     textAlign: 'center',
     fontFamily: 'Inter-Regular',
     fontStyle: 'italic',
@@ -251,22 +247,23 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   archetypeCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.8)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 8,
   },
   selectedCard: {
     borderWidth: 2,
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     transform: [{ scale: 1.02 }],
+    backgroundColor: 'rgba(30, 58, 138, 0.12)',
   },
   cardContent: {
     flexDirection: 'row',
@@ -306,7 +303,7 @@ const styles = StyleSheet.create({
   cardDescription: {
     fontSize: 15,
     fontFamily: 'Inter-Regular',
-    color: '#E2E8F0',
+    color: '#D1D5DB',
     lineHeight: 22,
   },
   buttonContainer: {
@@ -317,14 +314,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 32,
     paddingTop: 16,
-    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+    backgroundColor: 'rgba(10, 10, 10, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: 'rgba(30, 58, 138, 0.15)',
   },
   continueButton: {
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -334,14 +331,18 @@ const styles = StyleSheet.create({
     opacity: 0.5,
     shadowOpacity: 0.1,
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 18,
     alignItems: 'center',
+  },
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
   },
   buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
     letterSpacing: 0.5,
   },
   modalOverlay: {
@@ -352,39 +353,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalContent: {
-    backgroundColor: '#1E293B',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 24,
     padding: 32,
     width: '100%',
     maxWidth: 340,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
   },
   modalTitle: {
     fontSize: 20,
     fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
     marginBottom: 16,
     textAlign: 'center',
   },
   modalText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#E2E8F0',
+    color: '#D1D5DB',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 24,
   },
   modalCloseButton: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#374151',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
     minWidth: 100,
   },
   modalCloseText: {
-    color: '#0F172A',
+    color: '#F9FAFB',
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
     textAlign: 'center',

@@ -4,8 +4,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
 import { signUp } from '@/utils/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpScreen() {
+  const { user, session } = useAuth();
+
+  // Add guard to redirect authenticated users
+  React.useEffect(() => {
+    if (user && session) {
+      router.replace('/(tabs)');
+    }
+  }, [user, session]);
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

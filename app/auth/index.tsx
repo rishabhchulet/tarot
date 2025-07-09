@@ -15,6 +15,13 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
   
+  // Add guard to redirect authenticated users
+  React.useEffect(() => {
+    if (user && session) {
+      router.replace('/(tabs)');
+    }
+  }, [user, session]);
+
   // Animation values
   const iconRotation = useSharedValue(0);
   const iconScale = useSharedValue(0.8);

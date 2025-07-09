@@ -200,6 +200,10 @@ export default function IndexScreen() {
   // Show main loading screen with connection status
   return (
     <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <ConnectionStatus 
         status={connectionStatus}
         error={error}

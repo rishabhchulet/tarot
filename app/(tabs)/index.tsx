@@ -11,7 +11,7 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
-import { TarotCardFlow } from '@/components/TarotCardFlow';
+import { MagicalCardDraw } from '@/components/MagicalCardDraw';
 
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
@@ -20,7 +20,10 @@ export default function AuthWelcomeScreen() {
   if (user && session) {
     return (
       <View style={{ flex: 1 }}>
-        <TarotCardFlow onComplete={() => console.log('Tarot flow complete')} />
+        <MagicalCardDraw onComplete={() => {
+          console.log('🎉 Card flow complete, navigating to daily question');
+          router.replace('/daily-question');
+        }} />
       </View>
     );
   }

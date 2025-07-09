@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
@@ -8,7 +8,7 @@ import Animated, {
   withRepeat, 
   withTiming, 
   withSequence,
-  Easing 
+  Easing
 } from 'react-native-reanimated';
 import { Eye, Sparkles, Heart, PenTool, Bell } from 'lucide-react-native';
 

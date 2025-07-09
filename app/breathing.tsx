@@ -105,9 +105,9 @@ export default function BreathingScreen() {
         clearInterval(interval);
         // Wait for last cycle to complete, then navigate directly to main app
         setTimeout(() => {
-          console.log('🎉 Breathing complete, navigating to main app...');
-          router.replace('/(tabs)');
-        }, 8000); // Wait for last cycle to complete
+          console.log('🎉 Breathing complete, navigating to card draw...');
+          router.replace('/draw');
+        }, 8000);
       }
     }, 8000); // 8 seconds per complete cycle
 

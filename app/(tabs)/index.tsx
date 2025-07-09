@@ -1,125 +1,64 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Sparkles, CircleCheck as CheckCircle } from 'lucide-react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withTiming,
-  withSequence,
-  Easing
-} from 'react-native-reanimated';
-import { useAuth } from '@/contexts/AuthContext';
-import { MagicalCardDraw } from '@/components/MagicalCardDraw';
+import { getTodaysEntry } from '@/utils/database';
+import { Sparkles } from 'lucide-react-native';
 
-export default function AuthWelcomeScreen() {
+export default function HomeScreen() {
   const { user, session } = useAuth();
-  
-  // If authenticated, show TarotCardFlow instead of auth welcome
-  if (user && session) {
+
+  const [checkingEntry, setCheckingEntry] = React.useState(true);
+  const [hasEntry, setHasEntry] = React.useState(false);
+
+  React.useEffect(() => {
+    const init = async () => {
+      if (!session || !user) {
+        // Not authenticated – send to auth
+        router.replace('/auth');
+        return;
+      }
+
+      const todayEntry = await getTodaysEntry();
+      setHasEntry(!!todayEntry);
+      setCheckingEntry(false);
+
+      if (todayEntry) {
+        // Already drew card – go to daily question
+        router.replace('/daily-question');
+      }
+    };
+
+    init();
+  }, [user, session]);
+
+  if (checkingEntry) {
     return (
-      <View style={{ flex: 1 }}>
-        <MagicalCardDraw onComplete={() => {
-          console.log('🎉 Card flow complete, navigating to daily question');
-          router.replace('/daily-question');
-        }} />
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="large" color="#3B82F6" />
       </View>
     );
   }
 
-  // Animation values
-  const iconRotation = useSharedValue(0);
-  const iconScale = useSharedValue(0.8);
-  const iconOpacity = useSharedValue(0.6);
-
-  useEffect(() => {
-    console.log('🔍 Auth welcome screen loaded');
-    console.log('👤 User state:', { hasUser: !!user, hasSession: !!session });
-    
-    if (user || session) {
-      console.log('⚠️ WARNING: User still has session on auth screen!');
-      console.log('User ID:', user?.id);
-      console.log('Session exists:', !!session);
-    } else {
-      console.log('✅ Auth screen: User properly signed out');
-    }
-
-    // Quick swirl animation that settles down
-    iconRotation.value = withSequence(
-      withTiming(360, { duration: 800, easing: Easing.out(Easing.cubic) }),
-      withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
-    );
-    
-    iconScale.value = withSequence(
-      withTiming(1.1, { duration: 600, easing: Easing.out(Easing.back(1.2)) }),
-      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) })
-    );
-    
-    iconOpacity.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.ease) });
-  }, [user, session]);
-
-  const animatedIconStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { rotate: `${iconRotation.value}deg` },
-        { scale: iconScale.value }
-      ],
-      opacity: iconOpacity.value,
-    };
-  });
-
+  // No entry yet – prompt user to begin daily ritual (breathing → draw)
   return (
     <View style={styles.container}>
-      {/* Almost black gradient with subtle dark blue edges */}
       <LinearGradient
         colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
         style={StyleSheet.absoluteFill}
       />
 
-      {/* CRITICAL: Add sign out verification indicator */}
-      {!(user || session) && (
-        <View style={styles.signOutSuccess}>
-          <CheckCircle size={16} color="#10B981" />
-          <Text style={styles.signOutSuccessText}>Successfully signed out</Text>
-        </View>
-      )}
-      
-      {(user || session) && (
-        <View style={styles.signOutError}>
-          <Text style={styles.signOutErrorText}>⚠️ Sign out incomplete</Text>
-        </View>
-      )}
-
-      <View style={styles.content}>
-        {/* Animated icon with swirl effect - subtle dark blue */}
-        <View style={styles.iconSection}>
-          <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-            <Sparkles size={64} color="#1e3a8a" strokeWidth={1.5} />
-          </Animated.View>
-        </View>
-        
-        {/* Clean title */}
-        <Text style={styles.title}>Daily Inner{'\n'}Reflection</Text>
-        
-        {/* Simple subtitle */}
-        <Text style={styles.subtitle}>
-          Connect with your inner wisdom through daily reflection.
+      <View style={styles.contentCenter}>
+        <Sparkles size={80} color="#1e3a8a" strokeWidth={1.5} />
+        <Text style={styles.homeTitle}>Ready for Today's Reflection?</Text>
+        <Text style={styles.homeSubtitle}>
+          Start with a centering breath, then draw your daily card.
         </Text>
-      </View>
-      
-      {/* Single shade dark button */}
-      <View style={styles.buttonSection}>
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/signup')}>
+
+        <Pressable style={styles.primaryButton} onPress={() => router.replace('/breathing')}>
           <View style={styles.primaryButtonSolid}>
-            <Text style={styles.primaryButtonText}>Get Started</Text>
+            <Text style={styles.primaryButtonText}>Begin</Text>
           </View>
-        </Pressable>
-        
-        <Pressable style={styles.secondaryButton} onPress={() => router.push('/auth/signin')}>
-          <Text style={styles.secondaryButtonText}>
-            Already have an account? <Text style={styles.linkHighlight}>Sign In</Text>
-          </Text>
         </Pressable>
       </View>
     </View>
@@ -133,11 +72,25 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     paddingBottom: 40,
   },
-  
-  content: {
+  contentCenter: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 24,
+  },
+  homeTitle: {
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
+    textAlign: 'center',
+  },
+  homeSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    maxWidth: 260,
+    lineHeight: 24,
   },
   
   // Animated icon section - very subtle dark blue

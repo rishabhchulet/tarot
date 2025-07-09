@@ -349,10 +349,11 @@ export default function TodayScreen() {
 
   if (hasDrawnToday && todaysEntry) {
     return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      >
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+          style={StyleSheet.absoluteFill}
+        />
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.completedHeader}>
             <Text style={styles.completedTitle}>Today's Practice Complete</Text>
@@ -381,25 +382,25 @@ export default function TodayScreen() {
           </View>
 
           {/* Action Buttons */}
-          <View style={styles.actionButtons}>
-            <Pressable style={styles.actionButton} onPress={handleViewTodaysQuestion}>
-              <LinearGradient
-                colors={['#F59E0B', '#D97706']}
-                style={styles.actionButtonGradient}
-              >
-                <BookOpen size={20} color="#FFFFFF" />
+          <View style={styles.actionButtons}>            
+            <Pressable 
+              style={styles.actionButton} 
+              onPress={handleViewTodaysQuestion}
+            >
+              <View style={[styles.actionButtonSolid, { backgroundColor: '#374151' }]}>
+                <BookOpen size={20} color="#F9FAFB" />
                 <Text style={styles.actionButtonText}>Today's Question</Text>
-              </LinearGradient>
+              </View>
             </Pressable>
 
-            <Pressable style={styles.actionButton} onPress={handleViewJournal}>
-              <LinearGradient
-                colors={['#3B82F6', '#1D4ED8']}
-                style={styles.actionButtonGradient}
-              >
-                <Calendar size={20} color="#FFFFFF" />
+            <Pressable 
+              style={styles.actionButton} 
+              onPress={handleViewJournal}
+            >
+              <View style={[styles.actionButtonSolid, { backgroundColor: '#1e3a8a' }]}>
+                <Calendar size={20} color="#F9FAFB" />
                 <Text style={styles.actionButtonText}>View Journal</Text>
-              </LinearGradient>
+              </View>
             </Pressable>
           </View>
 
@@ -411,7 +412,7 @@ export default function TodayScreen() {
             </Text>
           </View>
         </ScrollView>
-      </LinearGradient>
+      </View>
     );
   }
 
@@ -853,8 +854,13 @@ const styles = StyleSheet.create({
   actionButton: {
     borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  actionButtonGradient: {
+  actionButtonSolid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -865,7 +871,8 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
+    marginLeft: 8,
   },
   
   // Next card info
@@ -877,6 +884,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     marginBottom: 40,
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
   },
   nextCardTitle: {
     fontSize: 18,

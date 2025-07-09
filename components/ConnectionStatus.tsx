@@ -82,7 +82,7 @@ export function ConnectionStatus({
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['rgba(0, 0, 0, 0.8)', 'rgba(0, 0, 0, 0.9)']}
+        colors={['rgba(10, 10, 10, 0.95)', 'rgba(15, 15, 15, 0.98)']}
         style={styles.banner}
       >
         <View style={styles.content}>
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    borderBottomColor: 'rgba(30, 58, 138, 0.2)',
   },
   content: {
     flexDirection: 'row',

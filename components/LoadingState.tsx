@@ -84,7 +84,12 @@ export function LoadingState({
       <View style={styles.content}>
         {/* Animated icon */}
         <View style={styles.iconContainer}>
-          <Animated.View style={sparkleAnimatedStyle}>
+          <Animated.View style={[sparkleAnimatedStyle, { 
+            shadowColor: '#1e3a8a',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.8,
+            shadowRadius: 20,
+          }]}>
             <Sparkles size={48} color="#1e3a8a" strokeWidth={1.5} />
           </Animated.View>
         </View>
@@ -173,11 +178,6 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 24,
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
   },
   message: {
     fontSize: 20,
@@ -226,6 +226,6 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#1e3a8a',
   },
 });

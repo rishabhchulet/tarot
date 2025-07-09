@@ -134,12 +134,20 @@ export default function DailyQuestionScreen() {
   const dailyQuestion = getDailyQuestion();
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       {/* Animated background effects */}
-      <Animated.View style={[styles.backgroundShimmer, shimmerStyle]} />
+      <Animated.View style={[styles.backgroundShimmer, shimmerStyle]}>
+        <LinearGradient
+          colors={['rgba(30, 58, 138, 0.05)', 'rgba(30, 58, 138, 0.1)', 'rgba(30, 58, 138, 0.05)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
       
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
@@ -162,7 +170,7 @@ export default function DailyQuestionScreen() {
         {/* Main Question Container */}
         <View style={styles.questionContainer}>
           <LinearGradient
-            colors={['rgba(245, 158, 11, 0.1)', 'rgba(139, 92, 246, 0.1)', 'rgba(59, 130, 246, 0.1)']}
+            colors={['rgba(30, 58, 138, 0.1)', 'rgba(30, 64, 175, 0.15)', 'rgba(30, 58, 138, 0.1)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.questionBorder}
@@ -170,7 +178,7 @@ export default function DailyQuestionScreen() {
             <View style={styles.questionContent}>
               {/* Animated heart icon */}
               <Animated.View style={[styles.heartContainer, heartPulseStyle]}>
-                <Heart size={32} color="#F59E0B" fill="#F59E0B" />
+                <Heart size={32} color="#1e3a8a" fill="#1e3a8a" strokeWidth={1.5} />
               </Animated.View>
 
               <Text style={styles.questionTitle}>
@@ -184,7 +192,7 @@ export default function DailyQuestionScreen() {
               {/* Decorative elements */}
               <View style={styles.decorativeElements}>
                 <Text style={styles.decorativeSymbol}>✦</Text>
-                <Text style={styles.decorativeSymbol}>◊</Text>
+                <Text style={styles.decorativeSymbol}>♦</Text>
                 <Text style={styles.decorativeSymbol}>✦</Text>
               </View>
             </View>
@@ -219,27 +227,21 @@ export default function DailyQuestionScreen() {
         {/* Action Buttons */}
         <View style={styles.actionButtons}>
           <Pressable style={styles.actionButton} onPress={() => router.push('/(tabs)/journal')}>
-            <LinearGradient
-              colors={['#3B82F6', '#1D4ED8']}
-              style={styles.actionButtonGradient}
-            >
-              <BookOpen size={18} color="#FFFFFF" />
+            <View style={[styles.actionButtonSolid, { backgroundColor: '#1e3a8a' }]}>
+              <BookOpen size={18} color="#F9FAFB" />
               <Text style={styles.actionButtonText}>View Journal</Text>
-            </LinearGradient>
+            </View>
           </Pressable>
 
           <Pressable style={styles.actionButton} onPress={() => router.replace('/(tabs)')}>
-            <LinearGradient
-              colors={['#10B981', '#059669']}
-              style={styles.actionButtonGradient}
-            >
-              <Calendar size={18} color="#FFFFFF" />
+            <View style={[styles.actionButtonSolid, { backgroundColor: '#374151' }]}>
+              <Calendar size={18} color="#F9FAFB" />
               <Text style={styles.actionButtonText}>Back to Today</Text>
-            </LinearGradient>
+            </View>
           </Pressable>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -256,7 +258,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(245, 158, 11, 0.05)',
   },
   
   // Header
@@ -385,14 +386,14 @@ const styles = StyleSheet.create({
   questionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
+    color: '#9CA3AF',
     textAlign: 'center',
     marginBottom: 20,
   },
   questionText: {
     fontSize: 22,
-    fontFamily: 'Inter-Bold',
-    color: '#F59E0B',
+    fontFamily: 'Inter-SemiBold',
+    color: '#F9FAFB',
     textAlign: 'center',
     lineHeight: 32,
     fontStyle: 'italic',
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   },
   decorativeSymbol: {
     fontSize: 18,
-    color: '#8B5CF6',
+    color: '#1e3a8a',
     fontFamily: 'Inter-Bold',
   },
   
@@ -416,6 +417,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
   },
   guidanceTitle: {
     fontSize: 18,
@@ -442,6 +444,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
   },
   keywordsTitle: {
     fontSize: 16,
@@ -461,12 +464,13 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
+    backgroundColor: 'rgba(30, 58, 138, 0.15)',
   },
   keywordText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#F9FAFB',
   },
   
   // Action buttons
@@ -477,8 +481,13 @@ const styles = StyleSheet.create({
   actionButton: {
     borderRadius: 12,
     overflow: 'hidden',
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  actionButtonGradient: {
+  actionButtonSolid: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -489,6 +498,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
+    marginLeft: 8,
   },
 });

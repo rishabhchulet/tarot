@@ -58,9 +58,9 @@ export default function AuthWelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Pure dark blue gradient background */}
+      {/* Almost black gradient with subtle dark blue edges */}
       <LinearGradient
-        colors={['#0a0a0f', '#1a1a2e', '#1e3a8a', '#1e40af']}
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -79,10 +79,10 @@ export default function AuthWelcomeScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Animated icon with swirl effect - pure blue theme */}
+        {/* Animated icon with swirl effect - subtle dark blue */}
         <View style={styles.iconSection}>
           <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-            <Sparkles size={64} color="#3B82F6" strokeWidth={1.5} />
+            <Sparkles size={64} color="#1e3a8a" strokeWidth={1.5} />
           </Animated.View>
         </View>
         
@@ -95,17 +95,12 @@ export default function AuthWelcomeScreen() {
         </Text>
       </View>
       
-      {/* Pure dark blue themed buttons */}
+      {/* Single shade dark button */}
       <View style={styles.buttonSection}>
         <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/signup')}>
-          <LinearGradient
-            colors={['#374151', '#4B5563', '#1E3A8A']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.primaryButtonGradient}
-          >
+          <View style={styles.primaryButtonSolid}>
             <Text style={styles.primaryButtonText}>Get Started</Text>
-          </LinearGradient>
+          </View>
         </Pressable>
         
         <Pressable style={styles.secondaryButton} onPress={() => router.push('/auth/signin')}>
@@ -132,7 +127,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Animated icon section - pure blue theme
+  // Animated icon section - very subtle dark blue
   iconSection: {
     marginBottom: 48,
   },
@@ -141,15 +136,15 @@ const styles = StyleSheet.create({
     height: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-    shadowColor: '#3B82F6',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
   },
   
   // Clean title
@@ -172,20 +167,16 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   
-  // Enhanced button section with pure blue accents
+  // Single shade dark button section
   buttonSection: {
     gap: 16,
   },
   primaryButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#1E3A8A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
   },
-  primaryButtonGradient: {
+  primaryButtonSolid: {
+    backgroundColor: '#374151', // Single dark shade
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
@@ -207,7 +198,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   linkHighlight: {
-    color: '#3B82F6', // Changed from purple to blue
+    color: '#1e3a8a', // Subtle dark blue accent
     fontFamily: 'Inter-Medium',
   },
   

@@ -138,9 +138,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (bgError) {
             console.warn('⚠️ Background profile operation failed:', bgError);
           }
-          } catch (bgError) {
-            console.warn('⚠️ Background profile operation failed:', bgError);
-          }
         }, 500); // Reduced delay for faster profile creation
       } else {
         console.log('ℹ️ No user data available');

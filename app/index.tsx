@@ -27,7 +27,7 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // CRITICAL FIX: Enhanced routing with better session handling
+    // CRITICAL FIX: Simplified routing with immediate navigation
     const navigationTimeout = setTimeout(() => {
       console.log('🔍 Routing check:', { 
         hasSession: !!session, 
@@ -39,8 +39,8 @@ export default function IndexScreen() {
         connectionStatus
       });
 
-      // Only route if not loading and connection is stable
-      if (!loading && connectionStatus !== 'connecting') {
+      // Only route if not loading
+      if (!loading) {
         try {
           if (session) {
             // User has a valid session
@@ -62,16 +62,9 @@ export default function IndexScreen() {
                 router.replace('/(tabs)');
               }
             } else {
-              // CRITICAL FIX: Session exists but no user profile - wait a bit longer for profile creation
-              console.log('⚠️ Session exists but no user profile - waiting for profile creation...');
-              
-              // Give profile creation more time, then proceed to onboarding
-              setTimeout(() => {
-                if (!user && session) {
-                  console.log('🔄 Profile creation taking too long - proceeding to onboarding anyway...');
-                  router.replace('/onboarding/quiz');
-                }
-              }, 2000); // Wait additional 2 seconds for profile creation
+              // Session exists but no user profile - proceed to onboarding
+              console.log('⚠️ Session exists but no user profile - proceeding to onboarding...');
+              router.replace('/onboarding/quiz');
             }
           } else {
             // No session means new user - go to auth
@@ -84,7 +77,7 @@ export default function IndexScreen() {
           router.replace('/auth');
         }
       }
-    }, 1500); // Increased to 1.5s to allow for profile creation
+    }, 500); // Reduced timeout for faster navigation
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error, connectionStatus]);

@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               () => supabase.rpc('ensure_user_profile_exists', {
                 check_user_id: authUser.id
               }),
-              8000,
+              6000, // Reduced timeout
               [{ success: false, message: 'Timeout' }]
             );
             
@@ -120,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   .select('focus_area, name')
                   .eq('id', authUser.id)
                   .single(),
-                5000,
+                4000, // Reduced timeout
                 null
               );
               
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } catch (bgError) {
             console.warn('⚠️ Background profile operation failed:', bgError);
           }
-        }, 500); // Reduced delay for faster profile creation
+        }, 200); // Further reduced delay for faster profile creation
       } else {
         console.log('ℹ️ No user data available');
         setUser(null);

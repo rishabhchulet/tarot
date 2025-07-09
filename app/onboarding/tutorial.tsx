@@ -11,6 +11,7 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { Eye, Sparkles, Heart, PenTool, Bell } from 'lucide-react-native';
+import { startFreeTrial } from '@/utils/database';
 
 const { width } = Dimensions.get('window');
 
@@ -101,17 +102,36 @@ export default function TutorialScreen() {
     }
   };
 
-  const handleComplete = () => {
-    console.log('🎉 Tutorial complete, navigating to breathing exercise...');
+  const handleComplete = async () => {
+    console.log('🎉 Tutorial complete, starting trial and navigating to breathing exercise...');
     setLoading(true);
     
+    try {
+      // Start free trial
+      console.log('💾 Starting free trial...');
+      await startFreeTrial();
+      console.log('✅ Free trial started successfully');
+    } catch (error) {
+      console.error('❌ Error starting free trial:', error);
+      // Continue anyway - don't block the user flow
+    }
+    
     // Navigate to breathing exercise
-    router.push('/breathing');
+    console.log('🫁 Navigating to breathing exercise...');
+    router.replace('/breathing');
   };
 
-  const handleSkip = () => {
-    console.log('⏭️ Tutorial skipped, going to breathing exercise...');
-    router.push('/breathing');
+  const handleSkip = async () => {
+    console.log('⏭️ Tutorial skipped, starting trial and going to breathing exercise...');
+    setLoading(true);
+    
+    try {
+      await startFreeTrial();
+    } catch (error) {
+      console.error('❌ Error starting free trial:', error);
+    }
+    
+    router.replace('/breathing');
   };
 
   const currentTutorial = TUTORIAL_STEPS[currentStep];
@@ -154,6 +174,7 @@ export default function TutorialScreen() {
       );
     });
   };
+
   return (
     <View style={styles.container}>
       <LinearGradient

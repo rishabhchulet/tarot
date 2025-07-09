@@ -103,7 +103,7 @@ export default function BreathingScreen() {
       
       if (currentBreath >= 3) {
         clearInterval(interval);
-        // Wait for last cycle to complete, then navigate directly to main app
+        // Wait for last cycle to complete, then navigate to card draw
         setTimeout(() => {
           console.log('🎉 Breathing complete, navigating to card draw...');
           router.replace('/draw');

@@ -170,48 +170,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-              setUser(prev => prev ? {
-                ...prev,
-                name: profileResult.data.name || prev.name,
-                focusArea: profileResult.data.focus_area || undefined
-              } : null);
-              console.log('✅ Background profile update successful');
-            }
-          } catch (bgError) {
-            console.warn('⚠️ Background profile fetch failed:', bgError);
-          }
-        }, 1000); // Give more time before background fetch
-      } else {
-        console.log('ℹ️ No user data available');
-        setUser(null);
-        setConnectionStatus('disconnected');
-      }
-      
-    } catch (error: any) {
-      console.error('❌ Error refreshing user:', error);
-      setConnectionStatus('error');
-      setRetryCount(prev => prev + 1);
-      
-      // Enhanced error handling with user-friendly messages
-      let userFriendlyError = 'Connection issue. Please check your internet connection.';
-      
-      if (error.message?.includes('timeout')) {
-        userFriendlyError = 'Connection is slow. Please wait or try again.';
-      } else if (error.message?.includes('network')) {
-        userFriendlyError = 'Network error. Please check your internet connection.';
-      } else if (error.message?.includes('auth')) {
-        userFriendlyError = 'Authentication error. Please try signing in again.';
-      }
-      
-      setError(userFriendlyError);
-      
-      // Only clear user if we don't have existing data
-      if (!user) {
-        setUser(null);
-      }
-    }
-  };
-
   const retryConnection = async () => {
     console.log('🔄 Manual connection retry triggered...');
     setError(null);

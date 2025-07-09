@@ -36,33 +36,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔄 Refreshing user data...');
       setConnectionStatus('connecting');
       
-      // CRITICAL FIX: Use much longer timeout with progressive fallback
-      const currentUser = await createTimeoutWrapper(
-        () => getCurrentUser(),
-        8000, // INCREASED: 8 second timeout
-        null // Fallback to null
-      );
+      // CRITICAL FIX: Try getCurrentUser with retry logic
+      let currentUser = null;
+      let attempts = 0;
+      const maxAttempts = 3;
       
-      if (currentUser) {
-        console.log('👤 User data refreshed:', { 
-          id: currentUser.id, 
-          name: currentUser.name, 
-          focusArea: currentUser.focusArea 
-        });
-        setUser(currentUser);
-        setError(null);
-        setConnectionStatus('connected');
-        setLastSuccessfulConnection(new Date());
-        setRetryCount(0); // Reset retry count on success
-        return;
+      while (attempts < maxAttempts && !currentUser) {
+        attempts++;
+        console.log(`🔄 User data fetch attempt ${attempts}/${maxAttempts}...`);
+        
+        currentUser = await createTimeoutWrapper(
+          () => getCurrentUser(),
+          attempts === 1 ? 10000 : 6000, // Longer timeout on first attempt
+          null
+        );
+        
+        if (currentUser) {
+          console.log('👤 User data fetched successfully:', { 
+            id: currentUser.id, 
+            name: currentUser.name, 
+            focusArea: currentUser.focusArea 
+          });
+          setUser(currentUser);
+          setError(null);
+          setConnectionStatus('connected');
+          setLastSuccessfulConnection(new Date());
+          setRetryCount(0);
+          return;
+        }
+        
+        if (attempts < maxAttempts) {
+          console.warn(`⚠️ User data fetch attempt ${attempts} failed, retrying...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
       }
       
-      // CRITICAL FIX: If getCurrentUser fails, try session fallback with longer timeout
-      console.warn('⚠️ getCurrentUser failed, trying session fallback...');
+      // If all attempts failed, try session fallback
+      console.warn('⚠️ All getCurrentUser attempts failed, trying session fallback...');
       
       const sessionResult = await createTimeoutWrapper(
         () => supabase.auth.getUser(),
-        3000, // INCREASED: 3 second timeout
+        5000, // 5 second timeout
         null
       );
       
@@ -75,28 +89,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           focusArea: undefined // Will be loaded later if possible
         };
         
-        console.log('✅ Using session fallback user data');
+        console.log('✅ Using session fallback user data, triggering profile creation...');
         setUser(fallbackUser);
         setError(null);
         setConnectionStatus('connected');
         setLastSuccessfulConnection(new Date());
         setRetryCount(0);
         
-        // CRITICAL FIX: Try to load full profile data in background with longer timeout
+        // Try to ensure profile exists in background
         setTimeout(async () => {
           try {
-            console.log('🔄 Background profile fetch...');
-            const profileResult = await createTimeoutWrapper(
-              () => supabase
-                .from('users')
-                .select('focus_area, name')
-                .eq('id', authUser.id)
-                .single(),
-              5000, // INCREASED: 5 second timeout
-              null
+            console.log('🔄 Background profile creation/fetch...');
+            
+            // Try to ensure profile exists using the database function
+            const ensureResult = await createTimeoutWrapper(
+              () => supabase.rpc('ensure_user_profile_exists', {
+                check_user_id: authUser.id
+              }),
+              8000,
+              [{ success: false, message: 'Timeout' }]
             );
             
-            if (profileResult?.data) {
+            if (ensureResult && ensureResult[0]?.success) {
+              console.log('✅ Profile ensured, fetching updated data...');
+              
+              // Now fetch the updated profile
+              const profileResult = await createTimeoutWrapper(
+                () => supabase
+                  .from('users')
+                  .select('focus_area, name')
+                  .eq('id', authUser.id)
+                  .single(),
+                5000,
+                null
+              );
+              
+              if (profileResult?.data) {
+                setUser(prev => prev ? {
+                  ...prev,
+                  name: profileResult.data.name || prev.name,
+                  focusArea: profileResult.data.focus_area || undefined
+                } : null);
+                console.log('✅ Background profile update successful');
+              }
+            } else {
+              console.warn('⚠️ Profile creation failed in background');
+            }
+          } catch (bgError) {
+            console.warn('⚠️ Background profile operation failed:', bgError);
+          }
+        }, 500); // Reduced delay for faster profile creation
+      } else {
+        console.log('ℹ️ No user data available');
+        setUser(null);
+        setConnectionStatus('disconnected');
+      }
+      
+    } catch (error: any) {
+      console.error('❌ Error refreshing user:', error);
+      setConnectionStatus('error');
+      setRetryCount(prev => prev + 1);
+      
+      // Enhanced error handling with user-friendly messages
+      let userFriendlyError = 'Connection issue. Please check your internet connection.';
+      
+      if (error.message?.includes('timeout')) {
+        userFriendlyError = 'Connection is slow. Please wait or try again.';
+      } else if (error.message?.includes('network')) {
+        userFriendlyError = 'Network error. Please check your internet connection.';
+      } else if (error.message?.includes('auth')) {
+        userFriendlyError = 'Authentication error. Please try signing in again.';
+      }
+      
+      setError(userFriendlyError);
+      
+      // Only clear user if we don't have existing data
+      if (!user) {
+        setUser(null);
+      }
+    }
+  };
+
               setUser(prev => prev ? {
                 ...prev,
                 name: profileResult.data.name || prev.name,

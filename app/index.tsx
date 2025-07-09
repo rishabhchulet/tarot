@@ -27,7 +27,7 @@ export default function IndexScreen() {
   }, []);
 
   useEffect(() => {
-    // CRITICAL FIX: Enhanced routing with connection status awareness
+    // CRITICAL FIX: Enhanced routing with better session handling
     const navigationTimeout = setTimeout(() => {
       console.log('🔍 Routing check:', { 
         hasSession: !!session, 
@@ -42,27 +42,37 @@ export default function IndexScreen() {
       // Only route if not loading and connection is stable
       if (!loading && connectionStatus !== 'connecting') {
         try {
-          if (session && user) {
-            // User is authenticated and profile exists
-            const focusArea = user.focusArea;
-            const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
-            
-            console.log('🎯 Authenticated user routing:', { 
-              focusArea: focusArea,
-              hasCompletedOnboarding: hasCompletedOnboarding
-            });
-            
-            if (!hasCompletedOnboarding) {
-              console.log('📚 User needs onboarding - redirecting to quiz...');
-              router.replace('/onboarding/quiz');
+          if (session) {
+            // User has a valid session
+            if (user) {
+              // User profile exists - check onboarding status
+              const focusArea = user.focusArea;
+              const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
+              
+              console.log('🎯 Authenticated user with profile:', { 
+                focusArea: focusArea,
+                hasCompletedOnboarding: hasCompletedOnboarding
+              });
+              
+              if (!hasCompletedOnboarding) {
+                console.log('📚 User needs onboarding - redirecting to quiz...');
+                router.replace('/onboarding/quiz');
+              } else {
+                console.log('✅ User has completed onboarding - going to main app...');
+                router.replace('/(tabs)');
+              }
             } else {
-              console.log('✅ User has completed onboarding - going to main app...');
-              router.replace('/(tabs)');
+              // CRITICAL FIX: Session exists but no user profile - wait a bit longer for profile creation
+              console.log('⚠️ Session exists but no user profile - waiting for profile creation...');
+              
+              // Give profile creation more time, then proceed to onboarding
+              setTimeout(() => {
+                if (!user && session) {
+                  console.log('🔄 Profile creation taking too long - proceeding to onboarding anyway...');
+                  router.replace('/onboarding/quiz');
+                }
+              }, 2000); // Wait additional 2 seconds for profile creation
             }
-          } else if (session && !user) {
-            // CRITICAL FIX: If we have session but no user, proceed to onboarding anyway
-            console.log('⚠️ Session exists but no user data - proceeding to onboarding...');
-            router.replace('/onboarding/quiz');
           } else {
             // No session means new user - go to auth
             console.log('🔐 No session found - redirecting to auth (new user)...');
@@ -70,13 +80,11 @@ export default function IndexScreen() {
           }
         } catch (navigationError) {
           console.error('❌ Navigation error:', navigationError);
-          // Don't navigate if there's a connection issue
-          if (connectionStatus === 'connected') {
-            router.replace('/auth');
-          }
+          // Fallback to auth on navigation errors
+          router.replace('/auth');
         }
       }
-    }, 1000); // Increased to 1s to account for connection status
+    }, 1500); // Increased to 1.5s to allow for profile creation
 
     return () => clearTimeout(navigationTimeout);
   }, [loading, session, user, error, connectionStatus]);

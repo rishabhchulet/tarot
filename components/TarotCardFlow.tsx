@@ -219,5 +219,270 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
                 source={{ uri: selectedCard.imageUrl }}
                 style={styles.cardFrontImage}
                 resizeMode="cover"
-  )
+              />
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </View>
+
+      <View style={styles.ichingContainer}>
+        <Text style={styles.ichingTitle}>I Ching Guidance</Text>
+        <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
+        <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+      </View>
+
+      <Pressable style={styles.continueButton} onPress={handleShowKeywords}>
+        <Text style={styles.continueButtonText}>Continue</Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderKeywordsOnly = () => (
+    <View style={styles.stepContainer}>
+      <Text style={styles.stepTitle}>Key Themes</Text>
+      
+      <View style={styles.keywordsContainer}>
+        <Text style={styles.sectionTitle}>Tarot Keywords</Text>
+        <View style={styles.keywordsList}>
+          {selectedCard.keywords.map((keyword, index) => (
+            <View key={index} style={styles.keywordItem}>
+              <Text style={styles.keywordText}>{keyword}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.keywordsContainer}>
+        <Text style={styles.sectionTitle}>I Ching Keywords</Text>
+        <View style={styles.keywordsList}>
+          {getIChingKeywords(selectedHexagram).map((keyword, index) => (
+            <View key={index} style={styles.keywordItem}>
+              <Text style={styles.keywordText}>{keyword}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      <Pressable style={styles.continueButton} onPress={handleShowReflection}>
+        <Text style={styles.continueButtonText}>Begin Reflection</Text>
+      </Pressable>
+    </View>
+  );
+
+  const renderReflectionQuestions = () => (
+    <View style={styles.stepContainer}>
+      <ReflectionPrompt
+        card={selectedCard}
+        hexagram={selectedHexagram}
+        onComplete={handleReflectionComplete}
+      />
+    </View>
+  );
+
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 'card-back':
+        return renderCardBack();
+      case 'card-and-iching':
+        return renderCardAndIching();
+      case 'keywords-only':
+        return renderKeywordsOnly();
+      case 'reflection-questions':
+        return renderReflectionQuestions();
+      default:
+        return renderCardBack();
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      {renderCurrentStep()}
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0F0F23',
+  },
+  stepContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  cardTouchArea: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardContainer: {
+    width: screenWidth * 0.7,
+    height: screenHeight * 0.5,
+    borderRadius: 20,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+  },
+  cardFront: {
+    backfaceVisibility: 'hidden',
+  },
+  mysticalBorder: {
+    flex: 1,
+    borderRadius: 20,
+    padding: 3,
+  },
+  innerBorder: {
+    flex: 1,
+    borderRadius: 17,
+    backgroundColor: '#1A1A2E',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  cardBackImage: {
+    width: '100%',
+    height: '100%',
+  },
+  cardFrontImage: {
+    width: '100%',
+    height: '70%',
+  },
+  lightEffect1: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 17,
+  },
+  tapHintOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  tapHint: {
+    color: '#FFD700',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  glowEffect1: {
+    position: 'absolute',
+    width: screenWidth * 0.8,
+    height: screenHeight * 0.6,
+    borderRadius: 30,
+    backgroundColor: 'rgba(139, 92, 246, 0.3)',
+    zIndex: -1,
+  },
+  glowEffect2: {
+    position: 'absolute',
+    width: screenWidth * 0.85,
+    height: screenHeight * 0.65,
+    borderRadius: 35,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    zIndex: -2,
+  },
+  glowEffect3: {
+    position: 'absolute',
+    width: screenWidth * 0.9,
+    height: screenHeight * 0.7,
+    borderRadius: 40,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    zIndex: -3,
+  },
+  borderRing: {
+    position: 'absolute',
+    width: screenWidth * 0.75,
+    height: screenHeight * 0.55,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 215, 0, 0.6)',
+    zIndex: -1,
+  },
+  cardCenterContainer: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  ichingContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  ichingTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#8B5CF6',
+    marginBottom: 10,
+  },
+  ichingName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 5,
+  },
+  ichingEssence: {
+    fontSize: 16,
+    color: '#FFD700',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  stepTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  keywordsContainer: {
+    width: '100%',
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#8B5CF6',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  keywordsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  keywordItem: {
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+  },
+  keywordText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  continueButton: {
+    backgroundColor: '#8B5CF6',
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 25,
+    marginTop: 20,
+  },
+  continueButtonText: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+});

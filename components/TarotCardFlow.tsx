@@ -38,23 +38,19 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   const handleRevealCard = () => {
     console.log('🎴 Card reveal triggered!');
     
-    // Start the magical sequence
     glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
     borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
     
-    // Scale up slightly before flip
     scaleAnimation.value = withSequence(
       withTiming(1.05, { duration: 800, easing: Easing.out(Easing.cubic) }),
       withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
     );
     
-    // Delayed flip animation for more dramatic effect
     flipAnimation.value = withDelay(1200, withTiming(1, { 
       duration: 1200, 
       easing: Easing.inOut(Easing.cubic) 
     }));
     
-    // Change step after the full animation sequence
     setTimeout(() => {
       setCurrentStep('card-and-iching');
     }, 2000);
@@ -70,7 +66,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
   const handleReflectionComplete = () => {
     console.log('⭐ Reflection complete callback triggered');
-    // Only call onComplete, let parent handle navigation/state
     if (onComplete) {
       onComplete();
     }
@@ -116,7 +111,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     };
   });
 
-  // Get a simple one-word essence of the I Ching hexagram
   const getIChingEssence = (hexagram: any) => {
     const essenceMap: { [key: string]: string } = {
       'The Creative': 'Creation',
@@ -144,7 +138,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     return essenceMap[hexagram.name] || 'Wisdom';
   };
 
-  // Get I Ching keywords based on the hexagram
   const getIChingKeywords = (hexagram: any) => {
     const keywordMap: { [key: string]: string[] } = {
       'The Creative': ['Initiative', 'Leadership', 'Power'],
@@ -174,15 +167,12 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
   const renderCardBack = () => (
     <View style={styles.stepContainer}>
-      {/* Background Effects */}
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect3, glowAnimatedStyle]} />
       
-      {/* Animated Border Ring */}
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
-      {/* FIXED: Make the entire card area clickable with proper z-index */}
       <Pressable 
         style={styles.cardTouchArea} 
         onPress={handleRevealCard}
@@ -191,7 +181,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
         accessibilityRole="button"
       >
         <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
-          {/* Mystical Border */}
           <LinearGradient
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
             start={{ x: 0, y: 0 }}
@@ -204,14 +193,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
                 style={styles.cardBackImage}
                 resizeMode="cover"
               />
-              {/* Floating Light Effects */}
               <View style={styles.lightEffect1} />
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
-        style={StyleSheet.absoluteFill}
-      />
-              {/* FIXED: Tap hint positioned properly and not blocking touch */}
               <View style={styles.tapHintOverlay}>
                 <Text style={styles.tapHint}>✨ Tap to reveal your message ✨</Text>
               </View>
@@ -222,7 +204,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     </View>
   );
 
-            color={['#1e3a8a', '#374151', '#1e40af', '#1f2937'][index % 4]}
+  const renderCardAndIching = () => (
     <View style={styles.stepContainer}>
       <View style={styles.cardCenterContainer}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
@@ -230,23 +212,22 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-          <Star size={8} color="#1e3a8a" fill="#1e3a8a" />
+            style={styles.mysticalBorder}
           >
             <View style={styles.innerBorder}>
-          <Star size={6} color="#374151" fill="#374151" />
+              <Image
                 source={{ uri: selectedCard.imageUrl }}
                 style={styles.cardFrontImage}
-          <Star size={10} color="#1e40af" fill="#1e40af" />
+                resizeMode="cover"
               />
               <View style={styles.cardInfo}>
-          <Star size={7} color="#1f2937" fill="#1f2937" />
+                <Text style={styles.cardName}>{selectedCard.name}</Text>
               </View>
             </View>
-          <Star size={5} color="#1e3a8a" fill="#1e3a8a" />
+          </LinearGradient>
         </Animated.View>
       </View>
 
-      {/* COMPACT: Smaller I Ching container */}
       <View style={styles.ichingContainer}>
         <Text style={styles.ichingTitle}>Your I Ching Guidance</Text>
         <View style={styles.ichingCard}>
@@ -286,7 +267,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   const renderKeywordsOnly = () => (
     <View style={styles.stepContainer}>
       <View style={styles.keywordsMainContainer}>
-        {/* COMPACT: Smaller header */}
         <View style={styles.keywordsHeader}>
           <Text style={styles.keywordsTitle}>Your Spiritual Keywords</Text>
           <Text style={styles.keywordsSubtitle}>
@@ -294,27 +274,29 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
           </Text>
         </View>
 
-        {/* COMPACT: Tarot Keywords Section */}
         <View style={styles.keywordSection}>
           <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
           <View style={styles.keywordGrid}>
             {selectedCard.keywords.slice(0, 4).map((keyword, index) => (
-              colors={['#1e3a8a', '#374151', '#1e40af', '#1e3a8a']}
+              <View key={index} style={styles.tarotKeyword}>
                 <Text style={styles.tarotKeywordText}>{keyword}</Text>
               </View>
             ))}
           </View>
-              <View style={styles.pullButtonSolid}>
+        </View>
+
+        <View style={styles.keywordSection}>
+          <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
+          <View style={styles.keywordGrid}>
             {getIChingKeywords(selectedHexagram).map((keyword, index) => (
               <View key={index} style={styles.ichingKeyword}>
                 <Text style={styles.ichingKeywordText}>{keyword}</Text>
               </View>
             ))}
-                  <Zap size={20} color="#F9FAFB" />
+          </View>
         </View>
-                  <Sparkles size={16} color="#F9FAFB" />
-        {/* COMPACT: Combined Essence */}
-              </View>
+
+        <View style={styles.essenceContainer}>
           <Text style={styles.essenceTitle}>Today's Essence</Text>
           <Text style={styles.essenceText}>
             {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
@@ -325,7 +307,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
         </View>
       </View>
 
-      {/* FIXED: Button positioned to be always visible */}
       <View style={styles.buttonContainer}>
         <Pressable style={styles.continueButton} onPress={handleShowReflection}>
           <LinearGradient
@@ -359,89 +340,86 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     case 'reflection-questions':
       return renderReflectionQuestions();
     default:
-    </View>
+      return null;
   }
 }
 
 const styles = StyleSheet.create({
-  // OPTIMIZED: Container that ensures everything fits in viewport
+  // Container styles
   stepContainer: {
     flex: 1,
     width: '100%',
-    height: screenHeight - 140, // Account for tab bar and status bar
+    height: screenHeight - 140,
     paddingHorizontal: 20,
-    paddingVertical: 10, // REDUCED: Less vertical padding
+    paddingVertical: 10,
   },
   
-  // FIXED: Center container using flexbox
   cardCenterContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20, // REDUCED: Less margin (was 30)
+    marginBottom: 20,
   },
   
-  // FIXED: Touch area that covers the entire card and is properly positioned
   cardTouchArea: {
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10, // Ensure it's above other elements
+    zIndex: 10,
     position: 'relative',
   },
   
-  // INCREASED: Card container with larger dimensions
   cardContainer: {
-    width: Math.min(screenWidth * 0.85, 360), // Increased from 0.75 to 0.85 and max from 300 to 360
-    height: Math.min(screenHeight * 0.6, 540), // Increased from 0.5 to 0.6 and max from 450 to 540
+    width: Math.min(screenWidth * 0.85, 360),
+    height: Math.min(screenHeight * 0.6, 540),
     borderRadius: 24,
     backfaceVisibility: 'hidden',
     position: 'relative',
   },
   
-  // Glow effects positioned relative to container - adjusted for larger card
+  // Glow effects
   glowEffect1: {
     position: 'absolute',
-    width: 240, // Increased from 200
-    height: 240, // Increased from 200
-    borderRadius: 120, // Increased from 100
+    width: 240,
+    height: 240,
+    borderRadius: 120,
     backgroundColor: 'rgba(245, 158, 11, 0.08)',
-    top: '8%', // Adjusted positioning
-    left: '3%', // Adjusted positioning
-    zIndex: 1,
-  },
-  glowEffect2: {
-    position: 'absolute',
-    width: 180, // Increased from 150
-    height: 180, // Increased from 150
-    borderRadius: 90, // Increased from 75
-    backgroundColor: 'rgba(139, 92, 246, 0.06)',
-    bottom: '12%', // Adjusted positioning
-    right: '5%', // Adjusted positioning
-    zIndex: 1,
-  },
-  glowEffect3: {
-    position: 'absolute',
-    width: 150, // Increased from 120
-    height: 150, // Increased from 120
-    borderRadius: 75, // Increased from 60
-    backgroundColor: 'rgba(59, 130, 246, 0.04)',
-    top: '55%', // Adjusted positioning
-    left: '8%', // Adjusted positioning
+    top: '8%',
+    left: '3%',
     zIndex: 1,
   },
   
-  // Border ring effect - adjusted for larger card
+  glowEffect2: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(139, 92, 246, 0.06)',
+    bottom: '12%',
+    right: '5%',
+    zIndex: 1,
+  },
+  
+  glowEffect3: {
+    position: 'absolute',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(59, 130, 246, 0.04)',
+    top: '55%',
+    left: '8%',
+    zIndex: 1,
+  },
+  
   borderRing: {
     position: 'absolute',
-    width: Math.min(screenWidth * 0.95, 400), // Increased from 0.85 to 0.95 and max from 340 to 400
-    height: Math.min(screenWidth * 0.95, 400), // Increased from 0.85 to 0.95 and max from 340 to 400
-    borderRadius: Math.min(screenWidth * 0.475, 200), // Adjusted accordingly
+    width: Math.min(screenWidth * 0.95, 400),
+    height: Math.min(screenWidth * 0.95, 400),
+    borderRadius: Math.min(screenWidth * 0.475, 200),
     borderWidth: 2,
     borderColor: 'rgba(245, 158, 11, 0.2)',
     borderStyle: 'dashed',
     zIndex: 2,
   },
   
-  // Mystical border with enhanced glow
   mysticalBorder: {
     flex: 1,
     padding: 4,
@@ -453,7 +431,6 @@ const styles = StyleSheet.create({
     elevation: 25,
   },
   
-  // Inner border
   innerBorder: {
     flex: 1,
     borderRadius: 20,
@@ -464,7 +441,6 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   
-  // Card images
   cardBackImage: {
     width: '100%',
     height: '100%',
@@ -472,16 +448,16 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
   },
+  
   cardFrontImage: {
     width: '100%',
-    height: '85%', // INCREASED: Show more of the card image (was 75%)
+    height: '85%',
   },
   
-  // Light effects - adjusted positions for larger card
   lightEffect1: {
     position: 'absolute',
-    top: 18, // Slightly adjusted
-    left: 18, // Slightly adjusted
+    top: 18,
+    left: 18,
     width: 6,
     height: 6,
     borderRadius: 3,
@@ -492,72 +468,29 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     zIndex: 5,
   },
-  lightEffect2: {
-    position: 'absolute',
-    top: 42, // Slightly adjusted
-    right: 30, // Slightly adjusted
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#8B5CF6',
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 6,
-    zIndex: 5,
-  },
-  lightEffect3: {
-    position: 'absolute',
-    bottom: 85, // Adjusted for larger card
-    left: 36, // Slightly adjusted
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#3B82F6',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 10,
-    zIndex: 5,
-  },
-  lightEffect4: {
-    position: 'absolute',
-    bottom: 85, // Adjusted for larger card
-    right: 18, // Slightly adjusted
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 1,
-    shadowRadius: 7,
-    zIndex: 5,
-  },
   
-  // REDUCED: Tap hint overlay with smaller black area
   tapHintOverlay: {
     position: 'absolute',
-    bottom: 12, // REDUCED: Moved up from 24 to reduce black space
-    left: 18, // Slightly adjusted
-    right: 18, // Slightly adjusted
+    bottom: 12,
+    left: 18,
+    right: 18,
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.75)', // REDUCED: Less opaque background
-    paddingVertical: 8, // REDUCED: Less padding (was 14)
-    paddingHorizontal: 16, // REDUCED: Less padding (was 18)
-    borderRadius: 16, // Slightly smaller radius
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: 'rgba(245, 158, 11, 0.4)',
-    zIndex: 3, // Lower than touch area
+    zIndex: 3,
   },
+  
   tapHint: {
-    fontSize: 14, // REDUCED: Smaller font (was 16)
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
   },
   
-  // Card front styling
   cardFront: {
     backgroundColor: '#FFFFFF',
     shadowColor: '#F59E0B',
@@ -567,16 +500,16 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   
-  // REDUCED: Card info with smaller black area
   cardInfo: {
-    padding: 12, // REDUCED: Less padding (was 20)
+    padding: 12,
     flex: 1,
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.85)', // REDUCED: Less opaque background
-    minHeight: 60, // REDUCED: Minimum height to contain text
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    minHeight: 60,
   },
+  
   cardName: {
-    fontSize: 22, // REDUCED: Slightly smaller (was 26)
+    fontSize: 22,
     fontFamily: 'Inter-Bold',
     color: '#F59E0B',
     textAlign: 'center',
@@ -585,133 +518,134 @@ const styles = StyleSheet.create({
     textShadowRadius: 8,
   },
   
-  // COMPACT: Smaller I Ching container
   ichingContainer: {
     width: '100%',
-    marginBottom: 16, // REDUCED: Less margin (was 20)
+    marginBottom: 16,
   },
+  
   ichingTitle: {
-    fontSize: 16, // REDUCED: Smaller font (was 18)
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
-    marginBottom: 12, // REDUCED: Less margin (was 16)
+    marginBottom: 12,
   },
+  
   ichingCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12, // REDUCED: Smaller radius (was 14)
-    padding: 16, // REDUCED: Less padding (was 20)
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   
-  // COMPACT: Reorganized I Ching header and content
   ichingHeader: {
     alignItems: 'center',
-    marginBottom: 12, // REDUCED: Less margin (was 16)
+    marginBottom: 12,
   },
+  
   ichingNumber: {
-    fontSize: 12, // REDUCED: Smaller font (was 14)
+    fontSize: 12,
     fontFamily: 'Inter-Medium',
     color: '#9CA3AF',
-    marginBottom: 4, // REDUCED: Less margin (was 6)
+    marginBottom: 4,
   },
+  
   ichingName: {
-    fontSize: 18, // REDUCED: Smaller font (was 20)
+    fontSize: 18,
     fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
   },
   
-  // COMPACT: Horizontal layout for hexagram and essence
   ichingContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
   },
+  
   hexagramSymbol: {
-    gap: 2, // REDUCED: Less gap (was 3)
+    gap: 2,
   },
+  
   line: {
-    height: 2, // REDUCED: Thinner lines (was 3)
-    width: 50, // REDUCED: Shorter lines (was 70)
+    height: 2,
+    width: 50,
     backgroundColor: '#F59E0B',
   },
-  solidLine: {
-    // Solid line style
-  },
+  
+  solidLine: {},
+  
   brokenLine: {
-    // Broken line - create gap in middle
     borderWidth: 1,
     borderColor: '#F59E0B',
     backgroundColor: 'transparent',
     borderStyle: 'dashed',
   },
+  
   ichingEssence: {
-    fontSize: 14, // REDUCED: Smaller font (was 16)
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
     fontStyle: 'italic',
   },
   
-  // OPTIMIZED: Keywords screen to fit in viewport
   keywordsMainContainer: {
     flex: 1,
     width: '100%',
-    justifyContent: 'space-between', // ADDED: Distribute space evenly
+    justifyContent: 'space-between',
   },
   
-  // COMPACT: Smaller header section
   keywordsHeader: {
     alignItems: 'center',
-    marginBottom: 20, // REDUCED: Less space (was 40)
+    marginBottom: 20,
   },
+  
   keywordsTitle: {
-    fontSize: 28, // REDUCED: Smaller title (was 32)
+    fontSize: 28,
     fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
-    marginBottom: 8, // REDUCED: Less space (was 12)
-    lineHeight: 32, // REDUCED: Tighter line height
+    marginBottom: 8,
+    lineHeight: 32,
   },
+  
   keywordsSubtitle: {
-    fontSize: 16, // REDUCED: Smaller subtitle (was 18)
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#D1D5DB',
     textAlign: 'center',
-    lineHeight: 20, // REDUCED: Tighter line height
+    lineHeight: 20,
     maxWidth: 280,
   },
   
-  // COMPACT: Smaller keyword sections
   keywordSection: {
-    marginBottom: 20, // REDUCED: Less space between sections (was 36)
+    marginBottom: 20,
   },
+  
   keywordSectionTitle: {
-    fontSize: 18, // REDUCED: Smaller section titles (was 22)
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
-    lineHeight: 22, // REDUCED: Tighter line height
-    marginBottom: 12, // REDUCED: Less space (was 20)
+    lineHeight: 22,
+    marginBottom: 12,
   },
   
-  // COMPACT: Tighter keyword grid
   keywordGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 10, // REDUCED: Less space between keywords (was 14)
+    gap: 10,
   },
   
-  // COMPACT: Smaller tarot keywords
   tarotKeyword: {
     backgroundColor: 'rgba(245, 158, 11, 0.25)',
-    paddingHorizontal: 14, // REDUCED: Less padding (was 18)
-    paddingVertical: 8, // REDUCED: Less padding (was 12)
-    borderRadius: 18, // REDUCED: Less rounded (was 22)
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1.5,
     borderColor: 'rgba(245, 158, 11, 0.5)',
     shadowColor: '#F59E0B',
@@ -720,19 +654,19 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  
   tarotKeywordText: {
-    fontSize: 14, // REDUCED: Smaller text (was 16)
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#F59E0B',
     textAlign: 'center',
   },
   
-  // COMPACT: Smaller I Ching keywords
   ichingKeyword: {
     backgroundColor: 'rgba(59, 130, 246, 0.25)',
-    paddingHorizontal: 14, // REDUCED: Less padding (was 18)
-    paddingVertical: 8, // REDUCED: Less padding (was 12)
-    borderRadius: 18, // REDUCED: Less rounded (was 22)
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 18,
     borderWidth: 1.5,
     borderColor: 'rgba(59, 130, 246, 0.5)',
     shadowColor: '#3B82F6',
@@ -741,18 +675,18 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  
   ichingKeywordText: {
-    fontSize: 14, // REDUCED: Smaller text (was 16)
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
     color: '#3B82F6',
     textAlign: 'center',
   },
   
-  // COMPACT: Smaller essence container
   essenceContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 16, // REDUCED: Less rounded (was 20)
-    padding: 20, // REDUCED: Less padding (was 28)
+    borderRadius: 16,
+    padding: 20,
     alignItems: 'center',
     borderWidth: 1.5,
     borderColor: 'rgba(255, 255, 255, 0.15)',
@@ -762,51 +696,52 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
+  
   essenceTitle: {
-    fontSize: 16, // REDUCED: Smaller title (was 20)
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#D1D5DB',
-    marginBottom: 10, // REDUCED: Less space (was 16)
+    marginBottom: 10,
     textAlign: 'center',
   },
+  
   essenceText: {
-    fontSize: 20, // REDUCED: Smaller essence text (was 24)
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
     color: '#F3F4F6',
     textAlign: 'center',
     fontStyle: 'italic',
-    lineHeight: 26, // REDUCED: Tighter line height
-    marginBottom: 8, // REDUCED: Less space (was 12)
+    lineHeight: 26,
+    marginBottom: 8,
   },
   
-  // COMPACT: Smaller essence description
   essenceDescription: {
-    fontSize: 14, // REDUCED: Smaller text (was 16)
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 18, // REDUCED: Tighter line height
-    maxWidth: 240, // REDUCED: Narrower width
+    lineHeight: 18,
+    maxWidth: 240,
   },
   
-  // FIXED: Button container to ensure visibility
   buttonContainer: {
-    paddingTop: 10, // ADDED: Small padding at top
-    paddingBottom: 20, // ADDED: Padding at bottom for tab bar
+    paddingTop: 10,
+    paddingBottom: 20,
     alignItems: 'center',
   },
   
-  // Continue button
   continueButton: {
     borderRadius: 22,
     overflow: 'hidden',
     minWidth: 180,
   },
+  
   continueButtonGradient: {
     paddingVertical: 14,
     paddingHorizontal: 28,
     alignItems: 'center',
   },
+  
   continueButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',

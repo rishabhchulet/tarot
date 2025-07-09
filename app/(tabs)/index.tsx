@@ -1,272 +1,552 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Dimensions, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { GlassCard, FloatingAction, designTokens } from '@/components/DesignSystem';
-import { HapticManager } from '@/utils/nativeFeatures';
 import { router } from 'expo-router';
-import { Sparkles, Calendar, BookOpen, Settings, User } from 'lucide-react-native';
+import { TarotCardFlow } from '@/components/TarotCardFlow';
+import { TrialBanner } from '@/components/TrialBanner';
+import { MagicalCardDraw } from '@/components/MagicalCardDraw';
+import { Sparkles, Star, Zap, Moon, Sun, BookOpen, Calendar } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
-import { getTodaysEntry, getJournalEntries } from '@/utils/database';
-import { getRandomCard } from '@/data/tarotCards';
+import { getSubscriptionStatus, hasDrawnCardToday, getTodaysEntry } from '@/utils/database';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withRepeat,
   withTiming,
+  withSequence,
+  withDelay,
+  interpolate,
+  Easing,
+  runOnJS,
 } from 'react-native-reanimated';
 
-export default function HomeScreen() {
-  const { user } = useAuth();
-  const [dailyCard, setDailyCard] = useState<any>(null);
-  const [recentEntries, setRecentEntries] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Clean, simple animations
-  const headerOpacity = useSharedValue(0);
-  const contentOpacity = useSharedValue(0);
-  const cardScale = useSharedValue(0.95);
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
+// Floating particle component
+const FloatingParticle = ({ delay = 0, duration = 4000, size = 4, color = '#F59E0B' }) => {
+  const translateY = useSharedValue(0);
+  const opacity = useSharedValue(0);
+  const scale = useSharedValue(0);
 
   useEffect(() => {
-    loadHomeData();
-    startHomeAnimations();
+    // Start animation with delay
+    setTimeout(() => {
+      translateY.value = withRepeat(
+        withSequence(
+          withTiming(-50, { duration: duration / 2, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0, { duration: duration / 2, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      );
+      
+      opacity.value = withRepeat(
+        withSequence(
+          withTiming(0.8, { duration: duration / 4 }),
+          withTiming(0.3, { duration: duration / 2 }),
+          withTiming(0, { duration: duration / 4 })
+        ),
+        -1,
+        false
+      );
+
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: duration / 4 }),
+          withTiming(1.2, { duration: duration / 2 }),
+          withTiming(0.8, { duration: duration / 4 })
+        ),
+        -1,
+        true
+      );
+    }, delay);
   }, []);
 
-  const startHomeAnimations = () => {
-    // Simple, clean entrance animations
-    headerOpacity.value = withTiming(1, { duration: 600 });
-    setTimeout(() => {
-      contentOpacity.value = withTiming(1, { duration: 800 });
-      cardScale.value = withSpring(1, designTokens.animations.spring.gentle);
-    }, 200);
-  };
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: translateY.value },
+      { scale: scale.value }
+    ],
+    opacity: opacity.value,
+  }));
 
-  const loadHomeData = async () => {
-    try {
-      console.log('🏠 Loading home screen data...');
+  return (
+    <Animated.View style={[styles.particle, animatedStyle, { 
+      width: size, 
+      height: size, 
+      backgroundColor: color,
+      borderRadius: size / 2 
+    }]} />
+  );
+};
+
+export default function TodayScreen() {
+  const { user } = useAuth();
+  const [hasDrawnToday, setHasDrawnToday] = useState(false);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [showCardFlow, setShowCardFlow] = useState(false); // NEW: Track card flow state
+  const [subscriptionStatus, setSubscriptionStatus] = useState<any>(null);
+  const [todaysEntry, setTodaysEntry] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // CRITICAL: Single source of truth for time-based data
+  const [timeData, setTimeData] = useState(() => {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    console.log('🕐 Initial time calculation:', {
+      currentTime: now.toLocaleTimeString(),
+      hour: hour,
+      timestamp: now.getTime()
+    });
+    
+    // Determine if it's daytime (6 AM to 8 PM = Sun, otherwise Moon)
+    const isDaytime = hour >= 6 && hour < 20;
+    
+    // Get greeting based on time
+    let greeting;
+    if (hour >= 5 && hour < 12) {
+      greeting = 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+      greeting = 'Good afternoon';
+    } else {
+      greeting = 'Good evening';
+    }
+    
+    // Get icon and color
+    const IconComponent = isDaytime ? Sun : Moon;
+    const iconColor = isDaytime ? '#F59E0B' : '#E5E7EB';
+    
+    console.log('🎨 Time-based calculation result:', { 
+      hour, 
+      isDaytime, 
+      greeting, 
+      iconType: isDaytime ? 'Sun' : 'Moon',
+      iconColor 
+    });
+    
+    return { greeting, IconComponent, iconColor, isDaytime };
+  });
+
+  // Animation values
+  const intentionBoxScale = useSharedValue(0.95);
+  const buttonPulse = useSharedValue(1);
+  const backgroundShimmer = useSharedValue(0);
+  const starRotation = useSharedValue(0);
+  const timeIconPulse = useSharedValue(1);
+
+  useEffect(() => {
+    checkTodaysStatus();
+    checkSubscription();
+    startMagicalAnimations();
+    
+    // Update time every minute to ensure accurate icon display
+    const timeInterval = setInterval(() => {
+      const now = new Date();
+      const hour = now.getHours();
       
-      // Try to get today's journal entry first
-      const todaysEntry = await getTodaysEntry();
-      console.log('📱 Today\'s entry:', todaysEntry);
+      console.log('⏰ Time interval update:', {
+        currentTime: now.toLocaleTimeString(),
+        hour: hour,
+        timestamp: now.getTime()
+      });
       
-      if (todaysEntry && todaysEntry.card_name) {
-        // Use the card from today's entry
-        setDailyCard({
-          id: todaysEntry.id,
-          name: todaysEntry.card_name,
-          meaning: todaysEntry.card_keywords?.[0] || 'Daily Guidance',
-          description: todaysEntry.reflection || 'Your daily guidance awaits.',
-        });
+      // Determine if it's daytime (6 AM to 8 PM = Sun, otherwise Moon)
+      const isDaytime = hour >= 6 && hour < 20;
+      
+      // Get greeting based on time
+      let greeting;
+      if (hour >= 5 && hour < 12) {
+        greeting = 'Good morning';
+      } else if (hour >= 12 && hour < 17) {
+        greeting = 'Good afternoon';
       } else {
-        // Get a consistent "daily" card based on today's date
-        const today = new Date();
-        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-        
-        // Seed random to be consistent for the day
-        const dailyCardIndex = dayOfYear % 78; // 78 cards in tarot deck
-        const randomCard = getRandomCard();
-        
-        setDailyCard({
-          id: `daily-${dayOfYear}`,
-          name: randomCard.name,
-          meaning: randomCard.keywords[0] || 'Daily Wisdom',
-          description: randomCard.description,
-          reflectionQuestion: randomCard.reflectionQuestion,
-        });
+        greeting = 'Good evening';
       }
+      
+      // Get icon and color
+      const IconComponent = isDaytime ? Sun : Moon;
+      const iconColor = isDaytime ? '#F59E0B' : '#E5E7EB';
+      
+      console.log('🔄 Updated time-based data:', { 
+        hour, 
+        isDaytime, 
+        greeting, 
+        iconType: isDaytime ? 'Sun' : 'Moon',
+        iconColor 
+      });
+      
+      // Update state with new time data
+      setTimeData({ greeting, IconComponent, iconColor, isDaytime });
+    }, 60000); // Update every minute
 
-      // Load recent journal entries
-      const entries = await getJournalEntries();
-      console.log('📖 Recent entries:', entries?.length || 0);
-      setRecentEntries(entries?.slice(0, 3) || []);
+    return () => clearInterval(timeInterval);
+  }, []);
 
+  const checkTodaysStatus = async () => {
+    console.log('🔍 Checking today\'s card status...');
+    setLoading(true);
+    
+    try {
+      const drawnToday = await hasDrawnCardToday();
+      const entry = await getTodaysEntry();
+      
+      console.log('📊 Today\'s status:', { drawnToday, hasEntry: !!entry });
+      
+      setHasDrawnToday(drawnToday);
+      setTodaysEntry(entry);
     } catch (error) {
-      console.error('❌ Error loading home data:', error);
+      console.error('❌ Error checking today\'s status:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCardPress = async () => {
-    await HapticManager.triggerSelection();
-    if (dailyCard) {
-      router.push(`/reading?cardId=${dailyCard.id}`);
-    }
+  const checkSubscription = async () => {
+    const status = await getSubscriptionStatus();
+    setSubscriptionStatus(status);
   };
 
-  const handleJournalPress = async () => {
-    await HapticManager.triggerSelection();
+  const startMagicalAnimations = () => {
+    // Intention box breathing animation
+    intentionBoxScale.value = withRepeat(
+      withTiming(1.02, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+
+    // Button pulse animation
+    buttonPulse.value = withRepeat(
+      withSequence(
+        withTiming(1.05, { duration: 1500, easing: Easing.out(Easing.ease) }),
+        withTiming(1, { duration: 1500, easing: Easing.in(Easing.ease) })
+      ),
+      -1,
+      false
+    );
+
+    // Background shimmer
+    backgroundShimmer.value = withRepeat(
+      withTiming(1, { duration: 8000, easing: Easing.linear }),
+      -1,
+      false
+    );
+
+    // Star rotation
+    starRotation.value = withRepeat(
+      withTiming(360, { duration: 20000, easing: Easing.linear }),
+      -1,
+      false
+    );
+
+    // Time icon gentle pulse
+    timeIconPulse.value = withRepeat(
+      withTiming(1.1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  };
+
+  const handleCardPull = () => {
+    if (subscriptionStatus && !subscriptionStatus.hasActiveSubscription && subscriptionStatus.trialExpired) {
+      Alert.alert(
+        'Trial Expired',
+        'Your free trial has ended. Subscribe to continue your daily tarot practice.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Subscribe', onPress: () => router.push('/paywall') }
+        ]
+      );
+      return;
+    }
+    
+    setIsDrawing(true);
+  };
+
+  const handleDrawComplete = () => {
+    console.log('🎴 Draw animation complete, starting card flow...');
+    setIsDrawing(false);
+    setShowCardFlow(true); // NEW: Show the card flow instead of checking status
+  };
+
+  const handleViewTodaysQuestion = () => {
+    console.log('📖 Navigating to today\'s question page...');
+    router.push('/daily-question');
+  };
+
+  const handleViewJournal = () => {
+    console.log('📚 Navigating to journal...');
     router.push('/(tabs)/journal');
   };
 
-  const handleCalendarPress = async () => {
-    await HapticManager.triggerSelection();
-    router.push('/(tabs)/calendar');
-  };
-
-  const handleProfilePress = async () => {
-    await HapticManager.triggerSelection();
-    router.push('/profile');
+  // Add a handler to close the card flow and refresh status
+  const handleCardFlowComplete = () => {
+    setShowCardFlow(false);
+    checkTodaysStatus();
   };
 
   // Animated styles
-  const headerStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
+  const intentionBoxStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: intentionBoxScale.value }],
   }));
 
-  const contentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
+  const buttonPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonPulse.value }],
   }));
 
-  const cardStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: cardScale.value }],
+  const backgroundShimmerStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: interpolate(backgroundShimmer.value, [0, 1], [-screenWidth, screenWidth]) }
+    ],
+    opacity: 0.1,
   }));
 
-  const formatDate = () => {
-    const today = new Date();
-    return today.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+  const starRotationStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${starRotation.value}deg` }],
+  }));
 
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
+  const timeIconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: timeIconPulse.value }],
+  }));
 
+  // Show different layouts based on state
   if (loading) {
     return (
       <LinearGradient
-        colors={designTokens.colors.gradients.main}
+        colors={['#1F2937', '#374151', '#6B46C1']}
         style={styles.container}
       >
-        <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading your daily wisdom...</Text>
-          </View>
-        </SafeAreaView>
+          <Sparkles size={40} color="#F59E0B" />
+          <Text style={styles.loadingText}>Checking your daily practice...</Text>
+        </View>
       </LinearGradient>
     );
   }
 
-  return (
-    <LinearGradient
-      colors={designTokens.colors.gradients.main}
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea}>
-        {/* Clean Header */}
-        <Animated.View style={[styles.header, headerStyle]}>
-          <View style={styles.headerContent}>
-            <View style={styles.userInfo}>
-              <Text style={styles.greeting}>{getGreeting()}</Text>
-              <Text style={styles.userName}>{user?.name || 'Seeker'}</Text>
-        </View>
-            <FloatingAction onPress={handleProfilePress}>
-              <View style={styles.profileButton}>
-                <User size={20} color={designTokens.colors.text.primary} strokeWidth={1.5} />
-              </View>
-            </FloatingAction>
-          </View>
-          <Text style={styles.date}>{formatDate()}</Text>
-        </Animated.View>
+  if (isDrawing) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <MagicalCardDraw onComplete={handleDrawComplete} />
+      </LinearGradient>
+    );
+  }
 
-        {/* Content with excellent readability */}
-        <ScrollView 
-          style={styles.scrollView}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          <Animated.View style={[styles.content, contentStyle]}>
-            {/* Daily Card - Clean and readable */}
-            {dailyCard && (
-              <Animated.View style={cardStyle}>
-                <GlassCard style={styles.dailyCardContainer}>
-                  <View style={styles.cardHeader}>
-                    <View style={styles.cardTitleSection}>
-                      <Sparkles size={20} color={designTokens.colors.accent.gold} strokeWidth={1.5} />
-                      <Text style={styles.cardTitle}>Your Daily Guidance</Text>
-                    </View>
-                  </View>
-                  
-                  <FloatingAction onPress={handleCardPress}>
-                    <GlassCard style={styles.dailyCard} intensity="medium">
-                      <View style={styles.cardContent}>
-                        <Text style={styles.cardName}>{dailyCard.name}</Text>
-                        <Text style={styles.cardMeaning}>{dailyCard.meaning}</Text>
-                        <Text style={styles.cardDescription} numberOfLines={3}>
-                          {dailyCard.description}
-                  </Text>
-                      </View>
-                      <View style={styles.cardFooter}>
-                        <Text style={styles.readMoreText}>Tap to explore deeper</Text>
-                      </View>
-                    </GlassCard>
-                  </FloatingAction>
-                </GlassCard>
-              </Animated.View>
-            )}
+  // NEW: Show card flow after animation completes
+  if (showCardFlow) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <TarotCardFlow onComplete={handleCardFlowComplete} />
+      </LinearGradient>
+    );
+  }
 
-            {/* Quick Actions */}
-            <GlassCard style={styles.actionsCard}>
-              <Text style={styles.sectionTitle}>Quick Actions</Text>
-              <View style={styles.actionsGrid}>
-                <FloatingAction onPress={handleJournalPress}>
-                  <GlassCard style={styles.actionItem} intensity="light">
-                    <BookOpen size={24} color={designTokens.colors.accent.purple} strokeWidth={1.5} />
-                    <Text style={styles.actionLabel}>Journal</Text>
-                    <Text style={styles.actionHint}>Reflect & record</Text>
-                  </GlassCard>
-                </FloatingAction>
-
-                <FloatingAction onPress={handleCalendarPress}>
-                  <GlassCard style={styles.actionItem} intensity="light">
-                    <Calendar size={24} color={designTokens.colors.accent.primary} strokeWidth={1.5} />
-                    <Text style={styles.actionLabel}>Calendar</Text>
-                    <Text style={styles.actionHint}>View your journey</Text>
-                  </GlassCard>
-                </FloatingAction>
-                  </View>
-            </GlassCard>
-
-            {/* Recent Entries - Clean and readable */}
-            {recentEntries.length > 0 && (
-              <GlassCard style={styles.recentCard}>
-                <View style={styles.recentHeader}>
-                  <Text style={styles.sectionTitle}>Recent Reflections</Text>
-                  <FloatingAction onPress={handleJournalPress}>
-                    <Text style={styles.viewAllText}>View All</Text>
-                  </FloatingAction>
-                </View>
-                
-                <View style={styles.entriesList}>
-                  {recentEntries.map((entry, index) => (
-                    <GlassCard key={entry.id || index} style={styles.entryItem} intensity="light">
-                      <View style={styles.entryContent}>
-                        <Text style={styles.entryCard}>{entry.card_name}</Text>
-                        <Text style={styles.entryDate}>
-                          {new Date(entry.date).toLocaleDateString()}
+  if (hasDrawnToday && todaysEntry) {
+    return (
+      <LinearGradient
+        colors={['#1F2937', '#374151', '#6B46C1']}
+        style={styles.container}
+      >
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.completedHeader}>
+            <Text style={styles.completedTitle}>Today's Practice Complete</Text>
+            <Text style={styles.completedSubtitle}>
+              You've drawn your card for {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
             </Text>
           </View>
-                      {entry.keywords && entry.keywords.length > 0 && (
-                        <View style={styles.entryKeywords}>
-                          {entry.keywords.slice(0, 2).map((keyword: string, keywordIndex: number) => (
-                            <View key={keywordIndex} style={styles.keyword}>
-                              <Text style={styles.keywordText}>{keyword}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </GlassCard>
-                  ))}
-                </View>
-              </GlassCard>
+
+          {/* Today's Card Summary */}
+          <View style={styles.cardSummary}>
+            <Text style={styles.cardSummaryTitle}>Your Card Today</Text>
+            <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
+            {todaysEntry.card_keywords && (
+              <View style={styles.keywords}>
+                {todaysEntry.card_keywords.slice(0, 3).map((keyword: string, index: number) => (
+                  <View key={index} style={styles.keyword}>
+                    <Text style={styles.keywordText}>{keyword}</Text>
+                  </View>
+                ))}
+              </View>
             )}
+          </View>
+
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <Pressable style={styles.actionButton} onPress={handleViewTodaysQuestion}>
+              <LinearGradient
+                colors={['#F59E0B', '#D97706']}
+                style={styles.actionButtonGradient}
+              >
+                <BookOpen size={20} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>Today's Question</Text>
+              </LinearGradient>
+            </Pressable>
+
+            <Pressable style={styles.actionButton} onPress={handleViewJournal}>
+              <LinearGradient
+                colors={['#3B82F6', '#1D4ED8']}
+                style={styles.actionButtonGradient}
+              >
+                <Calendar size={20} color="#FFFFFF" />
+                <Text style={styles.actionButtonText}>View Journal</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+
+          {/* Next Card Info */}
+          <View style={styles.nextCardInfo}>
+            <Text style={styles.nextCardTitle}>Tomorrow's Practice</Text>
+            <Text style={styles.nextCardText}>
+              Return tomorrow for your next daily card and inner guidance.
+            </Text>
+          </View>
+        </ScrollView>
+      </LinearGradient>
+    );
+  }
+
+  // FIXED: Use the unified timeData state for both greeting and icon
+  const { greeting, IconComponent, iconColor, isDaytime } = timeData;
+
+  // Default state - enhanced with magical animations and SYNCHRONIZED time-based icon
+  return (
+    <LinearGradient
+      colors={['#1F2937', '#374151', '#6B46C1']}
+      style={styles.container}
+    >
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}> 
+        {/* Animated background shimmer */}
+        <Animated.View style={[styles.backgroundShimmer, backgroundShimmerStyle]} />
+        
+        {/* Floating particles */}
+        <View style={styles.particleContainer}>
+          {[...Array(12)].map((_, index) => (
+            <FloatingParticle
+              key={index}
+              delay={index * 500}
+              duration={3000 + (index * 200)}
+              size={Math.random() * 6 + 2}
+              color={['#F59E0B', '#8B5CF6', '#3B82F6', '#10B981'][index % 4]}
+            />
+          ))}
+        </View>
+
+        {/* Constellation background */}
+        <View style={styles.constellationContainer}>
+          <Animated.View style={[styles.star, styles.star1, starRotationStyle]}>
+            <Star size={8} color="#F59E0B" fill="#F59E0B" />
           </Animated.View>
+          <Animated.View style={[styles.star, styles.star2, starRotationStyle]}>
+            <Star size={6} color="#8B5CF6" fill="#8B5CF6" />
+          </Animated.View>
+          <Animated.View style={[styles.star, styles.star3, starRotationStyle]}>
+            <Star size={10} color="#3B82F6" fill="#3B82F6" />
+          </Animated.View>
+          <Animated.View style={[styles.star, styles.star4, starRotationStyle]}>
+            <Star size={7} color="#10B981" fill="#10B981" />
+          </Animated.View>
+          <Animated.View style={[styles.star, styles.star5, starRotationStyle]}>
+            <Star size={5} color="#F59E0B" fill="#F59E0B" />
+          </Animated.View>
+        </View>
+
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <TrialBanner subscriptionStatus={subscriptionStatus} />
+          
+          <View style={styles.header}>
+            {/* FIXED: Time-based icon using the SAME timeData state */}
+            <Animated.View style={[styles.timeIconContainer, timeIconStyle]}>
+              <View style={[styles.iconGlow, { shadowColor: iconColor }]}>
+                <IconComponent size={36} color={iconColor} strokeWidth={1.5} />
+              </View>
+            </Animated.View>
+
+            {/* FIXED: Greeting text using the SAME timeData state */}
+            <Text style={styles.greeting}>
+              {greeting}, {user?.name || 'friend'}
+            </Text>
+            <Text style={styles.date}>
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </Text>
+          </View>
+
+          <View style={styles.pullContainer}>
+            {/* Enhanced intention box with breathing animation */}
+            <Animated.View style={[styles.intentionBox, intentionBoxStyle]}>
+              {/* Magical border effect */}
+              <LinearGradient
+                colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.intentionBorder}
+              >
+                <View style={styles.intentionContent}>
+                  {/* Floating sparkle in the box */}
+                  <View style={styles.intentionSparkleContainer}>
+                    <Animated.View style={starRotationStyle}>
+                      <Sparkles size={24} color="#F59E0B" />
+                    </Animated.View>
+                  </View>
+                  
+                  <Text style={styles.intentionText}>
+                    Take a breath and ask your heart:
+                  </Text>
+                  <Text style={styles.intentionQuestion}>
+                    "Show me the message I most need today to connect with my True Self"
+                  </Text>
+                  
+                  {/* Mystical runes/symbols */}
+                  <View style={styles.mysticalSymbols}>
+                    <Text style={styles.runeSymbol}>✦</Text>
+                    <Text style={styles.runeSymbol}>◊</Text>
+                    <Text style={styles.runeSymbol}>✦</Text>
+                  </View>
+                </View>
+              </LinearGradient>
+            </Animated.View>
+
+            {/* Enhanced button with pulse animation */}
+            <Animated.View style={buttonPulseStyle}>
+              <Pressable style={styles.pullButton} onPress={handleCardPull}>
+                <LinearGradient
+                  colors={['#F59E0B', '#D97706', '#F59E0B']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.pullButtonGradient}
+                >
+                  {/* Button glow effect */}
+                  <View style={styles.buttonGlow} />
+                  
+                  {/* Button content */}
+                  <View style={styles.buttonContent}>
+                    <Zap size={20} color="#FFFFFF" />
+                    <Text style={styles.pullButtonText}>Reveal your message</Text>
+                    <Sparkles size={16} color="#FFFFFF" />
+                  </View>
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
+
+            {/* Enhanced mystical footer text with better visibility */}
+            <Text style={styles.mysticalFooter}>
+              ✨ One card, one day, one sacred moment ✨
+            </Text>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </LinearGradient>
@@ -276,245 +556,342 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    position: 'relative',
   },
-
-  safeArea: {
-    flex: 1,
-  },
-  
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  loadingText: {
-    fontSize: designTokens.typography.fontSize.base,
-    color: designTokens.colors.text.secondary,
-  },
-
-  // Clean Header
-  header: {
-    paddingHorizontal: designTokens.spacing.md,
-    paddingTop: designTokens.spacing.sm,
-    paddingBottom: designTokens.spacing.lg,
-  },
-
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: designTokens.spacing.sm,
-  },
-
-  userInfo: {
-    flex: 1,
-  },
-
-  greeting: {
-    fontSize: designTokens.typography.fontSize.base,
-    color: designTokens.colors.text.secondary,
-    marginBottom: designTokens.spacing.xs,
-  },
-
-  userName: {
-    fontSize: designTokens.typography.fontSize['2xl'],
-    fontWeight: designTokens.typography.fontWeight.bold as any,
-    color: designTokens.colors.text.primary,
-  },
-
-  profileButton: {
-    padding: designTokens.spacing.sm,
-    backgroundColor: designTokens.colors.glass.background,
-    borderRadius: designTokens.borderRadius.md,
-    borderWidth: 1,
-    borderColor: designTokens.colors.glass.border,
-  },
-
-  date: {
-    fontSize: designTokens.typography.fontSize.sm,
-    color: designTokens.colors.text.muted,
-  },
-
-  // Content
   scrollView: {
     flex: 1,
+    paddingHorizontal: 24,
   },
-
-  scrollContent: {
-    paddingHorizontal: designTokens.spacing.md,
-    paddingBottom: designTokens.spacing.xxxl,
-  },
-
-  content: {
-    gap: designTokens.spacing.lg,
-  },
-
-  // Daily Card - Clean and readable
-  dailyCardContainer: {
-    backgroundColor: designTokens.colors.background.tertiary,
-    padding: designTokens.spacing.lg,
-  },
-
-  cardHeader: {
-    marginBottom: designTokens.spacing.lg,
-  },
-
-  cardTitleSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: designTokens.spacing.sm,
-  },
-
-  cardTitle: {
-    fontSize: designTokens.typography.fontSize.lg,
-    fontWeight: designTokens.typography.fontWeight.semibold as any,
-    color: designTokens.colors.text.primary,
-  },
-
-  dailyCard: {
-    backgroundColor: designTokens.colors.background.elevated,
-    padding: designTokens.spacing.lg,
-  },
-
-  cardContent: {
-    marginBottom: designTokens.spacing.md,
-  },
-
-  cardName: {
-    fontSize: designTokens.typography.fontSize.xl,
-    fontWeight: designTokens.typography.fontWeight.bold as any,
-    color: designTokens.colors.text.primary,
-    marginBottom: designTokens.spacing.sm,
-  },
-
-  cardMeaning: {
-    fontSize: designTokens.typography.fontSize.base,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
-    color: designTokens.colors.accent.gold,
-    marginBottom: designTokens.spacing.md,
-  },
-
-  cardDescription: {
-    fontSize: designTokens.typography.fontSize.base,
-    color: designTokens.colors.text.secondary,
-    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
-  },
-
-  cardFooter: {
-    borderTopWidth: 1,
-    borderTopColor: designTokens.colors.glass.border,
-    paddingTop: designTokens.spacing.md,
-  },
-
-  readMoreText: {
-    fontSize: designTokens.typography.fontSize.sm,
-    color: designTokens.colors.accent.primary,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
-    textAlign: 'center',
-  },
-
-  // Quick Actions
-  actionsCard: {
-    backgroundColor: designTokens.colors.background.tertiary,
-    padding: designTokens.spacing.lg,
-  },
-
-  sectionTitle: {
-    fontSize: designTokens.typography.fontSize.lg,
-    fontWeight: designTokens.typography.fontWeight.semibold as any,
-    color: designTokens.colors.text.primary,
-    marginBottom: designTokens.spacing.md,
-  },
-
-  actionsGrid: {
-    flexDirection: 'row',
-    gap: designTokens.spacing.md,
-  },
-
-  actionItem: {
+  
+  // Loading state
+  loadingContainer: {
     flex: 1,
-    backgroundColor: designTokens.colors.background.elevated,
-    padding: designTokens.spacing.md,
     alignItems: 'center',
-    gap: designTokens.spacing.sm,
+    justifyContent: 'center',
+    gap: 16,
   },
-
-  actionLabel: {
-    fontSize: designTokens.typography.fontSize.base,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
-    color: designTokens.colors.text.primary,
-  },
-
-  actionHint: {
-    fontSize: designTokens.typography.fontSize.xs,
-    color: designTokens.colors.text.muted,
+  loadingText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F3F4F6',
     textAlign: 'center',
   },
   
-  // Recent Entries
-  recentCard: {
-    backgroundColor: designTokens.colors.background.tertiary,
-    padding: designTokens.spacing.lg,
+  // Background effects
+  backgroundShimmer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    transform: [{ skewX: '-15deg' }],
   },
-
-  recentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  
+  // Particle system
+  particleContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  particle: {
+    position: 'absolute',
+    left: Math.random() * screenWidth,
+    top: Math.random() * screenHeight,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  
+  // Constellation background
+  constellationContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+  },
+  star: {
+    position: 'absolute',
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  star1: { top: '15%', left: '10%' },
+  star2: { top: '25%', right: '15%' },
+  star3: { top: '45%', left: '5%' },
+  star4: { top: '65%', right: '20%' },
+  star5: { top: '80%', left: '25%' },
+  
+  // Header styles
+  header: {
+    paddingTop: 60,
+    paddingBottom: 40,
     alignItems: 'center',
-    marginBottom: designTokens.spacing.md,
+    position: 'relative',
   },
-
-  viewAllText: {
-    fontSize: designTokens.typography.fontSize.sm,
-    color: designTokens.colors.accent.primary,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
-  },
-
-  entriesList: {
-    gap: designTokens.spacing.sm,
-  },
-
-  entryItem: {
-    backgroundColor: designTokens.colors.background.elevated,
-    padding: designTokens.spacing.md,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  timeIconContainer: {
+    marginBottom: 16,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  entryContent: {
-    flex: 1,
+  iconGlow: {
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 16,
+    elevation: 16,
+    borderRadius: 25,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-
-  entryCard: {
-    fontSize: designTokens.typography.fontSize.base,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
-    color: designTokens.colors.text.primary,
-    marginBottom: designTokens.spacing.xs,
+  greeting: {
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    color: '#F3F4F6',
+    marginBottom: 8,
+    textShadowColor: 'rgba(245, 158, 11, 0.3)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
-
-  entryDate: {
-    fontSize: designTokens.typography.fontSize.xs,
-    color: designTokens.colors.text.muted,
+  date: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
   },
-
-  entryKeywords: {
+  
+  // Pull container
+  pullContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  
+  // Enhanced intention box
+  intentionBox: {
+    marginBottom: 40,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  intentionBorder: {
+    borderRadius: 24,
+    padding: 3,
+  },
+  intentionContent: {
+    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+    borderRadius: 21,
+    padding: 32,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  intentionSparkleContainer: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+  },
+  intentionText: {
+    fontSize: 18,
+    fontFamily: 'Inter-Medium',
+    color: '#D1D5DB',
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 12,
+  },
+  intentionQuestion: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+    textAlign: 'center',
+    lineHeight: 28,
+    fontStyle: 'italic',
+    marginBottom: 20,
+  },
+  mysticalSymbols: {
     flexDirection: 'row',
-    gap: designTokens.spacing.xs,
+    gap: 20,
+    marginTop: 8,
   },
-
-  keyword: {
-    backgroundColor: designTokens.colors.glass.background,
-    paddingHorizontal: designTokens.spacing.sm,
-    paddingVertical: designTokens.spacing.xs,
-    borderRadius: designTokens.borderRadius.sm,
+  runeSymbol: {
+    fontSize: 16,
+    color: '#8B5CF6',
+    fontFamily: 'Inter-Bold',
+  },
+  
+  // Enhanced button
+  pullButton: {
+    borderRadius: 30,
+    overflow: 'hidden',
+    minWidth: 220,
+    shadowColor: '#F59E0B',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 16,
+  },
+  pullButtonGradient: {
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  buttonGlow: {
+    position: 'absolute',
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(245, 158, 11, 0.3)',
+    borderRadius: 32,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 36,
+    gap: 8,
+  },
+  pullButtonText: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  
+  // Enhanced mystical footer with better visibility
+  mysticalFooter: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+    marginTop: 24,
+    fontStyle: 'italic',
+    textShadowColor: 'rgba(245, 158, 11, 0.8)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
+    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: designTokens.colors.glass.border,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
-
+  
+  // Completed state styles
+  completedHeader: {
+    paddingTop: 60,
+    paddingBottom: 30,
+    alignItems: 'center',
+  },
+  completedTitle: {
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    color: '#10B981',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  completedSubtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+  },
+  
+  // Card summary
+  cardSummary: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  cardSummaryTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginBottom: 12,
+  },
+  cardName: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#F59E0B',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  keywords: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  keyword: {
+    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.3)',
+  },
   keywordText: {
-    fontSize: designTokens.typography.fontSize.xs,
-    color: designTokens.colors.text.muted,
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F59E0B',
+  },
+  
+  // Action buttons
+  actionButtons: {
+    gap: 16,
+    marginBottom: 32,
+  },
+  actionButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  actionButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  actionButtonText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  
+  // Next card info
+  nextCardInfo: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginBottom: 40,
+  },
+  nextCardTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F3F4F6',
+    marginBottom: 8,
+  },
+  nextCardText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

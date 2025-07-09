@@ -1,196 +1,65 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Sparkles, Star, Zap } from 'lucide-react-native';
-import { GlassCard, ModernButton, FloatingAction, ParticleSystem, designTokens, animationHelpers } from '@/components/DesignSystem';
-import { HapticManager } from '@/utils/nativeFeatures';
 import { startFreeTrial } from '@/utils/database';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-  withTiming,
-  withSequence,
-  interpolate
-} from 'react-native-reanimated';
 
 export default function IntroScreen() {
   const [loading, setLoading] = useState(false);
 
-  // Enhanced animation values
-  const titleOpacity = useSharedValue(0);
-  const titleScale = useSharedValue(0.8);
-  const contentOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(40);
-  const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(30);
-  const backgroundGlow = useSharedValue(0);
-  const sparkleRotation = useSharedValue(0);
-  const floatingElements = useSharedValue(0);
-
-  useEffect(() => {
-    startEnhancedIntroAnimations();
-  }, []);
-
-  const startEnhancedIntroAnimations = () => {
-    // Background effects
-    backgroundGlow.value = withTiming(1, { duration: 2000 });
-    sparkleRotation.value = withSequence(
-      withTiming(10, { duration: 1000 }),
-      withTiming(-10, { duration: 1000 }),
-      withTiming(0, { duration: 1000 })
-    );
-
-    // Floating elements
-    floatingElements.value = withTiming(1, { duration: 3000 });
-
-    // Staggered entrance animations
-    setTimeout(() => {
-      animationHelpers.fadeIn(titleOpacity, 1000);
-      titleScale.value = withSpring(1, designTokens.animations.spring.bouncy);
-    }, 300);
-
-    setTimeout(() => {
-      animationHelpers.fadeIn(contentOpacity, 800);
-      contentTranslateY.value = withSpring(0, designTokens.animations.spring.gentle);
-    }, 800);
-
-    setTimeout(() => {
-      animationHelpers.fadeIn(buttonOpacity, 600);
-      buttonTranslateY.value = withSpring(0, designTokens.animations.spring.bouncy);
-    }, 1200);
-  };
-
   const handleContinue = async () => {
-    console.log('🎉 Enhanced intro: Starting free trial and navigating to tutorial...');
+    console.log('🎉 Starting free trial and navigating to tutorial...');
+    setLoading(true);
     
-    if (!loading) {
-      await HapticManager.triggerSuccess();
-      setLoading(true);
-      
-      try {
-        console.log('💾 Starting free trial...');
-        await startFreeTrial();
-        console.log('✅ Free trial started successfully');
-      } catch (error) {
-        console.error('❌ Error starting free trial:', error);
-      }
-      
-      console.log('📱 Navigating to tutorial...');
-      router.replace('/onboarding/tutorial');
-      setLoading(false);
+    try {
+      console.log('💾 Starting free trial...');
+      await startFreeTrial();
+      console.log('✅ Free trial started successfully');
+    } catch (error) {
+      console.error('❌ Error starting free trial:', error);
     }
+    
+    console.log('📱 Navigating to tutorial...');
+    router.replace('/onboarding/tutorial');
+    setLoading(false);
   };
-
-  // Enhanced animated styles
-  const titleStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [
-      { scale: titleScale.value },
-      { rotate: `${sparkleRotation.value}deg` }
-    ],
-  }));
-
-  const contentStyle = useAnimatedStyle(() => ({
-    opacity: contentOpacity.value,
-    transform: [{ translateY: contentTranslateY.value }],
-  }));
-
-  const buttonStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ translateY: buttonTranslateY.value }],
-  }));
-
-  const backgroundGlowStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(backgroundGlow.value, [0, 1], [0, 0.8]),
-  }));
-
-  const floatingStyle = useAnimatedStyle(() => ({
-    transform: [
-      { 
-        translateY: interpolate(
-          floatingElements.value,
-          [0, 1],
-          [0, -20]
-        )
-      },
-      { 
-        rotate: `${interpolate(
-          floatingElements.value,
-          [0, 1],
-          [0, 360]
-        )}deg` 
-      }
-    ],
-  }));
 
   return (
     <LinearGradient
-      colors={designTokens.colors.gradients.cosmic}
+      colors={['#1F2937', '#374151', '#6B46C1']}
       style={styles.container}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <ParticleSystem count={30} animate={true} />
+      <View style={styles.content}>
+        <Text style={styles.title}>Rad.</Text>
         
-        {/* Enhanced Background Glow */}
-        <Animated.View style={[styles.backgroundGlow, backgroundGlowStyle]} />
+        <Text style={styles.subtitle}>
+          You're almost ready to reveal your first reflection…
+        </Text>
         
-        {/* Floating Decorative Elements */}
-        <Animated.View style={[styles.floatingElement, styles.floatingElement1, floatingStyle]}>
-          <Star size={16} color={designTokens.colors.accent.gold} opacity={0.6} />
-        </Animated.View>
+        <Text style={styles.subtitle}>
+          And connect deeply with your inner truths.
+        </Text>
         
-        <Animated.View style={[styles.floatingElement, styles.floatingElement2, floatingStyle]}>
-          <Zap size={14} color={designTokens.colors.accent.brightBlue} opacity={0.5} />
-        </Animated.View>
-
-        <View style={styles.content}>
-          {/* Enhanced Title Section */}
-          <Animated.View style={[styles.titleSection, titleStyle]}>
-            <FloatingAction style={styles.titleIcon}>
-              <Sparkles size={60} color={designTokens.colors.accent.gold} strokeWidth={1.5} />
-            </FloatingAction>
-            
-            <Text style={styles.title}>Rad.</Text>
-          </Animated.View>
-          
-          {/* Enhanced Content Section */}
-          <Animated.View style={[styles.contentSection, contentStyle]}>
-            <GlassCard style={styles.messageCard} intensity="medium">
-              <Text style={styles.subtitle}>
-                You're almost ready to reveal your first reflection…
-              </Text>
-              
-              <Text style={styles.subtitle}>
-                And connect deeply with your inner truths.
-              </Text>
-              
-              <View style={styles.descriptionContainer}>
-                <Text style={styles.description}>
-                  First, take a look at how this tool works with your inner guidance…
-                  And how to get the most out of it.
-                </Text>
-              </View>
-            </GlassCard>
-          </Animated.View>
-        </View>
-        
-        {/* Enhanced Action Button */}
-        <Animated.View style={[styles.actionContainer, buttonStyle]}>
-          <GlassCard style={styles.buttonCard} intensity="strong">
-            <ModernButton
-              title={loading ? 'Setting up your journey...' : 'Let\'s go'}
-              onPress={handleContinue}
-              variant="gradient"
-              size="lg"
-              disabled={loading}
-              icon={Sparkles}
-              style={styles.continueButton}
-            />
-          </GlassCard>
-        </Animated.View>
-      </SafeAreaView>
+        <Text style={styles.description}>
+          First, take a look at how this tool works with your inner guidance…
+          And how to get the most out of it.
+        </Text>
+      </View>
+      
+      <Pressable 
+        style={[styles.button, loading && styles.buttonDisabled]} 
+        onPress={handleContinue}
+        disabled={loading}
+      >
+        <LinearGradient
+          colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
+          style={styles.buttonGradient}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Setting up...' : 'Let\'s go'}
+          </Text>
+        </LinearGradient>
+      </Pressable>
     </LinearGradient>
   );
 }
@@ -198,113 +67,54 @@ export default function IntroScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 80,
+    paddingBottom: 40,
   },
-
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: designTokens.spacing.md,
-  },
-
-  backgroundGlow: {
-    position: 'absolute',
-    top: '25%',
-    left: '20%',
-    right: '20%',
-    height: '40%',
-    borderRadius: 150,
-    backgroundColor: designTokens.colors.accent.purple,
-    opacity: 0.4,
-  },
-
-  // Floating Elements
-  floatingElement: {
-    position: 'absolute',
-  },
-
-  floatingElement1: {
-    top: '15%',
-    right: '15%',
-  },
-
-  floatingElement2: {
-    bottom: '25%',
-    left: '10%',
-  },
-
-  // Main Content
   content: {
     flex: 1,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: designTokens.spacing.xl,
   },
-
-  // Enhanced Title
-  titleSection: {
-    alignItems: 'center',
-    marginBottom: designTokens.spacing.xxxl,
-  },
-
-  titleIcon: {
-    padding: designTokens.spacing.lg,
-    marginBottom: designTokens.spacing.xl,
-  },
-
   title: {
-    fontSize: designTokens.typography.fontSize['5xl'],
-    fontWeight: designTokens.typography.fontWeight.extrabold as any,
-    color: designTokens.colors.text.primary,
+    fontSize: 48,
+    fontFamily: 'Inter-ExtraBold',
+    color: '#F3F4F6',
     textAlign: 'center',
-    textShadowColor: designTokens.colors.accent.gold,
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 20,
+    marginBottom: 40,
   },
-
-  // Enhanced Content
-  contentSection: {
-    marginBottom: designTokens.spacing.xl,
-  },
-
-  messageCard: {
-    paddingVertical: designTokens.spacing.xl,
-    paddingHorizontal: designTokens.spacing.lg,
-    alignItems: 'center',
-  },
-
   subtitle: {
-    fontSize: designTokens.typography.fontSize.xl,
-    color: designTokens.colors.text.secondary,
+    fontSize: 20,
+    fontFamily: 'Inter-Medium',
+    color: '#D1D5DB',
     textAlign: 'center',
-    marginBottom: designTokens.spacing.lg,
-    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.xl,
-    fontWeight: designTokens.typography.fontWeight.medium as any,
+    marginBottom: 16,
+    lineHeight: 28,
   },
-
-  descriptionContainer: {
-    marginTop: designTokens.spacing.md,
-    paddingTop: designTokens.spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: designTokens.colors.glass.border,
-  },
-
   description: {
-    fontSize: designTokens.typography.fontSize.base,
-    color: designTokens.colors.text.muted,
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: designTokens.typography.lineHeight.relaxed * designTokens.typography.fontSize.base,
+    marginTop: 20,
+    lineHeight: 24,
     maxWidth: 320,
   },
-
-  // Enhanced Action Button
-  actionContainer: {
-    paddingBottom: designTokens.spacing.xl,
+  button: {
+    borderRadius: 25,
+    overflow: 'hidden',
   },
-
-  buttonCard: {
-    paddingVertical: designTokens.spacing.md,
-    paddingHorizontal: designTokens.spacing.lg,
+  buttonDisabled: {
+    opacity: 0.6,
   },
-
-  continueButton: {
-    minHeight: 56,
+  buttonGradient: {
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
   },
 });

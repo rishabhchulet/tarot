@@ -28,19 +28,6 @@ export default function AuthWelcomeScreen() {
       console.log('⚠️ WARNING: User still has session on auth screen!');
       console.log('User ID:', user?.id);
       console.log('Session exists:', !!session);
-      
-      // CRITICAL FIX: If user has session/profile, redirect immediately
-      if (session) {
-        console.log('🔄 Redirecting authenticated user away from auth screen...');
-        if (user?.focusArea) {
-          console.log('📱 User has completed onboarding, going to main app...');
-          router.replace('/(tabs)');
-        } else {
-          console.log('📚 User needs onboarding, going to quiz...');
-          router.replace('/onboarding/quiz');
-        }
-        return;
-      }
     } else {
       console.log('✅ Auth screen: User properly signed out');
     }

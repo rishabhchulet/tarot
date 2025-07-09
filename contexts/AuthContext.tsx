@@ -36,47 +36,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log('🔄 Refreshing user data...');
       setConnectionStatus('connecting');
       
-      // CRITICAL FIX: Try getCurrentUser with retry logic
-      let currentUser = null;
-      let attempts = 0;
-      const maxAttempts = 3;
+      // CRITICAL FIX: Use much longer timeout with progressive fallback
+      const currentUser = await createTimeoutWrapper(
+        () => getCurrentUser(),
+        8000, // INCREASED: 8 second timeout
+        null // Fallback to null
+      );
       
-      while (attempts < maxAttempts && !currentUser) {
-        attempts++;
-        console.log(`🔄 User data fetch attempt ${attempts}/${maxAttempts}...`);
-        
-        currentUser = await createTimeoutWrapper(
-          () => getCurrentUser(),
-          attempts === 1 ? 10000 : 6000, // Longer timeout on first attempt
-          null
-        );
-        
-        if (currentUser) {
-          console.log('👤 User data fetched successfully:', { 
-            id: currentUser.id, 
-            name: currentUser.name, 
-            focusArea: currentUser.focusArea 
-          });
-          setUser(currentUser);
-          setError(null);
-          setConnectionStatus('connected');
-          setLastSuccessfulConnection(new Date());
-          setRetryCount(0);
-          return;
-        }
-        
-        if (attempts < maxAttempts) {
-          console.warn(`⚠️ User data fetch attempt ${attempts} failed, retrying...`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
+      if (currentUser) {
+        console.log('👤 User data refreshed:', { 
+          id: currentUser.id, 
+          name: currentUser.name, 
+          focusArea: currentUser.focusArea 
+        });
+        setUser(currentUser);
+        setError(null);
+        setConnectionStatus('connected');
+        setLastSuccessfulConnection(new Date());
+        setRetryCount(0); // Reset retry count on success
+        return;
       }
       
-      // If all attempts failed, try session fallback
-      console.warn('⚠️ All getCurrentUser attempts failed, trying session fallback...');
+      // CRITICAL FIX: If getCurrentUser fails, try session fallback with longer timeout
+      console.warn('⚠️ getCurrentUser failed, trying session fallback...');
       
       const sessionResult = await createTimeoutWrapper(
         () => supabase.auth.getUser(),
-        5000, // 5 second timeout
+        3000, // INCREASED: 3 second timeout
         null
       );
       
@@ -89,54 +75,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           focusArea: undefined // Will be loaded later if possible
         };
         
-        console.log('✅ Using session fallback user data, triggering profile creation...');
+        console.log('✅ Using session fallback user data');
         setUser(fallbackUser);
         setError(null);
         setConnectionStatus('connected');
         setLastSuccessfulConnection(new Date());
         setRetryCount(0);
         
-        // Try to ensure profile exists in background
+        // CRITICAL FIX: Try to load full profile data in background with longer timeout
         setTimeout(async () => {
           try {
-            console.log('🔄 Background profile creation/fetch...');
-            
-            // Try to ensure profile exists using the database function
-            const ensureResult = await createTimeoutWrapper(
-              () => supabase.rpc('ensure_user_profile_exists', {
-                check_user_id: authUser.id
-              }),
-              6000, // Reduced timeout
-              [{ success: false, message: 'Timeout' }]
+            console.log('🔄 Background profile fetch...');
+            const profileResult = await createTimeoutWrapper(
+              () => supabase
+                .from('users')
+                .select('focus_area, name')
+                .eq('id', authUser.id)
+                .single(),
+              5000, // INCREASED: 5 second timeout
+              null
             );
             
-            if (ensureResult && ensureResult[0]?.success) {
-              console.log('✅ Profile ensured, fetching updated data...');
-              
-              // Now fetch the updated profile
-              const profileResult = await createTimeoutWrapper(
-                () => supabase
-                  .from('users')
-                  .select('focus_area, name')
-                  .eq('id', authUser.id)
-                  .single(),
-                4000, // Reduced timeout
-                null
-              );
-              
-              if (profileResult?.data) {
-                setUser(prev => prev ? {
-                  ...prev,
-                  name: profileResult.data.name || prev.name,
-                  focusArea: profileResult.data.focus_area || undefined
-                } : null);
-                console.log('✅ Background profile update successful');
-              }
+            if (profileResult?.data) {
+              setUser(prev => prev ? {
+                ...prev,
+                name: profileResult.data.name || prev.name,
+                focusArea: profileResult.data.focus_area || undefined
+              } : null);
+              console.log('✅ Background profile update successful');
             }
           } catch (bgError) {
-            console.warn('⚠️ Background profile operation failed:', bgError);
+            console.warn('⚠️ Background profile fetch failed:', bgError);
           }
-        }, 200); // Further reduced delay for faster profile creation
+        }, 1000); // Give more time before background fetch
       } else {
         console.log('ℹ️ No user data available');
         setUser(null);

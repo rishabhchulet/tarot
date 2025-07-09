@@ -209,71 +209,71 @@ export const signIn = async (email: string, password: string) => {
   }
 };
 
-// CRITICAL FIX: More robust profile creation with better error handling
+// CRITICAL FIX: Enhanced profile creation with retry logic and longer timeouts
 const ensureUserProfileExists = async (user: any, name?: string) => {
   try {
     logAuthEvent('Ensuring user profile exists', { userId: user.id, nameProvided: !!name });
     
-    // Try using the database function with retries
-    let ensureResult = null;
+    // CRITICAL FIX: Try multiple approaches with retries
+    let result = null;
     let attempts = 0;
-    const maxAttempts = 3;
+    const maxAttempts = 2;
     
-    while (attempts < maxAttempts && (!ensureResult || !ensureResult[0]?.success)) {
+    while (attempts < maxAttempts && (!result || !result[0]?.success)) {
       attempts++;
       logAuthEvent(`Profile creation attempt ${attempts}/${maxAttempts}`);
       
-      ensureResult = await createTimeoutWrapper(
+      // Try using the database function first
+      result = await createTimeoutWrapper(
         () => supabase.rpc('ensure_user_profile_exists', {
           check_user_id: user.id
         }),
-        attempts === 1 ? 12000 : 8000, // Reasonable timeouts
+        attempts === 1 ? 15000 : 10000, // Longer timeout on first attempt
         [{ success: false, message: 'Timeout', user_data: {} }]
       );
       
-      logAuthEvent(`Profile ensure attempt ${attempts} result`, { 
-        success: ensureResult?.[0]?.success, 
-        message: ensureResult?.[0]?.message 
+      logAuthEvent(`Profile creation attempt ${attempts} result`, { 
+        success: result?.[0]?.success, 
+        message: result?.[0]?.message 
       });
       
-      if (ensureResult && ensureResult.length > 0 && ensureResult[0].success) {
-        logAuthEvent('User profile ensured successfully');
+      if (result && result.length > 0 && result[0].success) {
+        logAuthEvent('User profile ensured successfully via RPC');
         return;
+      }
+      
+      // If RPC failed, try direct upsert as fallback
+      if (attempts === maxAttempts) {
+        logAuthEvent('Trying direct profile upsert as fallback');
+        try {
+          await createTimeoutWrapper(
+            () => supabase
+              .from('users')
+              .upsert({
+                id: user.id,
+                email: user.email || `user_${user.id}@example.com`,
+                name: name || user.raw_user_meta_data?.name || 'User',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'id'
+              }),
+            10000, // 10 second timeout
+            null
+          );
+          logAuthEvent('Direct profile upsert successful');
+          return;
+        } catch (upsertError) {
+          logAuthEvent('Direct profile upsert failed', null, upsertError);
+        }
       }
       
       if (attempts < maxAttempts) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait between attempts
+        await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s between attempts
       }
     }
     
-    // If all RPC attempts failed, try direct upsert as final fallback
-    if (!ensureResult || !ensureResult[0]?.success) {
-      logAuthEvent('All RPC attempts failed, trying direct upsert as final fallback');
-      
-      try {
-        await createTimeoutWrapper(
-          () => supabase
-            .from('users')
-            .upsert({
-              id: user.id,
-              email: user.email || `user_${user.id}@example.com`,
-              name: name || user.raw_user_meta_data?.name || 'User',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            }, {
-              onConflict: 'id'
-            }),
-          8000, // 8 second timeout
-          null
-        );
-        logAuthEvent('Direct profile upsert successful');
-        return;
-      } catch (upsertError) {
-        logAuthEvent('Direct profile upsert also failed', null, upsertError);
-      }
-    }
-    
-    logAuthEvent('All profile creation methods exhausted');
+    logAuthEvent('All profile creation attempts failed');
   } catch (error) {
     logAuthEvent('Error ensuring profile exists', null, error);
   }

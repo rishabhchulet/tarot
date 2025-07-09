@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions,
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User, Check } from 'lucide-react-native';
+import Animated from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 

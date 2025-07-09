@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Heart, Sparkles } from 'lucide-react-native';
+import { Heart, Sparkles, Star } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -150,7 +150,7 @@ export default function BreathingScreen() {
           <>
             <View style={styles.iconContainer}>
               <Animated.View style={heartStyle}>
-                <Heart size={60} color="#F59E0B" fill="#F59E0B" />
+                <Heart size={60} color="#1e3a8a" fill="#1e3a8a" />
               </Animated.View>
             </View>
 
@@ -162,13 +162,10 @@ export default function BreathingScreen() {
               Find a comfortable position and prepare to breathe deeply with intention.
             </Text>
 
-            <Pressable style={styles.startButton} onPress={handleStartBreathing}>
-              <LinearGradient
-                colors={['#3B82F6', '#1D4ED8']}
-                style={styles.startButtonGradient}
-              >
-                <Text style={styles.startButtonText}>Begin Breathing</Text>
-              </LinearGradient>
+            <Pressable style={styles.button} onPress={handleStartBreathing}>
+              <View style={styles.buttonSolid}>
+                <Text style={styles.buttonText}>Begin Breathing</Text>
+              </View>
             </Pressable>
           </>
         );
@@ -206,28 +203,38 @@ export default function BreathingScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       {/* Animated background effects */}
       <Animated.View style={[styles.backgroundShimmer, backgroundStyle]} />
       
       {/* Floating particles */}
       <View style={styles.particleContainer}>
-        {[...Array(8)].map((_, index) => (
+        {[...Array(12)].map((_, index) => (
           <View
             key={index}
             style={[
               styles.particle,
               {
-                left: Math.random() * 300 + 50,
-                top: Math.random() * 600 + 100,
-                animationDelay: `${index * 0.5}s`,
+                left: Math.random() * screenWidth,
+                top: Math.random() * screenHeight,
               }
             ]}
           >
-            <Sparkles size={8} color="#F59E0B" />
+            {index % 3 === 0 ? (
+              <Sparkles size={8} color="#1e3a8a" />
+            ) : index % 3 === 1 ? (
+              <Star size={6} color="#1e40af" />
+            ) : (
+              <View style={[styles.particleDot, { 
+                width: Math.random() * 4 + 2,
+                height: Math.random() * 4 + 2,
+                backgroundColor: index % 2 ? '#1e3a8a' : '#1e40af'
+              }]} />
+            )}
           </View>
         ))}
       </View>
@@ -235,7 +242,7 @@ export default function BreathingScreen() {
       <View style={styles.content}>
         {renderContent()}
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -252,7 +259,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
   },
   
   particleContainer: {
@@ -267,6 +274,13 @@ const styles = StyleSheet.create({
   particle: {
     position: 'absolute',
     opacity: 0.6,
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+  particleDot: {
+    borderRadius: 4,
   },
   
   content: {
@@ -280,7 +294,7 @@ const styles = StyleSheet.create({
   
   iconContainer: {
     marginBottom: 32,
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 20,
@@ -290,7 +304,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -298,7 +312,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
+    color: '#D1D5DB', 
     textAlign: 'center',
     marginBottom: 16,
     lineHeight: 26,
@@ -318,19 +332,19 @@ const styles = StyleSheet.create({
   breathingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 40,
+    marginBottom: 40, 
   },
   
   breathingCircle: {
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(59, 130, 246, 0.3)',
+    backgroundColor: 'rgba(30, 58, 138, 0.3)',
     borderWidth: 3,
-    borderColor: '#3B82F6',
+    borderColor: '#1e3a8a',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#3B82F6',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 20,
@@ -341,7 +355,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    backgroundColor: 'rgba(30, 58, 138, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -351,7 +365,7 @@ const styles = StyleSheet.create({
   breathingText: {
     fontSize: 24,
     fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -359,7 +373,7 @@ const styles = StyleSheet.create({
   breathingCount: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#9CA3AF', 
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -373,25 +387,26 @@ const styles = StyleSheet.create({
   },
   
   // Buttons
-  startButton: {
+  button: {
     borderRadius: 25,
     overflow: 'hidden',
-    shadowColor: '#3B82F6',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
   
-  startButtonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
   
-  startButtonText: {
+  buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

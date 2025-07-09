@@ -160,7 +160,7 @@ export default function AuthWelcomeScreen() {
         {/* Success/Debug Indicators */}
         {!(user || session) && (
           <View style={styles.signOutSuccess}>
-            <CheckCircle size={16} color={designTokens.colors.accent.emerald} />
+            <CheckCircle size={16} color={designTokens.colors.accent.mint} />
             <Text style={styles.signOutSuccessText}>Ready for your journey</Text>
           </View>
         )}
@@ -218,21 +218,25 @@ export default function AuthWelcomeScreen() {
         {/* Enhanced Action Buttons */}
         <Animated.View style={[styles.actionContainer, buttonsStyle]}>
           <ModernButton
-            title="Begin Your Journey"
             onPress={handleGetStarted}
-            variant="gradient"
+            variant="primary"
             size="lg"
-            icon={Sparkles}
             style={styles.primaryButton}
-          />
+          >
+            <View style={styles.buttonContent}>
+              <Sparkles size={20} color={designTokens.colors.text.primary} />
+              <Text style={styles.primaryButtonText}>Begin Your Journey</Text>
+            </View>
+          </ModernButton>
           
           <ModernButton
-            title="Already have an account? Sign In"
             onPress={handleSignIn}
             variant="ghost"
             size="md"
             style={styles.secondaryButton}
-          />
+          >
+            <Text style={styles.secondaryButtonText}>Already have an account? Sign In</Text>
+          </ModernButton>
         </Animated.View>
       </SafeAreaView>
     </LinearGradient>
@@ -272,12 +276,12 @@ const styles = StyleSheet.create({
     borderRadius: designTokens.borderRadius.lg,
     marginTop: designTokens.spacing.lg,
     borderWidth: 1,
-    borderColor: designTokens.colors.accent.emerald,
+    borderColor: designTokens.colors.accent.mint,
   },
 
   signOutSuccessText: {
     fontSize: designTokens.typography.fontSize.sm,
-    color: designTokens.colors.accent.emerald,
+    color: designTokens.colors.accent.mint,
     fontWeight: designTokens.typography.fontWeight.medium as any,
   },
 
@@ -318,7 +322,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: designTokens.typography.fontSize['4xl'],
-    fontWeight: designTokens.typography.fontWeight.extrabold as any,
+    fontWeight: designTokens.typography.fontWeight.bold as any,
     color: designTokens.colors.text.primary,
     textAlign: 'center',
     marginBottom: designTokens.spacing.lg,
@@ -358,7 +362,7 @@ const styles = StyleSheet.create({
 
   featureText: {
     fontSize: designTokens.typography.fontSize.xs,
-    color: designTokens.colors.text.accent,
+    color: designTokens.colors.text.secondary,
     fontWeight: designTokens.typography.fontWeight.medium as any,
     textAlign: 'center',
   },
@@ -383,5 +387,23 @@ const styles = StyleSheet.create({
 
   secondaryButton: {
     minHeight: 48,
+  },
+
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: designTokens.spacing.sm,
+  },
+
+  primaryButtonText: {
+    fontSize: designTokens.typography.fontSize.lg,
+    fontWeight: designTokens.typography.fontWeight.semibold as any,
+    color: designTokens.colors.text.primary,
+  },
+
+  secondaryButtonText: {
+    fontSize: designTokens.typography.fontSize.base,
+    fontWeight: designTokens.typography.fontWeight.medium as any,
+    color: designTokens.colors.accent.primary,
   },
 });

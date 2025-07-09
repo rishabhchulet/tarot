@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Heart, Sparkles, Star } from 'lucide-react-native';
@@ -12,6 +12,8 @@ import Animated, {
   Easing,
   interpolate,
 } from 'react-native-reanimated';
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function BreathingScreen() {
   const [phase, setPhase] = useState<'prepare' | 'breathing'>('prepare');

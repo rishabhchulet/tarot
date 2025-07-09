@@ -4,27 +4,30 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
 import { Sparkles } from 'lucide-react-native';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function WelcomeScreen() {
-  const iconRotation = useSharedValue(0);
+  const { user } = useAuth();
   const glowScale = useSharedValue(1);
+  const iconTranslateY = useSharedValue(0);
   
   useEffect(() => {
-    // Pulsating glow animation
     glowScale.value = withRepeat(
       withSequence(
-        withTiming(1.4, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
+        withTiming(1.2, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       true
     );
 
-    // Gentle icon rotation
-    iconRotation.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
+    iconTranslateY.value = withRepeat(
+      withSequence(
+        withTiming(-10, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 2500, easing: Easing.inOut(Easing.ease) })
+      ),
       -1,
-      false
+      true
     );
   }, []);
 
@@ -36,7 +39,7 @@ export default function WelcomeScreen() {
   
   const animatedIconStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ rotate: `${iconRotation.value}deg` }],
+      transform: [{ translateY: iconTranslateY.value }],
     };
   });
 
@@ -65,10 +68,10 @@ export default function WelcomeScreen() {
           </Animated.View>
         </View>
         
-        <Text style={styles.title}>Hello there, and welcome.</Text>
+        <Text style={styles.title}>Welcome{user?.name ? `, ${user.name}` : ''}.</Text>
         
         <Text style={styles.subtitle}>
-          It's no coincidence you are here. This tool is a mirror and a guide. And you find it when you are ready to tap into your inner wisdom and reconnect with your Self.
+          It's no coincidence you are here. This tool is a mirror and a guide, to help you tap into your inner wisdom.
         </Text>
         
       </View>
@@ -144,7 +147,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 18,
-    fontFamily: 'Inter-Medium',
+    fontFamily: 'Inter-Regular',
     color: '#D1D5DB',
     textAlign: 'center',
     marginBottom: 20,

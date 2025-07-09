@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Heart } from 'lucide-react-native';
+import { Feather } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 
 export default function IntentionScreen() {
@@ -39,7 +39,7 @@ export default function IntentionScreen() {
       <View style={styles.content}>
         <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
           <LinearGradient colors={['#ec4899', '#f87171']} style={styles.iconGradient}>
-            <Heart size={80} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} />
+            <Feather size={80} color="#FFFFFF" strokeWidth={1.5} />
           </LinearGradient>
         </Animated.View>
         

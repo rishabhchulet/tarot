@@ -1,18 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Calendar, Clock, MapPin, Star } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/utils/supabase';
+
+// TODO: Move API Key to a secure environment variable
+const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
 
 export default function AstrologyScreen() {
-  const [birthDate, setBirthDate] = useState('');
-  const [birthTime, setBirthTime] = useState('');
-  const [birthLocation, setBirthLocation] = useState('');
+  const { user, updateUser } = useAuth();
+
+  const [date, setDate] = useState(new Date());
+  const [time, setTime] = useState(new Date());
+  const [location, setLocation] = useState<{description: string, lat: number | null, lng: number | null} | null>(null);
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  
   const [loading, setLoading] = useState(false);
   
   const glowScale = useSharedValue(1);
-  
+  const autocompleteRef = useRef<any>(null);
+
   useEffect(() => {
     glowScale.value = withRepeat(
       withSequence(
@@ -20,22 +34,72 @@ export default function AstrologyScreen() {
         withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) })
       ), -1, true
     );
+    
+    // Set default location text if user has one
+    if (user?.birth_location) {
+      autocompleteRef.current?.setAddressText(user.birth_location);
+    }
   }, []);
   
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
 
+  const onDateChange = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || date;
+    setShowDatePicker(Platform.OS === 'ios');
+    setDate(currentDate);
+  };
+
+  const onTimeChange = (event: any, selectedTime?: Date) => {
+    const currentTime = selectedTime || time;
+    setShowTimePicker(Platform.OS === 'ios');
+    setTime(currentTime);
+  };
+
   const handleContinue = async () => {
-    if (!birthDate || !birthLocation) {
-      Alert.alert('Incomplete Information', 'Please enter your birthdate and location.');
+    if (!date || !location) {
+      Alert.alert('Incomplete Information', 'Please provide your birthdate and location to continue.');
       return;
     }
+
     setLoading(true);
-    // TODO: Add real date/time pickers, location autocomplete, and save to Supabase
-    setTimeout(() => {
-      setLoading(false);
+
+    const updates = {
+      id: user!.id,
+      birth_date: date.toISOString().split('T')[0], // YYYY-MM-DD
+      birth_time: time.toTimeString().split(' ')[0], // HH:MM:SS
+      birth_location: location.description,
+      latitude: location.lat,
+      longitude: location.lng,
+      onboarding_step: 'confirmation',
+    };
+
+    try {
+      const { error } = await supabase.from('profiles').update(updates).eq('id', user!.id);
+      if (error) throw error;
+      
+      await updateUser({
+        ...updates
+      });
+      
       router.push('/onboarding/confirmation');
-    }, 1000);
+    } catch (error: any) {
+      Alert.alert('Error', "We couldn't save your energetic map details. Please try again.");
+      console.error("Error updating user's astrological data:", error.message);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const renderInput = (icon: React.ReactNode, placeholder: string, value: string, onPress: () => void) => (
+    <Pressable onPress={onPress}>
+      <View style={styles.inputContainer}>
+        {icon}
+        <Text style={[styles.inputText, value ? styles.inputTextValue : {}]}>
+          {value || placeholder}
+        </Text>
+      </View>
+    </Pressable>
+  );
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
@@ -43,42 +107,93 @@ export default function AstrologyScreen() {
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
 
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <LinearGradient colors={['#f59e0b', '#fbbf24']} style={styles.iconGradient}>
-            <Star size={60} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} />
-          </LinearGradient>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
+            <Star size={60} color="#0f172a" fill="#facc15" strokeWidth={1.5} />
+          </View>
+          <Text style={styles.title}>Your Energetic Map</Text>
+          <Text style={styles.subtitle}>Enter what you know—approximations are okay.</Text>
         </View>
-
-        <Text style={styles.title}>Your Energetic Map</Text>
-        <Text style={styles.subtitle}>Enter what you know—approximations are okay.</Text>
         
         <View style={styles.inputGroup}>
-          <View style={styles.inputContainer}>
-            <Calendar size={20} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="Birthdate (YYYY-MM-DD)" placeholderTextColor="#64748b" value={birthDate} onChangeText={setBirthDate} />
-          </View>
+          {renderInput(
+            <Calendar size={20} color="#94a3b8" style={styles.inputIcon} />,
+            'Birthdate (YYYY-MM-DD)',
+            date ? date.toLocaleDateString() : '',
+            () => setShowDatePicker(true)
+          )}
+          
+          {renderInput(
+            <Clock size={20} color="#94a3b8" style={styles.inputIcon} />,
+            'Birth Time (optional)',
+            time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            () => setShowTimePicker(true)
+          )}
 
-          <View style={styles.inputContainer}>
-            <Clock size={20} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="Birth Time (optional)" placeholderTextColor="#64748b" value={birthTime} onChangeText={setBirthTime} />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <MapPin size={20} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput style={styles.input} placeholder="Birth Location (City, Country)" placeholderTextColor="#64748b" value={birthLocation} onChangeText={setBirthLocation} />
-          </View>
+          <GooglePlacesAutocomplete
+            ref={autocompleteRef}
+            placeholder="Birth Location (City, Country)"
+            onPress={(data, details = null) => {
+              setLocation({
+                description: data.description,
+                lat: details?.geometry.location.lat ?? null,
+                lng: details?.geometry.location.lng ?? null
+              });
+            }}
+            query={{
+              key: GOOGLE_PLACES_API_KEY,
+              language: 'en',
+              types: '(cities)',
+            }}
+            fetchDetails={true}
+            styles={{
+              container: { flex: 0 },
+              textInput: styles.inputText,
+              textInputContainer: styles.inputContainer,
+              predefinedPlacesDescription: { color: '#F8FAFC' },
+              listView: {
+                backgroundColor: '#1e293b',
+                borderRadius: 12,
+                marginTop: 4,
+              },
+              row: { paddingVertical: 12 },
+              description: { color: '#F8FAFC', fontFamily: 'Inter-Regular' },
+              separator: { height: 1, backgroundColor: '#334155' }
+            }}
+            renderLeftButton={() => <MapPin size={20} color="#94a3b8" style={styles.inputIcon} />}
+            textInputProps={{
+              placeholderTextColor: '#64748b',
+            }}
+          />
         </View>
       </View>
       
+      {showDatePicker && (
+        <DateTimePicker
+          testID="datePicker"
+          value={date}
+          mode="date"
+          display="spinner"
+          onChange={onDateChange}
+        />
+      )}
+      
+      {showTimePicker && (
+        <DateTimePicker
+          testID="timePicker"
+          value={time}
+          mode="time"
+          display="spinner"
+          onChange={onTimeChange}
+        />
+      )}
+
       <View style={styles.buttonContainer}>
-        <Pressable onPress={handleContinue} disabled={loading}>
-          <LinearGradient
-              colors={loading ? ['#475569', '#64748b'] : ['#f59e0b', '#fbbf24']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={styles.primaryButton}
-            >
-              <Text style={styles.primaryButtonText}>{loading ? 'Generating...' : 'Generate My Map'}</Text>
-            </LinearGradient>
+        <Pressable onPress={handleContinue} disabled={loading} style={styles.primaryButton}>
+            {loading ? 
+              <ActivityIndicator color="#0f172a" /> : 
+              <Text style={styles.primaryButtonText}>Generate My Map</Text>
+            }
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -88,19 +203,17 @@ export default function AstrologyScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f172a' },
   glow: {
-    position: 'absolute', top: '10%', left: '50%', width: 400, height: 400,
-    backgroundColor: 'rgba(245, 158, 11, 0.2)', borderRadius: 200,
-    transform: [{ translateX: -200 }], filter: 'blur(90px)', 
+    position: 'absolute', top: '5%', left: '50%', width: 400, height: 400,
+    backgroundColor: 'rgba(245, 158, 11, 0.25)', borderRadius: 200,
+    transform: [{ translateX: -200 }],
   },
-  content: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
+  content: { flex: 1, justifyContent: 'space-between', paddingHorizontal: 32, paddingTop: 80, paddingBottom: 20 },
+  header: { alignItems: 'center', marginBottom: 20 },
   iconContainer: {
     width: 100, height: 100, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 25, shadowColor: '#f59e0b', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5, shadowRadius: 20, elevation: 10, marginBottom: 32, alignSelf: 'center',
-  },
-  iconGradient: {
-    width: '100%', height: '100%', borderRadius: 25,
-    alignItems: 'center', justifyContent: 'center',
+    borderRadius: 25, backgroundColor: '#facc15',
+    shadowColor: '#f59e0b', shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4, shadowRadius: 20, elevation: 15, marginBottom: 24,
   },
   title: {
     fontSize: 32, fontFamily: 'Inter-Bold', color: '#F8FAFC',
@@ -108,20 +221,25 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16, fontFamily: 'Inter-Regular', color: '#94a3b8',
-    textAlign: 'center', marginBottom: 40,
+    textAlign: 'center', marginBottom: 20,
   },
   inputGroup: { gap: 16 },
   inputContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255, 0.05)',
-    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255, 0.1)',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.8)',
+    borderRadius: 12, borderWidth: 1, borderColor: '#334155',
+    minHeight: 58,
   },
   inputIcon: { marginHorizontal: 16 },
-  input: {
+  inputText: {
     flex: 1, paddingVertical: 18, fontSize: 16,
-    fontFamily: 'Inter-Regular', color: '#F8FAFC',
+    fontFamily: 'Inter-Regular', color: '#64748b',
+  },
+  inputTextValue: {
+    color: '#F8FAFC',
   },
   buttonContainer: { paddingHorizontal: 32, paddingBottom: 40, paddingTop: 20 },
   primaryButton: {
+    backgroundColor: '#f59e0b',
     borderRadius: 12, paddingVertical: 18, alignItems: 'center',
     shadowColor: '#f59e0b', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,

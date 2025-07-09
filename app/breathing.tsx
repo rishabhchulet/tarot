@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Heart, Sparkles } from 'lucide-react-native';
+import { Moon, Sparkles } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -10,29 +10,40 @@ import Animated, {
   withTiming,
   withSequence,
   Easing,
-  interpolate,
 } from 'react-native-reanimated';
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function BreathingScreen() {
   const [phase, setPhase] = useState<'prepare' | 'breathing' | 'done'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
   
+  // Animation values
+  const glowScale = useSharedValue(1);
+  const iconScale = useSharedValue(1);
   const circleScale = useSharedValue(0.8);
   const circleOpacity = useSharedValue(0.6);
-  const heartPulse = useSharedValue(1);
   const sparkleRotation = useSharedValue(0);
-  const glowScale = useSharedValue(1);
+
 
   useEffect(() => {
+    // Background glow animation
     glowScale.value = withRepeat(
       withSequence(
         withTiming(1.5, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
         withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) })
       ), -1, true
     );
-    startAmbientAnimations();
+    
+    // Icon pulse animation
+    iconScale.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+      ), -1, true
+    );
+
+    // Sparkle animation for breathing phase
+    sparkleRotation.value = withRepeat(withTiming(360, { duration: 8000, easing: Easing.linear }), -1, false);
+
   }, []);
 
   useEffect(() => {
@@ -40,11 +51,6 @@ export default function BreathingScreen() {
       startBreathingCycle();
     }
   }, [phase]);
-
-  const startAmbientAnimations = () => {
-    heartPulse.value = withRepeat(withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }), -1, true);
-    sparkleRotation.value = withRepeat(withTiming(360, { duration: 8000, easing: Easing.linear }), -1, false);
-  };
 
   const startBreathingCycle = () => {
     let currentBreath = 0;
@@ -79,8 +85,8 @@ export default function BreathingScreen() {
   const handleReady = () => router.push('/onboarding/astrology');
 
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
+  const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
   const circleStyle = useAnimatedStyle(() => ({ transform: [{ scale: circleScale.value }], opacity: circleOpacity.value }));
-  const heartStyle = useAnimatedStyle(() => ({ transform: [{ scale: heartPulse.value }] }));
   const sparkleStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${sparkleRotation.value}deg` }] }));
 
   const getBreathingText = () => {
@@ -95,10 +101,8 @@ export default function BreathingScreen() {
       case 'prepare':
         return (
           <>
-            <Animated.View style={[styles.iconContainer, heartStyle]}>
-              <LinearGradient colors={['#10b981', '#34d399']} style={styles.iconGradient}>
-                <Heart size={80} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} />
-              </LinearGradient>
+            <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
+              <Moon size={80} color="#FFFFFF" strokeWidth={1.5} />
             </Animated.View>
 
             <Text style={styles.title}>Connect inward before we begin</Text>
@@ -106,10 +110,8 @@ export default function BreathingScreen() {
               Take three slow, deep breaths. Allow your inner clarity to rise.
             </Text>
 
-            <Pressable onPress={handleStartBreathing}>
-              <LinearGradient colors={['#10b981', '#34d399']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>Begin Breathing</Text>
-              </LinearGradient>
+            <Pressable style={styles.primaryButton} onPress={handleStartBreathing}>
+              <Text style={styles.primaryButtonText}>Begin Breathing</Text>
             </Pressable>
           </>
         );
@@ -130,16 +132,12 @@ export default function BreathingScreen() {
       case 'done':
         return (
           <>
-            <Animated.View style={[styles.iconContainer, heartStyle]}>
-              <LinearGradient colors={['#10b981', '#34d399']} style={styles.iconGradient}>
-                <Heart size={80} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} />
-              </LinearGradient>
+            <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
+               <Moon size={80} color="#FFFFFF" strokeWidth={1.5} />
             </Animated.View>
             <Text style={styles.title}>Centered</Text>
-            <Pressable onPress={handleReady}>
-              <LinearGradient colors={['#10b981', '#34d399']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.primaryButton}>
-                <Text style={styles.primaryButtonText}>I'm Ready →</Text>
-              </LinearGradient>
+            <Pressable style={styles.primaryButton} onPress={handleReady}>
+              <Text style={styles.primaryButtonText}>I'm Ready →</Text>
             </Pressable>
           </>
         );
@@ -149,7 +147,7 @@ export default function BreathingScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0a0a0a', '#051111', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#050f0a', '#0a1a1a', '#050f0a']} style={StyleSheet.absoluteFill} />
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
       <View style={styles.content}>{renderContent()}</View>
     </View>
@@ -157,23 +155,30 @@ export default function BreathingScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a', overflow: 'hidden' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#0a0a0a', 
+    overflow: 'hidden',
+  },
   glow: {
     position: 'absolute', top: '20%', left: '50%', width: 400, height: 400,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)', borderRadius: 200,
-    transform: [{ translateX: -200 }], filter: 'blur(90px)', 
+    backgroundColor: 'rgba(52, 211, 153, 0.2)', // Mint green glow
+    borderRadius: 200,
+    transform: [{ translateX: -200 }], 
   },
   content: {
     flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32,
   },
   iconContainer: {
     width: 120, height: 120, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 30, shadowColor: '#10b981', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5, shadowRadius: 20, elevation: 10, marginBottom: 48,
-  },
-  iconGradient: {
-    width: '100%', height: '100%', borderRadius: 30,
-    alignItems: 'center', justifyContent: 'center',
+    borderRadius: 30, 
+    backgroundColor: '#34d399', // Solid mint green
+    shadowColor: '#34d399', 
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5, 
+    shadowRadius: 20, 
+    elevation: 10, 
+    marginBottom: 48,
   },
   title: {
     fontSize: 32, fontFamily: 'Inter-Bold', color: '#F9FAFB',
@@ -184,28 +189,32 @@ const styles = StyleSheet.create({
     textAlign: 'center', lineHeight: 26, maxWidth: 320, marginBottom: 48,
   },
   primaryButton: {
+    backgroundColor: '#34d399', // Solid mint green
     borderRadius: 12, paddingVertical: 18, paddingHorizontal: 32,
-    alignItems: 'center', shadowColor: '#10b981',
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4,
-    shadowRadius: 10, elevation: 8,
+    alignItems: 'center', 
+    shadowColor: '#34d399',
+    shadowOffset: { width: 0, height: 4 }, 
+    shadowOpacity: 0.4,
+    shadowRadius: 10, 
+    elevation: 8,
   },
   primaryButtonText: {
-    fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#F9FAFB',
+    fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#052e16', // Darker text for contrast
   },
   breathingContainer: {
-    width: screenWidth * 0.8, height: screenWidth * 0.8,
+    width: 300, height: 300,
     alignItems: 'center', justifyContent: 'center', marginBottom: 48,
   },
   breathingCircle: {
     width: '100%', height: '100%',
-    borderRadius: (screenWidth * 0.8) / 2,
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 150,
+    backgroundColor: 'rgba(52, 211, 153, 0.1)',
     alignItems: 'center', justifyContent: 'center',
   },
   innerCircle: {
     width: '50%', height: '50%',
-    borderRadius: (screenWidth * 0.4) / 2,
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    borderRadius: 75,
+    backgroundColor: 'rgba(52, 211, 153, 0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
   breathingText: {

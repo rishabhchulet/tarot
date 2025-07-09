@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, Eye, EyeOff, CircleAlert as AlertCircle } from 'lucide-react-native';
 import { signUp } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 
 export default function SignUpScreen() {
   const { user, session } = useAuth();
 
-  // Add guard to redirect authenticated users
-  React.useEffect(() => {
+  useEffect(() => {
     if (user && session) {
       router.replace('/(tabs)');
     }
@@ -25,371 +25,155 @@ export default function SignUpScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
+  const glowScale = useSharedValue(1);
+
+  useEffect(() => {
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.5, { duration: 5000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 5000, easing: Easing.inOut(Easing.ease) })
+      ), -1, true
+    );
+  }, []);
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
 
   const handleSignUp = async () => {
-    console.log('🎯 Sign up button pressed');
     setError(null);
-    
-    // Validation
-    if (!name.trim()) {
-      setError('Please enter your full name');
-      return;
-    }
-
-    if (!email.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
-
-    if (!validateEmail(email.trim())) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    if (!password.trim()) {
-      setError('Please enter a password');
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
+    if (!name.trim()) { setError("Please enter your name."); return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) { setError("Please enter a valid email address."); return; }
+    if (password.length < 6) { setError("Password must be at least 6 characters."); return; }
+    if (password !== confirmPassword) { setError("Passwords do not match."); return; }
 
     setLoading(true);
-    console.log('🚀 Starting sign up process...');
-
     try {
-      const { user, session, error } = await signUp(email.trim(), password, name.trim());
-
-      console.log('📝 Sign up result:', { user: !!user, session: !!session, error });
-
+      const { error } = await signUp(email.trim(), password, name.trim());
       if (error) {
-        console.error('❌ Sign up failed:', error);
         setError(error);
-        setLoading(false);
-        return;
-      } 
-      
-      if (user) {
-        console.log('✅ Sign up successful');
-        
-        // CRITICAL FIX: Navigate immediately without any delays or success states
-        console.log('📱 Navigating to onboarding immediately...');
-        
-        // Use replace to prevent going back to sign-up
-        router.replace('/onboarding/quiz');
-        
-        // Don't set loading to false here since we're navigating away
-        return;
       } else {
-        console.error('❓ Unexpected sign up result: no user and no error');
-        setError('An unexpected error occurred. Please try again.');
-        setLoading(false);
+        router.replace('/onboarding/welcome');
       }
-    } catch (error) {
-      console.error('💥 Unexpected error during sign up:', error);
+    } catch (e) {
       setError('An unexpected error occurred. Please try again.');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
-        style={StyleSheet.absoluteFill}
-      />
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+      <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+      <Animated.View style={[styles.glow, animatedGlowStyle]} />
+      
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Pressable 
-            style={styles.backButton} 
-            onPress={() => router.back()} 
-            disabled={loading}
-          >
-            <ArrowLeft size={24} color={loading ? "#6B7280" : "#F9FAFB"} />
+          <Pressable style={styles.backButton} onPress={() => router.back()} disabled={loading}>
+            <ArrowLeft size={24} color={loading ? "#6b7280" : "#e5e7eb"} />
           </Pressable>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Begin your inner journey</Text>
         </View>
 
-        <View style={styles.form}>
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>Create Account</Text>
+          <Text style={styles.subtitle}>Begin your inner journey.</Text>
+
           {error && (
             <View style={styles.errorContainer}>
-              <AlertCircle size={20} color="#EF4444" />
+              <AlertCircle size={18} color="#fca5a5" />
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
 
+          <View style={styles.inputContainer}><TextInput style={styles.input} value={name} onChangeText={setName} placeholder="Your Name" placeholderTextColor="#6b7280" autoCapitalize="words" editable={!loading} /></View>
+          <View style={styles.inputContainer}><TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email Address" placeholderTextColor="#6b7280" keyboardType="email-address" autoCapitalize="none" editable={!loading} /></View>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={[styles.input, loading && styles.inputDisabled]}
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter your full name"
-              placeholderTextColor="#6B7280"
-              autoCapitalize="words"
-              autoCorrect={false}
-              editable={!loading}
-              accessibilityLabel="Full name"
-              accessibilityHint="Enter your full name"
-            />
+            <TextInput style={styles.input} value={password} onChangeText={setPassword} placeholder="Password" placeholderTextColor="#6b7280" secureTextEntry={!showPassword} editable={!loading} />
+            <Pressable style={styles.eyeButton} onPress={() => setShowPassword(!showPassword)} disabled={loading}><EyeOff size={20} color={showPassword ? "#e5e7eb" : "#6b7280"} /></Pressable>
+          </View>
+          <View style={styles.inputContainer}>
+            <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Confirm Password" placeholderTextColor="#6b7280" secureTextEntry={!showConfirmPassword} editable={!loading} />
+            <Pressable style={styles.eyeButton} onPress={() => setShowConfirmPassword(!showConfirmPassword)} disabled={loading}><EyeOff size={20} color={showConfirmPassword ? "#e5e7eb" : "#6b7280"} /></Pressable>
           </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={[styles.input, loading && styles.inputDisabled]}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor="#6B7280"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!loading}
-              accessibilityLabel="Email address"
-              accessibilityHint="Enter your email address"
-            />
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <View style={[styles.passwordContainer, loading && styles.inputDisabled]}>
-              <TextInput
-                style={styles.passwordInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Create a password"
-                placeholderTextColor="#6B7280"
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                accessibilityLabel="Password"
-                accessibilityHint="Enter your password"
-              />
-              <Pressable
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-                disabled={loading}
-                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                accessibilityRole="button"
-              >
-                {showPassword ? (
-                  <EyeOff size={20} color={loading ? "#6B7280" : "#6B7280"} />
-                ) : (
-                  <Eye size={20} color={loading ? "#6B7280" : "#6B7280"} />
-                )}
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Confirm Password</Text>
-            <View style={[styles.passwordContainer, loading && styles.inputDisabled]}>
-              <TextInput
-                style={styles.passwordInput}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm your password"
-                placeholderTextColor="#6B7280"
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!loading}
-                accessibilityLabel="Confirm password"
-                accessibilityHint="Re-enter your password"
-              />
-              <Pressable
-                style={styles.eyeButton}
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={loading}
-                accessibilityLabel={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                accessibilityRole="button"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} color={loading ? "#6B7280" : "#6B7280"} />
-                ) : (
-                  <Eye size={20} color={loading ? "#6B7280" : "#6B7280"} />
-                )}
-              </Pressable>
-            </View>
-          </View>
-
-          <Pressable
-            style={[styles.signUpButton, loading && styles.buttonDisabled]}
-            onPress={handleSignUp}
-            disabled={loading}
-            accessibilityLabel={loading ? "Creating account" : "Create account"}
-            accessibilityRole="button"
-          >
-            <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
-              <Text style={styles.signUpButtonText}>
-                {loading ? 'Creating Account...' : 'Create Account'}
-              </Text>
-            </View>
+          <Pressable onPress={handleSignUp} disabled={loading}>
+            <LinearGradient
+              colors={loading ? ['#475569', '#64748b'] : ['#3b82f6', '#8b5cf6']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.signUpButton}
+            >
+              <Text style={styles.signUpButtonText}>{loading ? 'Creating Account...' : 'Create Account'}</Text>
+            </LinearGradient>
           </Pressable>
 
-          <Pressable 
-            style={styles.signInLink} 
-            onPress={() => router.push('/auth/signin')}
-            disabled={loading}
-            accessibilityLabel="Go to sign in"
-            accessibilityRole="button"
-          >
-            <Text style={[styles.signInLinkText, loading && styles.linkDisabled]}>
-              Already have an account? <Text style={[styles.linkHighlight, loading && styles.linkDisabled]}>Sign In</Text>
+          <Pressable style={styles.signInLink} onPress={() => router.push('/auth/signin')} disabled={loading}>
+            <Text style={styles.signInLinkText}>
+              Already have an account? <Text style={styles.linkHighlight}>Sign in</Text>
             </Text>
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  glow: {
+    position: 'absolute', top: '5%', left: '50%', width: 400, height: 400,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)', borderRadius: 200,
+    transform: [{ translateX: -200 }], filter: 'blur(80px)', 
   },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
+  scrollContent: { flexGrow: 1, justifyContent: 'center' },
   header: {
-    paddingTop: 60,
-    paddingBottom: 40,
-    alignItems: 'center',
+    position: 'absolute', top: 0, left: 0, right: 0,
+    paddingTop: 60, paddingHorizontal: 24, zIndex: 1,
   },
-  backButton: {
-    position: 'absolute',
-    left: 0,
-    top: 60,
-    padding: 8,
-  },
+  backButton: { alignSelf: 'flex-start' },
+  formContainer: { paddingHorizontal: 32, paddingBottom: 40 },
   title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
-    marginBottom: 8,
+    fontSize: 32, fontFamily: 'Inter-Bold', color: '#F9FAFB',
+    textAlign: 'center', marginBottom: 8,
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-  },
-  form: {
-    flex: 1,
-    paddingBottom: 40,
+    fontSize: 18, fontFamily: 'Inter-Regular', color: '#9ca3af',
+    textAlign: 'center', marginBottom: 32,
   },
   errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16,
+    marginBottom: 24, borderWidth: 1, borderColor: 'rgba(239, 68, 68, 0.2)',
   },
   errorText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#EF4444',
-    marginLeft: 8,
-    flex: 1,
+    fontSize: 14, fontFamily: 'Inter-Medium', color: '#fca5a5', marginLeft: 12, flex: 1,
   },
   inputContainer: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#F9FAFB',
-    marginBottom: 8,
+    marginBottom: 16, position: 'relative',
   },
   input: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
-  },
-  inputDisabled: {
-    opacity: 0.6,
-    backgroundColor: 'rgba(30, 58, 138, 0.04)',
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#F9FAFB',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: 12,
+    paddingHorizontal: 16, paddingVertical: 18, fontSize: 16,
+    fontFamily: 'Inter-Regular', color: '#F9FAFB',
+    borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   eyeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    position: 'absolute', right: 0, top: 0, bottom: 0,
+    justifyContent: 'center', paddingHorizontal: 16,
   },
   signUpButton: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonSolid: {
-    backgroundColor: '#374151',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  buttonSolidDisabled: {
-    backgroundColor: '#4B5563',
+    borderRadius: 12, paddingVertical: 18, alignItems: 'center',
+    shadowColor: '#3b82f6', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 10, elevation: 8, marginTop: 16,
   },
   signUpButtonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F9FAFB',
+    fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#F9FAFB',
   },
   signInLink: {
-    alignItems: 'center',
-    paddingVertical: 16,
+    marginTop: 32, alignItems: 'center',
   },
   signInLinkText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
+    fontSize: 14, fontFamily: 'Inter-Regular', color: '#9ca3af',
   },
   linkHighlight: {
-    color: '#1e3a8a',
-    fontFamily: 'Inter-SemiBold',
-  },
-  linkDisabled: {
-    color: '#6B7280',
+    fontFamily: 'Inter-SemiBold', color: '#60a5fa',
   },
 });

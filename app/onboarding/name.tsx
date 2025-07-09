@@ -2,12 +2,41 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { ArrowLeft, User } from 'lucide-react-native';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function NameScreen() {
   const { user, refreshUser } = useAuth();
+  
+  // Animation values
+  const iconScale = useSharedValue(1);
+  const iconOpacity = useSharedValue(0.8);
+  
+  React.useEffect(() => {
+    // Start gentle pulse animation
+    iconScale.value = withRepeat(
+      withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+    
+    iconOpacity.value = withRepeat(
+      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+  
+  // Create animated style
+  const animatedIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: iconScale.value }],
+      opacity: iconOpacity.value,
+    };
+  });
+  
   const [name, setName] = useState(user?.name || '');
   const [loading, setLoading] = useState(false);
 
@@ -59,7 +88,9 @@ export default function NameScreen() {
 
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <User size={60} color="#1e3a8a" strokeWidth={1.5} />
+          <Animated.View style={animatedIconStyle}>
+            <User size={60} color="#1e3a8a" strokeWidth={1.5} />
+          </Animated.View>
         </View>
         
         <Text style={styles.title}>What should we call you?</Text>
@@ -96,6 +127,10 @@ export default function NameScreen() {
   );
 }
 
+const animatedIconStyle = {
+  transform: [{ scale: 1 }],
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -118,6 +153,10 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 32,
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,

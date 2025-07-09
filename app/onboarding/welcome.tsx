@@ -2,9 +2,37 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { Sparkles } from 'lucide-react-native';
 
 export default function WelcomeScreen() {
+  // Animation values
+  const iconScale = useSharedValue(1);
+  const iconOpacity = useSharedValue(0.8);
+  
+  React.useEffect(() => {
+    // Start gentle pulse animation
+    iconScale.value = withRepeat(
+      withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+    
+    iconOpacity.value = withRepeat(
+      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true
+    );
+  }, []);
+  
+  // Create animated style
+  const animatedIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: iconScale.value }],
+      opacity: iconOpacity.value,
+    };
+  });
+
   const handleContinue = () => {
     console.log('📱 Navigating to name screen...');
     router.push('/onboarding/name');
@@ -18,7 +46,9 @@ export default function WelcomeScreen() {
       />
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Sparkles size={80} color="#1e3a8a" strokeWidth={1.5} />
+          <Animated.View style={animatedIconStyle}>
+            <Sparkles size={80} color="#1e3a8a" strokeWidth={1.5} />
+          </Animated.View>
         </View>
         
         <Text style={styles.title}>Welcome to{'\n'}Daily Inner Reflection</Text>
@@ -41,6 +71,10 @@ export default function WelcomeScreen() {
   );
 }
 
+const animatedIconStyle = {
+  transform: [{ scale: 1 }],
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -55,6 +89,10 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 40,
+    width: 100,
+    height: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,

@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.8,
     shadowRadius: 20,
-    elevation: 20,
-    padding: 20,
+    elevation: 10,
+    backgroundColor: 'transparent',
   },
   title: {
     fontSize: 28,

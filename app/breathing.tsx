@@ -152,7 +152,7 @@ export default function BreathingScreen() {
           <>
             <View style={styles.iconContainer}>
               <Animated.View style={heartStyle}>
-                <Heart size={60} color="#1e3a8a" fill="#1e3a8a" />
+                <Heart size={60} color="#1e3a8a" fill="#1e3a8a" strokeWidth={1.5} />
               </Animated.View>
             </View>
 
@@ -296,6 +296,10 @@ const styles = StyleSheet.create({
   
   iconContainer: {
     marginBottom: 32,
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,

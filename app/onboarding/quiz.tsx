@@ -117,7 +117,13 @@ export default function ArchetypeQuiz() {
                 accessibilityRole="button"
               >
                 <View style={styles.cardContent}>
-                  <View style={[styles.iconContainer, { backgroundColor: archetype.color + '15' }]}>
+                  <Animated.View 
+                    style={[
+                      styles.iconContainer, 
+                      { backgroundColor: 'transparent' },
+                      isSelected && { transform: [{ scale: 1.05 }] }
+                    ]}
+                  >
                     <IconComponent 
                       size={32} 
                       color={archetype.color} 
@@ -128,7 +134,7 @@ export default function ArchetypeQuiz() {
                         <Check size={16} color="#FFFFFF" strokeWidth={3} />
                       </View>
                     )}
-                  </View>
+                  </Animated.View>
                   
                   <View style={styles.cardText}>
                     <Text style={[styles.cardTitle, { color: archetype.color }]}>
@@ -273,11 +279,15 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
     position: 'relative',
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   checkmark: {
     position: 'absolute',

@@ -3,12 +3,23 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Sparkles, CircleCheck as CheckCircle } from 'lucide-react-native';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming,
+  withSequence,
+  Easing
+} from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
+  
+  // Animation values
+  const iconRotation = useSharedValue(0);
+  const iconScale = useSharedValue(0.8);
+  const iconOpacity = useSharedValue(0.6);
 
-  // CRITICAL: Add test to verify user is signed out
   useEffect(() => {
     console.log('🔍 Auth welcome screen loaded');
     console.log('👤 User state:', { hasUser: !!user, hasSession: !!session });
@@ -20,13 +31,36 @@ export default function AuthWelcomeScreen() {
     } else {
       console.log('✅ Auth screen: User properly signed out');
     }
+
+    // Quick swirl animation that settles down
+    iconRotation.value = withSequence(
+      withTiming(360, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+    );
+    
+    iconScale.value = withSequence(
+      withTiming(1.1, { duration: 600, easing: Easing.out(Easing.back(1.2)) }),
+      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) })
+    );
+    
+    iconOpacity.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.ease) });
   }, [user, session]);
+
+  const animatedIconStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { rotate: `${iconRotation.value}deg` },
+        { scale: iconScale.value }
+      ],
+      opacity: iconOpacity.value,
+    };
+  });
 
   return (
     <View style={styles.container}>
-      {/* Dark gradient background */}
+      {/* Enhanced dark gradient with blue hints */}
       <LinearGradient
-        colors={['#0a0a0a', '#1a1a1a', '#2a2a2a']}
+        colors={['#0a0a0f', '#1a1a2e', '#16213e', '#2a2a3a']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -45,11 +79,11 @@ export default function AuthWelcomeScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Static icon - no animation */}
+        {/* Animated icon with swirl effect */}
         <View style={styles.iconSection}>
-          <View style={styles.iconContainer}>
-            <Sparkles size={64} color="#6B7280" strokeWidth={1.5} />
-          </View>
+          <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
+            <Sparkles size={64} color="#7C3AED" strokeWidth={1.5} />
+          </Animated.View>
         </View>
         
         {/* Clean title */}
@@ -61,12 +95,17 @@ export default function AuthWelcomeScreen() {
         </Text>
       </View>
       
-      {/* Dark themed buttons */}
+      {/* Enhanced dark themed buttons with blue accents */}
       <View style={styles.buttonSection}>
         <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/signup')}>
-          <View style={styles.primaryButtonContent}>
+          <LinearGradient
+            colors={['#374151', '#4B5563', '#1E3A8A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryButtonGradient}
+          >
             <Text style={styles.primaryButtonText}>Get Started</Text>
-          </View>
+          </LinearGradient>
         </Pressable>
         
         <Pressable style={styles.secondaryButton} onPress={() => router.push('/auth/signin')}>
@@ -93,7 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Static icon section - no animation
+  // Animated icon section
   iconSection: {
     marginBottom: 48,
   },
@@ -102,10 +141,15 @@ const styles = StyleSheet.create({
     height: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+    backgroundColor: 'rgba(124, 58, 237, 0.1)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(107, 114, 128, 0.2)',
+    borderColor: 'rgba(124, 58, 237, 0.2)',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
   },
   
   // Clean title
@@ -128,18 +172,20 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   
-  // Dark themed button section
+  // Enhanced button section
   buttonSection: {
     gap: 16,
   },
   primaryButton: {
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#374151',
-    borderWidth: 1,
-    borderColor: '#4B5563',
+    shadowColor: '#1E3A8A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  primaryButtonContent: {
+  primaryButtonGradient: {
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
@@ -161,7 +207,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   linkHighlight: {
-    color: '#9CA3AF',
+    color: '#8B5CF6',
     fontFamily: 'Inter-Medium',
   },
   

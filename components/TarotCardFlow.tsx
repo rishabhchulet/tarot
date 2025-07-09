@@ -68,6 +68,9 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     console.log('⭐ Reflection complete callback triggered');
     if (onComplete) {
       onComplete();
+    } else {
+      // Fallback navigation if no callback provided
+      router.replace('/daily-question');
     }
   };
 

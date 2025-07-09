@@ -103,10 +103,10 @@ export default function BreathingScreen() {
       
       if (currentBreath >= 3) {
         clearInterval(interval);
-        // Wait for last cycle to complete, then navigate to card draw
+        // Wait for last cycle to complete, then navigate to home screen
         setTimeout(() => {
-          console.log('🎉 Breathing complete, navigating to card draw...');
-          router.replace('/draw');
+          console.log('🎉 Breathing complete, navigating to home screen...');
+          router.replace('/(tabs)');
         }, 8000);
       }
     }, 8000); // 8 seconds per complete cycle

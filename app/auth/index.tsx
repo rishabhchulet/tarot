@@ -3,21 +3,10 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Sparkles, CircleCheck as CheckCircle } from 'lucide-react-native';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withTiming,
-  Easing
-} from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
-  
-  // Subtle animation values
-  const sparkleRotation = useSharedValue(0);
-  const iconGlow = useSharedValue(0.8);
 
   // CRITICAL: Add test to verify user is signed out
   useEffect(() => {
@@ -33,34 +22,11 @@ export default function AuthWelcomeScreen() {
     }
   }, [user, session]);
 
-  useEffect(() => {
-    // Very subtle sparkle rotation
-    sparkleRotation.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
-      -1,
-      false
-    );
-
-    // Subtle glow effect
-    iconGlow.value = withRepeat(
-      withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-  }, []);
-
-  const animatedSparkleStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${sparkleRotation.value}deg` }],
-      opacity: iconGlow.value,
-    };
-  });
-
   return (
     <View style={styles.container}>
-      {/* Clean gradient background */}
+      {/* Dark gradient background */}
       <LinearGradient
-        colors={['#1a1a2e', '#16213e', '#0f3460']}
+        colors={['#0a0a0a', '#1a1a1a', '#2a2a2a']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -79,11 +45,11 @@ export default function AuthWelcomeScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Simple icon with subtle animation */}
+        {/* Static icon - no animation */}
         <View style={styles.iconSection}>
-          <Animated.View style={[styles.iconContainer, animatedSparkleStyle]}>
-            <Sparkles size={80} color="#FFD700" strokeWidth={1.5} />
-          </Animated.View>
+          <View style={styles.iconContainer}>
+            <Sparkles size={64} color="#6B7280" strokeWidth={1.5} />
+          </View>
         </View>
         
         {/* Clean title */}
@@ -91,19 +57,16 @@ export default function AuthWelcomeScreen() {
         
         {/* Simple subtitle */}
         <Text style={styles.subtitle}>
-          Connect directly with your inner wisdom through this daily mirror into yourself.
+          Connect with your inner wisdom through daily reflection.
         </Text>
       </View>
       
-      {/* Clean button section */}
+      {/* Dark themed buttons */}
       <View style={styles.buttonSection}>
         <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/signup')}>
-          <LinearGradient
-            colors={['#F59E0B', '#D97706']}
-            style={styles.primaryButtonGradient}
-          >
+          <View style={styles.primaryButtonContent}>
             <Text style={styles.primaryButtonText}>Get Started</Text>
-          </LinearGradient>
+          </View>
         </Pressable>
         
         <Pressable style={styles.secondaryButton} onPress={() => router.push('/auth/signin')}>
@@ -119,7 +82,7 @@ export default function AuthWelcomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingTop: 80,
     paddingBottom: 40,
   },
@@ -130,55 +93,61 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Simple icon section
+  // Static icon section - no animation
   iconSection: {
-    marginBottom: 40,
+    marginBottom: 48,
   },
   iconContainer: {
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 20,
+    width: 80,
+    height: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(107, 114, 128, 0.1)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(107, 114, 128, 0.2)',
   },
   
   // Clean title
   title: {
-    fontSize: 36,
-    fontFamily: 'Inter-ExtraBold',
-    color: '#F3F4F6',
+    fontSize: 32,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 44,
+    marginBottom: 16,
+    lineHeight: 40,
   },
   
   // Simple subtitle
   subtitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 26,
-    maxWidth: 320,
+    lineHeight: 24,
+    maxWidth: 280,
   },
   
-  // Clean button section
+  // Dark themed button section
   buttonSection: {
     gap: 16,
   },
   primaryButton: {
-    borderRadius: 25,
+    borderRadius: 12,
     overflow: 'hidden',
+    backgroundColor: '#374151',
+    borderWidth: 1,
+    borderColor: '#4B5563',
   },
-  primaryButtonGradient: {
+  primaryButtonContent: {
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
   primaryButtonText: {
-    fontSize: 18,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
   
   secondaryButton: {
@@ -187,13 +156,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#6B7280',
   },
   linkHighlight: {
-    color: '#F59E0B',
-    fontFamily: 'Inter-SemiBold',
+    color: '#9CA3AF',
+    fontFamily: 'Inter-Medium',
   },
   
   // Sign out verification styles

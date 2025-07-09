@@ -172,17 +172,17 @@ export function DynamicReflectionQuestions({
   return (
     <View style={styles.container}>
       {/* Header following the pattern */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Your Reflection Today</Text>
+      <View style={[styles.header, { backgroundColor: 'rgba(30, 58, 138, 0.08)' }]}>
+        <Text style={[styles.title, { color: '#F9FAFB' }]}>Your Reflection Today</Text>
       </View>
 
       {/* Card and Hexagram description */}
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
-          <Text style={styles.cardName}>{card.name}</Text> speaks to {card.keywords.slice(0, 2).join(', ').toLowerCase()}, and the deep mirroring that occurs in relationships—both with others and within yourself.
+          <Text style={[styles.cardName, { color: '#F9FAFB' }]}>{card.name}</Text> speaks to {card.keywords.slice(0, 2).join(', ').toLowerCase()}, and the deep mirroring that occurs in relationships—both with others and within yourself.
         </Text>
         <Text style={styles.descriptionText}>
-          <Text style={styles.hexagramName}>Hexagram {hexagram.name}</Text> invites you to honor the intensity of your inner flame: your desire, your devotion, and what lights you up from within.
+          <Text style={[styles.hexagramName, { color: '#1e3a8a' }]}>Hexagram {hexagram.name}</Text> invites you to honor the intensity of your inner flame: your desire, your devotion, and what lights you up from within.
         </Text>
       </View>
 
@@ -235,8 +235,8 @@ export function DynamicReflectionQuestions({
 
       {/* Return to this question throughout the day */}
       <View style={styles.shadowContainer}>
-        <Text style={styles.shadowTitle}>Return to this question throughout the day:</Text>
-        <Text style={styles.shadowQuestion}>
+        <Text style={[styles.shadowTitle, { color: '#1e3a8a' }]}>Return to this question throughout the day:</Text>
+        <Text style={[styles.shadowQuestion, { color: '#F9FAFB' }]}>
           "{shadowQuestion || 'What am I truly devoted to—and does it reflect my truth?'}"
         </Text>
       </View>
@@ -246,12 +246,12 @@ export function DynamicReflectionQuestions({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
   },
   header: {
     alignItems: 'center',
@@ -260,7 +260,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: 'CormorantGaramond-Bold',
-    color: '#F3F4F6',
     textAlign: 'center',
   },
   loadingContainer: {
@@ -284,17 +283,15 @@ const styles = StyleSheet.create({
   descriptionText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
+    color: '#9CA3AF',
     lineHeight: 20,
     marginBottom: 8,
   },
   cardName: {
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F59E0B',
   },
   hexagramName: {
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#3B82F6',
   },
   
   // Pairing section
@@ -304,7 +301,7 @@ const styles = StyleSheet.create({
   pairingTitle: {
     fontSize: 15,
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 12,
   },
   questionButton: {
@@ -314,40 +311,38 @@ const styles = StyleSheet.create({
   questionText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     lineHeight: 20,
   },
   textInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
     minHeight: 70,
     marginBottom: 16,
   },
   
   // Shadow question section
   shadowContainer: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.15)',
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
   },
   shadowTitle: {
     fontSize: 13,
     fontFamily: 'Inter-Medium',
-    color: '#F59E0B',
     marginBottom: 6,
   },
   shadowQuestion: {
     fontSize: 14,
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F3F4F6',
     fontStyle: 'italic',
     lineHeight: 20,
   },

@@ -73,13 +73,14 @@ export default function ProfileScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#F3F4F6" />
+          <ArrowLeft size={24} color="#F9FAFB" />
         </Pressable>
         <Text style={styles.title}>Profile</Text>
         <View style={styles.placeholder} />
@@ -155,19 +156,16 @@ export default function ProfileScreen() {
             onPress={handleSave}
             disabled={loading}
           >
-            <LinearGradient
-              colors={loading ? ['#6B7280', '#4B5563'] : ['#10B981', '#059669']}
-              style={styles.saveButtonGradient}
-            >
-              <Save size={20} color="#FFFFFF" />
+            <View style={[styles.saveButtonSolid, loading && styles.saveButtonSolidDisabled]}>
+              <Save size={20} color="#F9FAFB" />
               <Text style={styles.saveButtonText}>
                 {loading ? 'Saving...' : 'Save Changes'}
               </Text>
-            </LinearGradient>
+            </View>
           </Pressable>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -189,7 +187,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
   },
   placeholder: {
     width: 40,
@@ -207,42 +205,42 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   inputDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    color: '#9CA3AF',
+    backgroundColor: 'rgba(30, 58, 138, 0.05)',
+    color: '#6B7280',
   },
   helperText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
     marginTop: 6,
   },
   focusAreaContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
     marginBottom: 16,
   },
   focusAreaText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
     marginBottom: 4,
   },
   focusOptions: {
@@ -251,36 +249,36 @@ const styles = StyleSheet.create({
   focusOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   focusOptionSelected: {
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderColor: '#F59E0B',
+    backgroundColor: 'rgba(30, 58, 138, 0.15)',
+    borderColor: '#1e3a8a',
   },
   focusIconContainer: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
   },
   focusIconContainerSelected: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: 'rgba(30, 58, 138, 0.15)',
   },
   focusOptionTitle: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     flex: 1,
   },
   focusOptionTitleSelected: {
-    color: '#F59E0B',
+    color: '#1e3a8a',
   },
   saveButton: {
     borderRadius: 12,
@@ -290,7 +288,8 @@ const styles = StyleSheet.create({
   saveButtonDisabled: {
     opacity: 0.6,
   },
-  saveButtonGradient: {
+  saveButtonSolid: {
+    backgroundColor: '#374151',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -298,9 +297,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     gap: 8,
   },
+  saveButtonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   saveButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

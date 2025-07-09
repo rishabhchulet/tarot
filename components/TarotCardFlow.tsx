@@ -296,15 +296,16 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
   return (
     <View style={styles.container}>
-      {renderCurrentStep()}
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
     </View>
-  );
+      />
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0F0F23',
+    backgroundColor: '#0a0a0a',
   },
   stepContainer: {
     flex: 1,
@@ -379,7 +380,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.8,
     height: screenHeight * 0.6,
     borderRadius: 30,
-    backgroundColor: 'rgba(139, 92, 246, 0.3)',
+    backgroundColor: 'rgba(30, 58, 138, 0.3)',
     zIndex: -1,
   },
   glowEffect2: {
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.85,
     height: screenHeight * 0.65,
     borderRadius: 35,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    backgroundColor: 'rgba(30, 64, 175, 0.2)',
     zIndex: -2,
   },
   glowEffect3: {
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.9,
     height: screenHeight * 0.7,
     borderRadius: 40,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
     zIndex: -3,
   },
   borderRing: {
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.55,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: 'rgba(255, 215, 0, 0.6)',
+    borderColor: 'rgba(30, 58, 138, 0.6)',
     zIndex: -1,
   },
   cardCenterContainer: {
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   ichingTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#1e3a8a',
     marginBottom: 10,
   },
   ichingName: {
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
   },
   ichingEssence: {
     fontSize: 16,
-    color: '#FFD700',
+    color: '#1e40af',
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -449,7 +450,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#8B5CF6',
+    color: '#1e3a8a',
     textAlign: 'center',
     marginBottom: 15,
   },
@@ -460,12 +461,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   keywordItem: {
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: 'rgba(30, 58, 138, 0.2)',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderColor: 'rgba(30, 58, 138, 0.4)',
   },
   keywordText: {
     color: '#FFFFFF',
@@ -473,11 +474,16 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   continueButton: {
-    backgroundColor: '#8B5CF6',
+    backgroundColor: '#374151',
     paddingHorizontal: 40,
     paddingVertical: 15,
     borderRadius: 25,
     marginTop: 20,
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   continueButtonText: {
     color: '#FFFFFF',

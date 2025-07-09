@@ -38,19 +38,22 @@ export function NoteEntry({ entry }: NoteEntryProps) {
     <View style={styles.container}>
       <View style={styles.header}>
         <View style={styles.dateContainer}>
-          <Calendar size={16} color="#9CA3AF" />
+          <Calendar size={16} color="#6B7280" />
           <Text style={styles.date}>{formatDate(entry.date)}</Text>
         </View>
-        <Heart size={16} color="#F59E0B" />
+        <Heart size={16} color="#1e3a8a" />
       </View>
 
-      <Text style={styles.cardName}>{entry.card_name}</Text>
+      <Text style={[styles.cardName, { color: '#F9FAFB' }]}>{entry.card_name}</Text>
       
       {entry.card_keywords && (
         <View style={styles.keywords}>
           {entry.card_keywords.map((keyword: string, index: number) => (
-            <View key={index} style={styles.keyword}>
-              <Text style={styles.keywordText}>{keyword}</Text>
+            <View key={index} style={[styles.keyword, { 
+              backgroundColor: 'rgba(30, 58, 138, 0.2)',
+              borderColor: 'rgba(30, 58, 138, 0.3)'
+            }]}>
+              <Text style={[styles.keywordText, { color: '#F9FAFB' }]}>{keyword}</Text>
             </View>
           ))}
         </View>
@@ -97,12 +100,12 @@ export function NoteEntry({ entry }: NoteEntryProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   header: {
     flexDirection: 'row',
@@ -118,12 +121,11 @@ const styles = StyleSheet.create({
   date: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   cardName: {
     fontSize: 20,
     fontFamily: 'CormorantGaramond-Bold',
-    color: '#F3F4F6',
     marginBottom: 12,
   },
   keywords: {
@@ -133,17 +135,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   keyword: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
   },
   keywordText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
   },
   reflectionContainer: {
     gap: 16,
@@ -154,35 +153,35 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    color: '#D1D5DB',
+    color: '#9CA3AF',
   },
   reflectionText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     lineHeight: 24,
   },
   voiceButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#F59E0B',
+    borderColor: '#1e3a8a',
     gap: 8,
     alignSelf: 'flex-start',
   },
   voiceButtonActive: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#1e3a8a',
   },
   voiceButtonText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
   },
   voiceButtonTextActive: {
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

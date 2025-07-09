@@ -21,10 +21,10 @@ export function TrialBanner({ subscriptionStatus }: TrialBannerProps) {
     return (
       <View style={styles.container}>
         <LinearGradient
-          colors={['#DC2626', '#B91C1C']}
+          colors={['#1e3a8a', '#1e40af']}
           style={styles.expiredBanner}
         >
-          <Crown size={20} color="#FFFFFF" />
+          <Clock size={20} color="#F9FAFB" />
           <Text style={styles.expiredText}>Trial Expired</Text>
           <Pressable style={styles.upgradeButton} onPress={handleUpgrade}>
             <Text style={styles.upgradeButtonText}>Subscribe</Text>
@@ -76,19 +76,19 @@ const styles = StyleSheet.create({
   trialText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
     flex: 1,
     marginLeft: 8,
   },
   expiredText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
     flex: 1,
     marginLeft: 8,
   },
   upgradeButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -96,6 +96,6 @@ const styles = StyleSheet.create({
   upgradeButtonText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

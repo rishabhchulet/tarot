@@ -332,10 +332,11 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
 
   return (
     <View style={styles.container}>
-      {/* Enhanced Universe Background */}
-      <Animated.View style={[styles.universeBackground, universePulseStyle]}>
-        <LinearGradient
-          colors={['rgba(31, 41, 55, 0.9)', 'rgba(107, 70, 193, 0.6)', 'rgba(59, 130, 246, 0.4)']}
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
+          colors={['rgba(10, 10, 10, 0.9)', 'rgba(30, 58, 138, 0.6)', 'rgba(30, 64, 175, 0.4)']}
           style={styles.universeGradient}
         />
       </Animated.View>
@@ -354,7 +355,7 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
               }
             ]}
           >
-            <Star size={Math.random() * 8 + 4} color="#F59E0B" fill="#F59E0B" />
+            <Star size={Math.random() * 8 + 4} color="#1e3a8a" fill="#1e3a8a" />
           </View>
         ))}
       </Animated.View>
@@ -375,7 +376,7 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
         {/* Sun */}
         <Animated.View style={[styles.celestialElement, styles.sunContainer, sunStyle]}>
           <View style={styles.sunGlow}>
-            <Sun size={40} color="#F59E0B" fill="#F59E0B" />
+            <Sun size={40} color="#1e3a8a" fill="#1e3a8a" />
           </View>
           {/* Sun rays */}
           <View style={styles.sunRays}>
@@ -406,16 +407,16 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
       {/* Enhanced Orbital Elements */}
       <Animated.View style={[styles.orbitalContainer, orbitalStyle]}>
         <View style={[styles.orbitalElement, { top: 50 }]}>
-          <Star size={16} color="#F59E0B" fill="#F59E0B" />
+          <Star size={16} color="#1e3a8a" fill="#1e3a8a" />
         </View>
         <View style={[styles.orbitalElement, { bottom: 50, right: 0 }]}>
-          <Sparkles size={14} color="#8B5CF6" />
+          <Sparkles size={14} color="#1e40af" />
         </View>
         <View style={[styles.orbitalElement, { left: 30, top: '50%' }]}>
-          <Zap size={12} color="#3B82F6" />
+          <Zap size={12} color="#1e3a8a" />
         </View>
         <View style={[styles.orbitalElement, { right: 30, top: '30%' }]}>
-          <Star size={10} color="#10B981" fill="#10B981" />
+          <Star size={10} color="#1e40af" fill="#1e40af" />
         </View>
       </Animated.View>
 
@@ -428,14 +429,14 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
 
       {/* NEW: Lightning Effects */}
       <Animated.View style={[styles.lightningContainer, lightningStyle]}>
-        <CloudLightning size={60} color="#F59E0B" />
+        <CloudLightning size={60} color="#1e3a8a" />
         <View style={styles.lightningFlash} />
       </Animated.View>
 
       {/* Enhanced Center Energy Glow */}
       <Animated.View style={[styles.centerGlow, centerGlowStyle]}>
         <LinearGradient
-          colors={['rgba(245, 158, 11, 0.9)', 'rgba(139, 92, 246, 0.7)', 'rgba(59, 130, 246, 0.5)']}
+          colors={['rgba(30, 58, 138, 0.9)', 'rgba(30, 64, 175, 0.7)', 'rgba(59, 130, 246, 0.5)']}
           style={styles.glowGradient}
         />
       </Animated.View>
@@ -459,7 +460,7 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
               }
             ]}
           >
-            <Sparkles size={8 + Math.random() * 12} color="#F59E0B" />
+            <Sparkles size={8 + Math.random() * 12} color="#1e3a8a" />
           </View>
         ))}
       </Animated.View>
@@ -474,7 +475,7 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
       {phase === 'revealing' && (
         <Animated.View style={[styles.cardReveal, cardRevealStyle]}>
           <LinearGradient
-            colors={['#6B46C1', '#8B5CF6', '#F59E0B']}
+            colors={['#1e3a8a', '#1e40af', '#3b82f6']}
             style={styles.cardPlaceholder}
           >
             <Sparkles size={50} color="#FFFFFF" />
@@ -532,7 +533,7 @@ const styles = StyleSheet.create({
     height: 350,
     borderRadius: 175,
     borderWidth: 3,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
+    borderColor: 'rgba(30, 58, 138, 0.4)',
     alignItems: 'center',
     justifyContent: 'center',
     borderStyle: 'dashed',
@@ -542,7 +543,7 @@ const styles = StyleSheet.create({
     height: 250,
     borderRadius: 125,
     borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.5)',
+    borderColor: 'rgba(30, 64, 175, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -551,7 +552,7 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 75,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.6)',
+    borderColor: 'rgba(59, 130, 246, 0.5)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -559,8 +560,8 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#F59E0B',
-    shadowColor: '#F59E0B',
+    backgroundColor: '#1e3a8a',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -581,7 +582,7 @@ const styles = StyleSheet.create({
     // Positioned relative to center
   },
   sunGlow: {
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 20,
@@ -598,10 +599,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 3,
     height: 25,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#1e3a8a',
     top: -35,
     borderRadius: 2,
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
@@ -638,7 +639,7 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     borderWidth: 2,
-    borderColor: 'rgba(245, 158, 11, 0.6)',
+    borderColor: 'rgba(30, 58, 138, 0.6)',
   },
   energyWave2: {
     position: 'absolute',
@@ -646,7 +647,7 @@ const styles = StyleSheet.create({
     height: 300,
     borderRadius: 150,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderColor: 'rgba(30, 64, 175, 0.4)',
   },
   energyWave3: {
     position: 'absolute',
@@ -654,7 +655,7 @@ const styles = StyleSheet.create({
     height: 400,
     borderRadius: 200,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    borderColor: 'rgba(59, 130, 246, 0.2)',
   },
   
   // NEW: Lightning effects
@@ -668,8 +669,8 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: 'rgba(245, 158, 11, 0.8)',
-    shadowColor: '#F59E0B',
+    backgroundColor: 'rgba(30, 58, 138, 0.8)',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 30,
@@ -715,7 +716,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 125,
     borderWidth: 3,
-    borderColor: 'rgba(245, 158, 11, 0.7)',
+    borderColor: 'rgba(30, 58, 138, 0.7)',
   },
   pulseRing2: {
     position: 'absolute',
@@ -723,7 +724,7 @@ const styles = StyleSheet.create({
     height: '80%',
     borderRadius: 100,
     borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.5)',
+    borderColor: 'rgba(30, 64, 175, 0.5)',
   },
   
   // Enhanced sparkles
@@ -748,14 +749,14 @@ const styles = StyleSheet.create({
     color: '#F3F4F6',
     textAlign: 'center',
     fontStyle: 'italic',
-    textShadowColor: 'rgba(245, 158, 11, 0.8)',
+    textShadowColor: 'rgba(30, 58, 138, 0.8)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
   textUnderline: {
     width: 60,
     height: 2,
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#1e3a8a',
     marginTop: 8,
     borderRadius: 1,
   },
@@ -768,7 +769,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 25,

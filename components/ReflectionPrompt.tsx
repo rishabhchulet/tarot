@@ -180,12 +180,12 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       <View style={styles.messagesHeader}>
         <View style={styles.messageCard}>
           <Text style={styles.messageLabel}>Tarot</Text>
-          <Text style={styles.messageName}>{card.name}</Text>
+          <Text style={[styles.messageName, { color: '#F9FAFB' }]}>{card.name}</Text>
         </View>
         
         <View style={styles.messageCard}>
           <Text style={styles.messageLabel}>I Ching</Text>
-          <Text style={styles.messageName}>{hexagram.name}</Text>
+          <Text style={[styles.messageName, { color: '#F9FAFB' }]}>{hexagram.name}</Text>
         </View>
       </View>
 
@@ -258,15 +258,12 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         onPress={handleSave}
         disabled={saving}
       >
-        <LinearGradient
-          colors={saving ? ['#6B7280', '#4B5563'] : ['#10B981', '#059669']}
-          style={styles.saveButtonGradient}
-        >
-          <Save size={16} color="#FFFFFF" />
+        <View style={[styles.saveButtonSolid, saving && styles.saveButtonSolidDisabled]}>
+          <Save size={16} color="#F9FAFB" />
           <Text style={styles.saveButtonText}>
             {saving ? 'Saving...' : 'Save Reflection'}
           </Text>
-        </LinearGradient>
+        </View>
       </Pressable>
     </ScrollView>
   );
@@ -292,23 +289,22 @@ const styles = StyleSheet.create({
   },
   messageCard: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)', 
     borderRadius: 8,
     padding: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   messageLabel: {
     fontSize: 10,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#6B7280',
     marginBottom: 2,
   },
   messageName: {
     fontSize: 12,
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F3F4F6',
     textAlign: 'center',
   },
   
@@ -320,12 +316,12 @@ const styles = StyleSheet.create({
   recordButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
     borderRadius: 8,
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#F59E0B',
+    borderColor: '#1e3a8a',
     gap: 6,
   },
   recordButtonDisabled: {
@@ -335,7 +331,7 @@ const styles = StyleSheet.create({
   recordButtonText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
   },
   recordButtonTextDisabled: {
     color: '#6B7280',
@@ -422,7 +418,8 @@ const styles = StyleSheet.create({
   saveButtonDisabled: {
     opacity: 0.6,
   },
-  saveButtonGradient: {
+  saveButtonSolid: {
+    backgroundColor: '#374151',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -430,9 +427,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     gap: 6,
   },
+  saveButtonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   saveButtonText: {
     fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
+    marginLeft: 6,
   },
 });

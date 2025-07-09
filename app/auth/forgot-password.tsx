@@ -35,36 +35,35 @@ export default function ForgotPasswordScreen() {
 
   if (emailSent) {
     return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      >
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={styles.successContainer}>
           <View style={styles.iconContainer}>
-            <Mail size={64} color="#10B981" />
+            <Mail size={64} color="#1e3a8a" />
           </View>
           <Text style={styles.successTitle}>Check Your Email</Text>
           <Text style={styles.successMessage}>
             We've sent a password reset link to {email}. Please check your email and follow the instructions to reset your password.
           </Text>
           <Pressable style={styles.backToSignInButton} onPress={() => router.push('/auth/signin')}>
-            <LinearGradient
-              colors={['#F59E0B', '#D97706']}
-              style={styles.buttonGradient}
-            >
+            <View style={styles.buttonSolid}>
               <Text style={styles.buttonText}>Back to Sign In</Text>
-            </LinearGradient>
+            </View>
           </Pressable>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
@@ -94,14 +93,11 @@ export default function ForgotPasswordScreen() {
             onPress={handleResetPassword}
             disabled={loading}
           >
-            <LinearGradient
-              colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
-              style={styles.buttonGradient}
-            >
+            <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
               <Text style={styles.resetButtonText}>
                 {loading ? 'Sending...' : 'Send Reset Link'}
               </Text>
-            </LinearGradient>
+            </View>
           </Pressable>
 
           <Pressable style={styles.backToSignInLink} onPress={() => router.push('/auth/signin')}>
@@ -111,7 +107,7 @@ export default function ForgotPasswordScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -137,13 +133,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
     textAlign: 'center',
     maxWidth: 280,
   },
@@ -157,29 +153,34 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   resetButton: {
     borderRadius: 25,
     overflow: 'hidden',
     marginBottom: 24,
+    backgroundColor: '#374151',
   },
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
   resetButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
   backToSignInLink: {
     alignItems: 'center',
@@ -196,10 +197,10 @@ const styles = StyleSheet.create({
   backToSignInText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   linkHighlight: {
-    color: '#F59E0B',
+    color: '#1e3a8a',
     fontFamily: 'Inter-SemiBold',
   },
   successContainer: {
@@ -214,14 +215,14 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 16,
     textAlign: 'center',
   },
   successMessage: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
+    color: '#9CA3AF',
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 40,
@@ -234,6 +235,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

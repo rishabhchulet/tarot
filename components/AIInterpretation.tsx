@@ -123,8 +123,8 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Sparkles size={16} color="#F59E0B" />
-        <Text style={styles.title}>Inner Insight</Text>
+        <Sparkles size={16} color="#1e3a8a" />
+        <Text style={[styles.title, { color: '#1e3a8a' }]}>Inner Insight</Text>
       </View>
       <Text style={styles.interpretation}>
         {interpretation || createFallbackInsight()}
@@ -138,12 +138,12 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
   },
   header: {
     flexDirection: 'row',
@@ -154,7 +154,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 15,
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F59E0B',
   },
   loadingContainer: {
     flexDirection: 'row',
@@ -171,13 +170,13 @@ const styles = StyleSheet.create({
   interpretation: {
     fontSize: 13,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     lineHeight: 18,
   },
   fallbackNote: {
     fontSize: 11,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#6B7280',
     textAlign: 'center',
     marginTop: 8,
     fontStyle: 'italic',

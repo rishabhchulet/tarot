@@ -95,8 +95,8 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <MessageCircle size={20} color="#3B82F6" />
-        <Text style={styles.title}>AI Reflection Prompts</Text>
+        <MessageCircle size={20} color="#1e3a8a" />
+        <Text style={[styles.title, { color: '#1e3a8a' }]}>AI Reflection Prompts</Text>
         <Pressable
           style={[styles.regenerateButton, regenerating && styles.regenerateButtonDisabled]}
           onPress={handleRegenerate}
@@ -124,7 +124,7 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
             onPress={() => onPromptSelect(prompt)}
           >
             <View style={styles.promptContent}>
-              <Lightbulb size={16} color="#3B82F6" />
+              <Lightbulb size={16} color="#1e3a8a" />
               <Text style={styles.promptText}>{prompt}</Text>
             </View>
           </Pressable>
@@ -140,12 +140,12 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 16,
     padding: 20,
     marginVertical: 16,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
   },
   header: {
     flexDirection: 'row',
@@ -156,13 +156,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#3B82F6',
     flex: 1,
   },
   regenerateButton: {
     padding: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
   },
   regenerateButtonDisabled: {
     opacity: 0.5,
@@ -173,7 +172,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
+    color: '#9CA3AF',
     marginBottom: 16,
   },
   loadingContainer: {
@@ -199,11 +198,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   promptButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.2)',
   },
   promptContent: {
     flexDirection: 'row',
@@ -213,14 +212,14 @@ const styles = StyleSheet.create({
   promptText: {
     fontSize: 15,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     lineHeight: 22,
     flex: 1,
   },
   footerText: {
     fontSize: 12,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#6B7280',
     textAlign: 'center',
   },
 });

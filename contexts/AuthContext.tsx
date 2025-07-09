@@ -250,19 +250,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     console.log('[AuthContext signOut] State before sign out:', beforeState);
     await _doSignOut();
-    setTimeout(() => {
-      const afterState = {
-        hasUser: !!user,
-        hasSession: !!session,
-        isSigningOut: isSigningOutRef.current
-      };
-      console.log('[AuthContext signOut] State after sign out:', afterState);
-      if (!afterState.hasUser && !afterState.hasSession) {
-        console.log('[AuthContext signOut] Sign out PASSED - user and session cleared');
-      } else {
-        console.error('[AuthContext signOut] Sign out FAILED - state not cleared properly');
-      }
-    }, 1000);
   };
 
   const contextValue = {

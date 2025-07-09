@@ -8,7 +8,6 @@ import Animated, {
   useAnimatedStyle, 
   withTiming,
   withSequence,
-  withRepeat,
   Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
@@ -20,7 +19,6 @@ export default function AuthWelcomeScreen() {
   const iconRotation = useSharedValue(0);
   const iconScale = useSharedValue(0.8);
   const iconOpacity = useSharedValue(0.6);
-  const glowPulse = useSharedValue(0.3);
 
   useEffect(() => {
     console.log('🔍 Auth welcome screen loaded');
@@ -46,13 +44,6 @@ export default function AuthWelcomeScreen() {
     );
     
     iconOpacity.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.ease) });
-
-    // Subtle continuous glow pulse
-    glowPulse.value = withRepeat(
-      withTiming(0.6, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
   }, [user, session]);
 
   const animatedIconStyle = useAnimatedStyle(() => {
@@ -65,12 +56,6 @@ export default function AuthWelcomeScreen() {
     };
   });
 
-  const glowStyle = useAnimatedStyle(() => {
-    return {
-      opacity: glowPulse.value,
-    };
-  });
-
   return (
     <View style={styles.container}>
       {/* Almost black gradient with subtle dark blue edges */}
@@ -78,10 +63,6 @@ export default function AuthWelcomeScreen() {
         colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
         style={StyleSheet.absoluteFill}
       />
-
-      {/* Subtle side glows */}
-      <View style={styles.leftGlow} />
-      <View style={styles.rightGlow} />
 
       {/* CRITICAL: Add sign out verification indicator */}
       {!(user || session) && (
@@ -98,15 +79,10 @@ export default function AuthWelcomeScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Animated icon with enhanced glow effect */}
+        {/* Animated icon with swirl effect - subtle dark blue */}
         <View style={styles.iconSection}>
-          {/* Outer glow ring */}
-          <Animated.View style={[styles.outerGlow, glowStyle]} />
-          
           <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-            {/* Inner glow */}
-            <Animated.View style={[styles.innerGlow, glowStyle]} />
-            <Sparkles size={64} color="#3b82f6" strokeWidth={1.5} />
+            <Sparkles size={64} color="#1e3a8a" strokeWidth={1.5} />
           </Animated.View>
         </View>
         
@@ -143,39 +119,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingTop: 80,
     paddingBottom: 40,
-    position: 'relative',
-  },
-  
-  // Subtle side glows
-  leftGlow: {
-    position: 'absolute',
-    left: -50,
-    top: '20%',
-    width: 100,
-    height: '60%',
-    backgroundColor: '#1e3a8a',
-    opacity: 0.08,
-    borderRadius: 50,
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.3,
-    shadowRadius: 40,
-    elevation: 5,
-  },
-  rightGlow: {
-    position: 'absolute',
-    right: -50,
-    top: '30%',
-    width: 80,
-    height: '40%',
-    backgroundColor: '#1e40af',
-    opacity: 0.06,
-    borderRadius: 40,
-    shadowColor: '#1e40af',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
-    elevation: 3,
   },
   
   content: {
@@ -184,52 +127,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Enhanced icon section with multiple glow layers
+  // Animated icon section - very subtle dark blue
   iconSection: {
     marginBottom: 48,
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  
-  // Outer glow ring
-  outerGlow: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#1e3a8a',
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 10,
-  },
-  
   iconContainer: {
     width: 80,
     height: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(30, 58, 138, 0.12)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-    position: 'relative',
-    zIndex: 2,
-  },
-  
-  // Inner glow
-  innerGlow: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    shadowColor: '#3b82f6',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 15,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 8,
   },
   
@@ -284,7 +198,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   linkHighlight: {
-    color: '#3b82f6', // Slightly brighter blue for better visibility
+    color: '#1e3a8a', // Subtle dark blue accent
     fontFamily: 'Inter-Medium',
   },
   

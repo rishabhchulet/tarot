@@ -132,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 } : null);
                 console.log('✅ Background profile update successful');
               }
+            }
           } catch (bgError) {
             console.warn('⚠️ Background profile operation failed:', bgError);
           }

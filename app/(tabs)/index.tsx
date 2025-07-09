@@ -11,10 +11,20 @@ import Animated, {
   Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
+import { TarotCardFlow } from '@/components/TarotCardFlow';
 
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
   
+  // If authenticated, show TarotCardFlow instead of auth welcome
+  if (user && session) {
+    return (
+      <View style={{ flex: 1 }}>
+        <TarotCardFlow onComplete={() => console.log('Tarot flow complete')} />
+      </View>
+    );
+  }
+
   // Animation values
   const iconRotation = useSharedValue(0);
   const iconScale = useSharedValue(0.8);

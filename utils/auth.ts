@@ -369,7 +369,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     // CRITICAL FIX: Use longer timeout for profile fetch
     const profileResult = await createTimeoutWrapper(
       () => supabase
-        .from('profiles')
+        .from('users')
         .select('name, archetype')
         .eq('id', user.id)
         .single(),
@@ -421,9 +421,9 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
       updateData.archetype = updates.archetype;
     }
 
-    // Update the profiles table
+    // Update the users table
     const { error } = await supabase
-      .from('profiles')
+      .from('users')
       .update(updateData)
       .eq('id', user.id);
 

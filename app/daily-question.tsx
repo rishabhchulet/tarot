@@ -85,24 +85,26 @@ export default function DailyQuestionScreen() {
 
   if (loading) {
     return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      >
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={styles.loadingContainer}>
-          <BookOpen size={40} color="#F59E0B" />
+          <BookOpen size={40} color="#1e3a8a" />
           <Text style={styles.loadingText}>Loading your daily question...</Text>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 
   if (!todaysEntry) {
     return (
-      <LinearGradient
-        colors={['#1F2937', '#374151', '#6B46C1']}
-        style={styles.container}
-      >
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <ArrowLeft size={24} color="#F3F4F6" />
@@ -127,7 +129,7 @@ export default function DailyQuestionScreen() {
             </LinearGradient>
           </Pressable>
         </View>
-      </LinearGradient>
+      </View>
     );
   }
 

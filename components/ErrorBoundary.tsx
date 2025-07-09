@@ -88,10 +88,11 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <LinearGradient
-          colors={['#1F2937', '#374151', '#6B46C1']}
-          style={styles.container}
-        >
+        <View style={styles.container}>
+          <LinearGradient
+            colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+            style={StyleSheet.absoluteFill}
+          />
           <View style={styles.content}>
             <View style={styles.iconContainer}>
               <AlertTriangle size={64} color="#EF4444" />
@@ -138,7 +139,7 @@ export class ErrorBoundary extends Component<Props, State> {
               If this problem persists, please contact support at support@dailyinner.com
             </Text>
           </View>
-        </LinearGradient>
+        </View>
       );
     }
 

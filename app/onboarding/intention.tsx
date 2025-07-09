@@ -2,40 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
-import { Sparkles } from 'lucide-react-native';
+import { Heart } from 'lucide-react-native';
 
-export default function WelcomeScreen() {
-  // Animation values
-  const iconScale = useSharedValue(1);
-  const iconOpacity = useSharedValue(0.8);
-  
-  React.useEffect(() => {
-    // Start gentle pulse animation
-    iconScale.value = withRepeat(
-      withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-    
-    iconOpacity.value = withRepeat(
-      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-  }, []);
-  
-  // Create animated style
-  const animatedIconStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: iconScale.value }],
-      opacity: iconOpacity.value,
-    };
-  });
-
+export default function IntentionScreen() {
   const handleContinue = () => {
-    console.log('📱 Navigating to quiz screen...');
-    router.push('/onboarding/quiz');
+    router.push('/breathing');
   };
 
   return (
@@ -46,31 +17,25 @@ export default function WelcomeScreen() {
       />
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Animated.View style={animatedIconStyle}>
-            <Sparkles size={80} color="#1e3a8a" strokeWidth={1.5} />
-          </Animated.View>
+            <Heart size={80} color="#1e3a8a" strokeWidth={1.5} />
         </View>
         
-        <Text style={styles.title}>Hello there, and welcome.</Text>
+        <Text style={styles.title}>Everything in your life begins with intention.</Text>
         
         <Text style={styles.subtitle}>
-          It's no coincidence you are here. This tool is a mirror and a guide. And you find it when you are ready to tap into your inner wisdom and reconnect with your Self.
+          Pause for a moment and check with your heart. Then press the button and take a deep breath as you focus inwardly on your intention to connect to yourself—and what that means for you.
         </Text>
         
       </View>
       
       <Pressable style={styles.button} onPress={handleContinue}>
         <View style={styles.buttonSolid}>
-          <Text style={styles.buttonText}>Let’s Begin →</Text>
+          <Text style={styles.buttonText}>Set My Intention →</Text>
         </View>
       </Pressable>
     </View>
   );
 }
-
-const animatedIconStyle = {
-  transform: [{ scale: 1 }],
-};
 
 const styles = StyleSheet.create({
   container: {
@@ -113,14 +78,6 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     maxWidth: 320,
   },
-  description: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 300,
-  },
   button: {
     borderRadius: 25,
     overflow: 'hidden',
@@ -136,4 +93,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#F9FAFB',
   },
-});
+}); 

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Dimensions, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Info, FlaskConical, Eye, PenTool, Sparkles, Shuffle, User, Check } from 'lucide-react-native';
 import Animated from 'react-native-reanimated';
+import { updateUserProfile } from '@/utils/auth';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -56,22 +58,40 @@ const ARCHETYPE_EXPLANATION =
   'An archetype is a universal personality or pattern that shows how people tend to think, feel, or act across time and cultures.';
 
 export default function ArchetypeQuiz() {
+  const { refreshUser } = useAuth();
   const [selected, setSelected] = useState<string | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selected) return;
-    
+
     setLoading(true);
-    
-    // Save the selected archetype as focus area
     console.log('💾 Saving selected archetype:', selected);
-    
-    // For now, just navigate to tutorial - we can save the archetype later
-    setTimeout(() => {
-      router.replace('/onboarding/tutorial');
-    }, 500);
+
+    try {
+      const { error } = await updateUserProfile({ archetype: selected });
+
+      if (error) {
+        console.warn('⚠️ Archetype update had error:', error);
+        // Continue anyway, show friendly message
+        Alert.alert(
+          'Update Failed',
+          'We couldn\'t save your choice right now, but you can change it later in your profile.',
+          [{ text: 'Continue', onPress: () => router.push('/onboarding/about') }]
+        );
+      } else {
+        console.log('✅ Archetype saved successfully');
+        await refreshUser();
+        router.push('/onboarding/about');
+      }
+    } catch (error) {
+      console.warn('⚠️ Archetype update failed:', error);
+      // Continue anyway
+      router.push('/onboarding/about');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

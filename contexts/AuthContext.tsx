@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.log('👤 User data refreshed:', { 
           id: currentUser.id, 
           name: currentUser.name, 
-          focusArea: currentUser.focusArea 
+          archetype: currentUser.archetype 
         });
         setUser(currentUser);
         setError(null);
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: authUser.id,
           email: authUser.email || '',
           name: authUser.user_metadata?.name || 'User',
-          focusArea: undefined // Will be loaded later if possible
+          archetype: undefined // Will be loaded later if possible
         };
         
         console.log('✅ Using session fallback user data');
@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const profileResult = await createTimeoutWrapper(
               () => supabase
                 .from('users')
-                .select('focus_area, name')
+                .select('archetype, name')
                 .eq('id', authUser.id)
                 .single(),
               5000, // INCREASED: 5 second timeout
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setUser(prev => prev ? {
                 ...prev,
                 name: profileResult.data.name || prev.name,
-                focusArea: profileResult.data.focus_area || undefined
+                archetype: profileResult.data.archetype || undefined
               } : null);
               console.log('✅ Background profile update successful');
             }

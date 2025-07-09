@@ -1,0 +1,1 @@
+alter table "public"."profiles" rename column "focus_area" to "archetype"; 

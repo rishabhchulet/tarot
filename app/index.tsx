@@ -25,29 +25,28 @@ export default function IndexScreen() {
       if (!loading && connectionStatus !== 'connecting') {
         try {
           if (session && user) {
-            // User is authenticated and profile exists
-            const focusArea = user.focusArea;
-            // Check if user has completed onboarding by checking if they have a name (set during signup)
-            // Focus area is optional and set during quiz, but user might skip it
-            const hasCompletedOnboarding = user.name && user.name !== 'User';
+            // User is authenticated and profile exists.
+            // Onboarding is complete if they have set a name AND an archetype.
+            const hasCompletedOnboarding = user.name && user.name !== 'User' && user.archetype;
             
             console.log('🎯 Authenticated user routing:', { 
-              focusArea: focusArea,
               userName: user.name,
+              archetype: user.archetype,
               hasCompletedOnboarding: hasCompletedOnboarding
             });
             
             if (!hasCompletedOnboarding) {
-              console.log('📚 User needs onboarding - redirecting to quiz...');
-              router.replace('/onboarding/quiz');
+              console.log('📚 User needs onboarding - redirecting to welcome...');
+              router.replace('/onboarding/welcome');
             } else {
               console.log('✅ User has completed onboarding - going to main app...');
               router.replace('/(tabs)');
             }
           } else if (session && !user) {
-            // If we have session but no user, proceed to onboarding anyway
-            console.log('⚠️ Session exists but no user data - proceeding to onboarding...');
-            router.replace('/onboarding/quiz');
+            // If we have a session but no user profile, something is wrong.
+            // Forcing a re-auth is safest.
+            console.log('⚠️ Session exists but no user data - redirecting to auth...');
+            router.replace('/auth');
           } else {
             // No session means new user - go to auth
             console.log('🔐 No session found - redirecting to auth (new user)...');

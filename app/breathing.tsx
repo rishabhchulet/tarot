@@ -16,7 +16,7 @@ import Animated, {
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function BreathingScreen() {
-  const [phase, setPhase] = useState<'prepare' | 'breathing'>('prepare');
+  const [phase, setPhase] = useState<'prepare' | 'breathing' | 'done'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
   
   // Animation values
@@ -103,10 +103,10 @@ export default function BreathingScreen() {
       
       if (currentBreath >= 3) {
         clearInterval(interval);
-        // Wait for last cycle to complete, then navigate to home screen
+        // Wait for last cycle to complete, then show button
         setTimeout(() => {
-          console.log('🎉 Breathing complete, navigating to home screen...');
-          router.replace('/(tabs)');
+          console.log('🎉 Breathing complete, showing ready button...');
+          setPhase('done');
         }, 8000);
       }
     }, 8000); // 8 seconds per complete cycle
@@ -118,6 +118,11 @@ export default function BreathingScreen() {
     console.log('🫁 Starting breathing exercise...');
     setPhase('breathing');
     setBreathCount(0);
+  };
+
+  const handleReady = () => {
+    console.log('➡️ User is ready, navigating to astrology setup...');
+    router.push('/onboarding/astrology');
   };
 
   // Animated styles
@@ -156,12 +161,9 @@ export default function BreathingScreen() {
               </Animated.View>
             </View>
 
-            <Text style={styles.title}>Take a Deep Breath</Text>
+            <Text style={styles.title}>Connect inward before we begin</Text>
             <Text style={styles.subtitle}>
-              Let's center yourself before you receive your first inner message.
-            </Text>
-            <Text style={styles.description}>
-              Find a comfortable position and prepare to breathe deeply with intention.
+              Place your finger gently on the screen and take three slow breaths. As you do, imagine tuning into your heart and allowing your inner clarity to rise.
             </Text>
 
             <Pressable style={styles.button} onPress={handleStartBreathing}>
@@ -199,6 +201,23 @@ export default function BreathingScreen() {
           </>
         );
       
+      case 'done':
+        return (
+          <>
+            <View style={styles.iconContainer}>
+              <Animated.View style={heartStyle}>
+                <Heart size={60} color="#1e3a8a" fill="#1e3a8a" strokeWidth={1.5} />
+              </Animated.View>
+            </View>
+            <Text style={styles.title}>Centered</Text>
+            <Pressable style={styles.button} onPress={handleReady}>
+              <View style={styles.buttonSolid}>
+                <Text style={styles.buttonText}>I'm Ready →</Text>
+              </View>
+            </Pressable>
+          </>
+        );
+
       default:
         return null;
     }

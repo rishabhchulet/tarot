@@ -58,7 +58,7 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
-  focusArea?: string;
+  archetype?: string;
 }
 
 // CRITICAL: Add test function for auth state
@@ -356,144 +356,94 @@ export const supabaseSignOut = async () => {
 
 export const getCurrentUser = async (): Promise<AuthUser | null> => {
   try {
-    logAuthEvent('Getting current user');
-    
-    // CRITICAL FIX: Use much longer timeout with enhanced fallback
-    const authResult = await createTimeoutWrapper(
-      () => supabase.auth.getUser(),
-      8000 // INCREASED: 8 second timeout
-    );
-    
-    const { data: { user } } = authResult;
-    
-    if (!user) {
-      logAuthEvent('No authenticated user found');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.user) {
+      logAuthEvent('No active session found', null, sessionError);
       return null;
     }
 
-    logAuthEvent('Found authenticated user', { userId: user.id, email: user.email });
+    const user = session.user;
+    logAuthEvent('Active session found for user', { userId: user.id });
 
-    // CRITICAL FIX: Try to get profile data with much longer timeout and retry logic
-    try {
-      // Try with retries
-      let profileResult = null;
-      let attempts = 0;
-      const maxAttempts = 2;
-      
-      while (attempts < maxAttempts && !profileResult?.data) {
-        attempts++;
-        logAuthEvent(`Profile fetch attempt ${attempts}/${maxAttempts}`);
-        
-        profileResult = await createTimeoutWrapper(
-          () => supabase
-            .from('users')
-            .select('*')
-            .eq('id', user.id)
-            .single(),
-          attempts === 1 ? 8000 : 5000, // Longer timeout on first attempt
-          null
-        );
-        
-        if (profileResult && profileResult.data && !profileResult.error) {
-          logAuthEvent('User profile found', { 
-            name: profileResult.data.name, 
-            focusArea: profileResult.data.focus_area 
-          });
-          return {
-            id: profileResult.data.id,
-            email: profileResult.data.email,
-            name: profileResult.data.name,
-            focusArea: profileResult.data.focus_area || undefined,
-          };
-        }
-        
-        if (attempts < maxAttempts) {
-          logAuthEvent(`Profile fetch attempt ${attempts} failed, retrying`, null, profileResult?.error);
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1s between attempts
-        }
-      }
-      
-      logAuthEvent('All profile fetch attempts failed');
-    } catch (profileError) {
-      logAuthEvent('Profile fetch exception', null, profileError);
+    // CRITICAL FIX: Use longer timeout for profile fetch
+    const profileResult = await createTimeoutWrapper(
+      () => supabase
+        .from('profiles')
+        .select('name, archetype')
+        .eq('id', user.id)
+        .single(),
+      10000, // INCREASED: 10 second timeout
+      { data: null, error: new Error('Profile fetch timeout') }
+    );
+    
+    if (profileResult.data) {
+      logAuthEvent('User profile found', { 
+        name: profileResult.data.name, 
+        archetype: profileResult.data.archetype 
+      });
+      return {
+        id: user.id,
+        email: user.email || '',
+        name: profileResult.data.name,
+        archetype: profileResult.data.archetype || undefined,
+      };
     }
 
-    // CRITICAL FIX: Always return basic auth info as fallback
-    logAuthEvent('Using basic auth info as fallback');
+    logAuthEvent('No profile found, returning basic user data from auth metadata');
     return {
       id: user.id,
       email: user.email || '',
       name: user.user_metadata?.name || 'User',
-      focusArea: undefined
+      archetype: user.user_metadata?.archetype || undefined
     };
+    
   } catch (error: any) {
-    logAuthEvent('Error getting current user', null, error);
+    logAuthEvent('Error in getCurrentUser', null, error);
     return null;
   }
 };
 
 export const updateUserProfile = async (updates: Partial<AuthUser>) => {
   try {
-    logAuthEvent('Starting user profile update', { updatesKeys: Object.keys(updates) });
-    
-    // CRITICAL FIX: Use much longer timeout for auth check
-    const authResult = await createTimeoutWrapper(
-      () => supabase.auth.getUser(),
-      8000 // INCREASED: 8 second timeout
-    );
-    
-    const { data: { user } } = authResult;
-    
+    logAuthEvent('Updating user profile', { updates });
+    const { data: { user } } = await supabase.auth.getUser();
+
     if (!user) {
-      throw new Error('No authenticated user found');
+      throw new Error('User not authenticated');
     }
 
-    logAuthEvent('Updating profile for user', { userId: user.id });
-
-    // Prepare the update data
-    const updateData: any = {
-      updated_at: new Date().toISOString(),
-    };
-
+    const updateData: { [key: string]: any } = {};
     if (updates.name !== undefined) {
       updateData.name = updates.name;
     }
-
-    if (updates.focusArea !== undefined) {
-      updateData.focus_area = updates.focusArea;
+    if (updates.archetype !== undefined) {
+      updateData.archetype = updates.archetype;
     }
 
-    logAuthEvent('Update data prepared', { updateFields: Object.keys(updateData) });
-
-    // CRITICAL FIX: Use much longer timeout for database update with retry
-    const updateResult = await createTimeoutWrapper(
-      () => supabase
-        .from('users')
-        .upsert({
-          id: user.id,
-          email: user.email,
-          ...updateData,
-        }, {
-          onConflict: 'id'
-        })
-        .select()
-        .single(),
-      12000, // INCREASED: 12 second timeout
-      { data: null, error: null } // Fallback to success if timeout
-    );
-
-    const { data, error } = updateResult;
+    // Update the profiles table
+    const { error } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', user.id);
 
     if (error) {
-      throw error;
+      throw new Error(getEnhancedErrorMessage(error, 'updateUserProfile'));
+    }
+    
+    // Also update the user's metadata in auth
+    const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
+      data: { ...updates },
+    });
+
+    if (metadataError) {
+      // Don't throw, just log, as the primary update succeeded
+      logAuthEvent('Metadata update failed during profile update', null, metadataError);
     }
 
-    logAuthEvent('User profile updated successfully', { hasData: !!data });
-    return { error: null, data };
-
+    return { error: null };
   } catch (error: any) {
-    const enhancedError = getEnhancedErrorMessage(error, 'updateUserProfile');
-    return { error: enhancedError };
+    return { error: getEnhancedErrorMessage(error, 'updateUserProfile') };
   }
 };
 

@@ -25,10 +25,11 @@ export default function IntroScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.content}>
         <Text style={styles.title}>Rad.</Text>
         
@@ -51,16 +52,13 @@ export default function IntroScreen() {
         onPress={handleContinue}
         disabled={loading}
       >
-        <LinearGradient
-          colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
-          style={styles.buttonGradient}
-        >
+        <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
           <Text style={styles.buttonText}>
             {loading ? 'Setting up...' : 'Let\'s go'}
           </Text>
-        </LinearGradient>
+        </View>
       </Pressable>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -79,7 +77,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 48,
     fontFamily: 'Inter-ExtraBold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 40,
   },
@@ -107,14 +105,18 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

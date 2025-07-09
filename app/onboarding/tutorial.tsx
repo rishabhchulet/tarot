@@ -65,10 +65,11 @@ export default function TutorialScreen() {
   const IconComponent = currentTutorial.icon;
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.content}>
         <View style={styles.progressContainer}>
           {TUTORIAL_STEPS.map((_, index) => (
@@ -83,7 +84,7 @@ export default function TutorialScreen() {
         </View>
 
         <View style={styles.iconContainer}>
-          <IconComponent size={80} color="#F59E0B" strokeWidth={1.5} />
+          <IconComponent size={80} color="#1e3a8a" strokeWidth={1.5} />
         </View>
 
         <Text style={styles.title}>{currentTutorial.title}</Text>
@@ -96,14 +97,11 @@ export default function TutorialScreen() {
           onPress={handleNext}
           disabled={loading}
         >
-          <LinearGradient
-            colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
-            style={styles.buttonGradient}
-          >
+          <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
             <Text style={styles.buttonText}>
               {loading ? 'Setting up...' : currentStep === TUTORIAL_STEPS.length - 1 ? 'Start My Journey' : 'Next'}
             </Text>
-          </LinearGradient>
+          </View>
         </Pressable>
         
         {currentStep < TUTORIAL_STEPS.length - 1 && !loading && (
@@ -112,7 +110,7 @@ export default function TutorialScreen() {
           </Pressable>
         )}
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -137,18 +135,23 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(30, 58, 138, 0.3)',
   },
   progressDotActive: {
-    backgroundColor: '#F59E0B',
+    backgroundColor: '#1e3a8a',
   },
   iconContainer: {
     marginBottom: 40,
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 20,
   },
   title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 36,
@@ -173,15 +176,19 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
   skipButton: {
     paddingVertical: 12,
@@ -190,6 +197,6 @@ const styles = StyleSheet.create({
   skipButtonText: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
 });

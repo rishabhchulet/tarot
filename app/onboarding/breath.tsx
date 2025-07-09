@@ -11,13 +11,14 @@ export default function BreathScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Heart size={60} color="#F59E0B" fill="#F59E0B" />
+          <Heart size={60} color="#1e3a8a" fill="#1e3a8a" />
         </View>
         
         <Text style={styles.title}>Take a Deep Breath</Text>
@@ -32,14 +33,11 @@ export default function BreathScreen() {
       </View>
       
       <Pressable style={styles.button} onPress={handleContinue}>
-        <LinearGradient
-          colors={['#3B82F6', '#1D4ED8']}
-          style={styles.buttonGradient}
-        >
+        <View style={styles.buttonSolid}>
           <Text style={styles.buttonText}>Begin Breathing Exercise</Text>
-        </LinearGradient>
+        </View>
       </Pressable>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -57,11 +55,16 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 40,
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 20,
   },
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -86,7 +89,8 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     overflow: 'hidden',
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
@@ -94,6 +98,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

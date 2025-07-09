@@ -46,19 +46,20 @@ export default function NameScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#F3F4F6" />
+          <ArrowLeft size={24} color="#F9FAFB" />
         </Pressable>
       </View>
 
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <User size={60} color="#F59E0B" strokeWidth={1.5} />
+          <User size={60} color="#1e3a8a" strokeWidth={1.5} />
         </View>
         
         <Text style={styles.title}>What should we call you?</Text>
@@ -72,7 +73,7 @@ export default function NameScreen() {
             value={name}
             onChangeText={setName}
             placeholder="Enter your name"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor="#6B7280"
             autoCapitalize="words"
             autoCorrect={false}
             autoFocus={true}
@@ -85,16 +86,13 @@ export default function NameScreen() {
         onPress={handleContinue}
         disabled={!name.trim() || loading}
       >
-        <LinearGradient
-          colors={name.trim() && !loading ? ['#F59E0B', '#D97706'] : ['#6B7280', '#4B5563']}
-          style={styles.buttonGradient}
-        >
+        <View style={[styles.buttonSolid, (!name.trim() || loading) && styles.buttonSolidDisabled]}>
           <Text style={styles.buttonText}>
             {loading ? 'Saving...' : 'Continue'}
           </Text>
-        </LinearGradient>
+        </View>
       </Pressable>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -120,11 +118,16 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 32,
+    shadowColor: '#1e3a8a',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 20,
+    elevation: 20,
   },
   title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -142,15 +145,15 @@ const styles = StyleSheet.create({
     maxWidth: 300,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 16,
     fontSize: 18,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
     textAlign: 'center',
   },
   button: {
@@ -160,14 +163,18 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   buttonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
 });

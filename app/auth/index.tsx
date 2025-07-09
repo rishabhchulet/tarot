@@ -58,9 +58,9 @@ export default function AuthWelcomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Enhanced dark gradient with blue hints */}
+      {/* Pure dark blue gradient background */}
       <LinearGradient
-        colors={['#0a0a0f', '#1a1a2e', '#16213e', '#2a2a3a']}
+        colors={['#0a0a0f', '#1a1a2e', '#1e3a8a', '#1e40af']}
         style={StyleSheet.absoluteFill}
       />
 
@@ -79,10 +79,10 @@ export default function AuthWelcomeScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Animated icon with swirl effect */}
+        {/* Animated icon with swirl effect - pure blue theme */}
         <View style={styles.iconSection}>
           <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-            <Sparkles size={64} color="#7C3AED" strokeWidth={1.5} />
+            <Sparkles size={64} color="#3B82F6" strokeWidth={1.5} />
           </Animated.View>
         </View>
         
@@ -95,7 +95,7 @@ export default function AuthWelcomeScreen() {
         </Text>
       </View>
       
-      {/* Enhanced dark themed buttons with blue accents */}
+      {/* Pure dark blue themed buttons */}
       <View style={styles.buttonSection}>
         <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/signup')}>
           <LinearGradient
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   
-  // Animated icon section
+  // Animated icon section - pure blue theme
   iconSection: {
     marginBottom: 48,
   },
@@ -141,11 +141,11 @@ const styles = StyleSheet.create({
     height: 80,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(124, 58, 237, 0.2)',
-    shadowColor: '#7C3AED',
+    borderColor: 'rgba(59, 130, 246, 0.2)',
+    shadowColor: '#3B82F6',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
     maxWidth: 280,
   },
   
-  // Enhanced button section
+  // Enhanced button section with pure blue accents
   buttonSection: {
     gap: 16,
   },
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   linkHighlight: {
-    color: '#8B5CF6',
+    color: '#3B82F6', // Changed from purple to blue
     fontFamily: 'Inter-Medium',
   },
   

@@ -8,6 +8,7 @@ import Animated, {
   useAnimatedStyle, 
   withTiming,
   withSequence,
+  withRepeat,
   Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +16,6 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
   
-  // Add guard to redirect authenticated users
   React.useEffect(() => {
     if (user && session) {
       router.replace('/(tabs)');
@@ -24,34 +24,33 @@ export default function AuthWelcomeScreen() {
 
   // Animation values
   const iconRotation = useSharedValue(0);
-  const iconScale = useSharedValue(0.8);
-  const iconOpacity = useSharedValue(0.6);
+  const iconScale = useSharedValue(1);
+  const glowScale = useSharedValue(1);
 
   useEffect(() => {
-    console.log('🔍 Auth welcome screen loaded');
-    console.log('👤 User state:', { hasUser: !!user, hasSession: !!session });
-    
-    if (user || session) {
-      console.log('⚠️ WARNING: User still has session on auth screen!');
-      console.log('User ID:', user?.id);
-      console.log('Session exists:', !!session);
-    } else {
-      console.log('✅ Auth screen: User properly signed out');
-    }
+    // Pulsating glow animation
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
 
-    // Quick swirl animation that settles down
-    iconRotation.value = withSequence(
-      withTiming(360, { duration: 800, easing: Easing.out(Easing.cubic) }),
-      withTiming(0, { duration: 400, easing: Easing.inOut(Easing.ease) })
+    // Gentle icon rotation
+    iconRotation.value = withRepeat(
+      withTiming(360, { duration: 20000, easing: Easing.linear }),
+      -1,
+      false
     );
-    
-    iconScale.value = withSequence(
-      withTiming(1.1, { duration: 600, easing: Easing.out(Easing.back(1.2)) }),
-      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.ease) })
-    );
-    
-    iconOpacity.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.ease) });
   }, [user, session]);
+
+  const animatedGlowStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: glowScale.value }],
+    };
+  });
 
   const animatedIconStyle = useAnimatedStyle(() => {
     return {
@@ -59,19 +58,19 @@ export default function AuthWelcomeScreen() {
         { rotate: `${iconRotation.value}deg` },
         { scale: iconScale.value }
       ],
-      opacity: iconOpacity.value,
     };
   });
 
   return (
     <View style={styles.container}>
-      {/* Almost black gradient with subtle dark blue edges */}
       <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a']}
         style={StyleSheet.absoluteFill}
       />
+      
+      {/* Background Glow */}
+      <Animated.View style={[styles.glow, animatedGlowStyle]} />
 
-      {/* CRITICAL: Add sign out verification indicator */}
       {!(user || session) && (
         <View style={styles.signOutSuccess}>
           <CheckCircle size={16} color="#10B981" />
@@ -86,28 +85,34 @@ export default function AuthWelcomeScreen() {
       )}
 
       <View style={styles.content}>
-        {/* Animated icon with swirl effect - subtle dark blue */}
         <View style={styles.iconSection}>
           <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-            <Sparkles size={64} color="#1e3a8a" strokeWidth={1.5} />
+            <LinearGradient
+              colors={['#1e40af', '#3b82f6']}
+              style={styles.iconGradient}
+            >
+              <Sparkles size={64} color="#FFFFFF" strokeWidth={1.5} />
+            </LinearGradient>
           </Animated.View>
         </View>
         
-        {/* Clean title */}
         <Text style={styles.title}>Daily Inner{'\n'}Reflection</Text>
         
-        {/* Simple subtitle */}
         <Text style={styles.subtitle}>
           Connect with your inner wisdom through daily reflection.
         </Text>
       </View>
       
-      {/* Single shade dark button */}
       <View style={styles.buttonSection}>
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/auth/signup')}>
-          <View style={styles.primaryButtonSolid}>
+        <Pressable onPress={() => router.push('/auth/signup')}>
+          <LinearGradient
+            colors={['#3b82f6', '#8b5cf6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryButton}
+          >
             <Text style={styles.primaryButtonText}>Get Started</Text>
-          </View>
+          </LinearGradient>
         </Pressable>
         
         <Pressable style={styles.secondaryButton} onPress={() => router.push('/auth/signin')}>
@@ -126,74 +131,82 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingTop: 80,
     paddingBottom: 40,
+    backgroundColor: '#0a0a0a',
+    overflow: 'hidden',
   },
-  
+  glow: {
+    position: 'absolute',
+    top: '10%',
+    left: '50%',
+    width: 400,
+    height: 400,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    borderRadius: 200,
+    transform: [{ translateX: -200 }],
+    filter: 'blur(80px)', // For web might need polyfill for native
+  },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  
-  // Animated icon section - very subtle dark blue
   iconSection: {
     marginBottom: 48,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
+    width: 120,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    borderRadius: 30,
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  
-  // Clean title
+  iconGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
-    fontSize: 32,
+    fontSize: 36,
     fontFamily: 'Inter-Bold',
     color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 16,
-    lineHeight: 40,
+    lineHeight: 44,
   },
-  
-  // Simple subtitle
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 26,
     maxWidth: 280,
   },
-  
-  // Single shade dark button section
   buttonSection: {
     gap: 16,
   },
   primaryButton: {
     borderRadius: 12,
-    overflow: 'hidden',
-  },
-  primaryButtonSolid: {
-    backgroundColor: '#374151', // Single dark shade
-    paddingVertical: 16,
+    paddingVertical: 18,
     paddingHorizontal: 32,
     alignItems: 'center',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
   primaryButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#F9FAFB',
   },
-  
   secondaryButton: {
     paddingVertical: 16,
     paddingHorizontal: 32,
@@ -202,14 +215,12 @@ const styles = StyleSheet.create({
   secondaryButtonText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#6B7280',
+    color: '#9CA3AF',
   },
   linkHighlight: {
-    color: '#1e3a8a', // Subtle dark blue accent
+    color: '#60a5fa',
     fontFamily: 'Inter-Medium',
   },
-  
-  // Sign out verification styles
   signOutSuccess: {
     position: 'absolute',
     top: 60,

@@ -27,10 +27,13 @@ export default function IndexScreen() {
           if (session && user) {
             // User is authenticated and profile exists
             const focusArea = user.focusArea;
-            const hasCompletedOnboarding = focusArea && typeof focusArea === 'string' && focusArea.trim().length > 0;
+            // Check if user has completed onboarding by checking if they have a name (set during signup)
+            // Focus area is optional and set during quiz, but user might skip it
+            const hasCompletedOnboarding = user.name && user.name !== 'User';
             
             console.log('🎯 Authenticated user routing:', { 
               focusArea: focusArea,
+              userName: user.name,
               hasCompletedOnboarding: hasCompletedOnboarding
             });
             

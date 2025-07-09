@@ -48,7 +48,9 @@ export default function HomeScreen() {
       }
 
       // Check if user has completed onboarding
-      if (!user.focusArea) {
+      // Allow users to access the app even without focus area
+      // Focus area is optional and can be set later
+      if (!user.name || user.name === 'User') {
         console.log('📚 User needs onboarding - redirecting to quiz');
         router.replace('/onboarding/quiz');
         return;

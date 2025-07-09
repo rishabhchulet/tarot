@@ -62,9 +62,15 @@ export default function ArchetypeQuiz() {
 
   const handleContinue = () => {
     if (!selected) return;
+    
     setLoading(true);
+    
+    // Save the selected archetype as focus area
+    console.log('💾 Saving selected archetype:', selected);
+    
+    // For now, just navigate to tutorial - we can save the archetype later
     setTimeout(() => {
-      router.replace('/onboarding/intro');
+      router.replace('/onboarding/tutorial');
     }, 500);
   };
 

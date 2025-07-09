@@ -219,3 +219,5 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
                 source={{ uri: selectedCard.imageUrl }}
                 style={styles.cardFrontImage}
                 resizeMode="cover"
+  )
+}

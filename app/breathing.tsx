@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Heart, Sparkles, Star } from 'lucide-react-native';
+import { Heart, Sparkles } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -19,15 +19,19 @@ export default function BreathingScreen() {
   const [phase, setPhase] = useState<'prepare' | 'breathing' | 'done'>('prepare');
   const [breathCount, setBreathCount] = useState(0);
   
-  // Animation values
   const circleScale = useSharedValue(0.8);
   const circleOpacity = useSharedValue(0.6);
   const heartPulse = useSharedValue(1);
   const sparkleRotation = useSharedValue(0);
-  const backgroundShimmer = useSharedValue(0);
+  const glowScale = useSharedValue(1);
 
   useEffect(() => {
-    // Start ambient animations immediately
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.5, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) })
+      ), -1, true
+    );
     startAmbientAnimations();
   }, []);
 
@@ -38,110 +42,46 @@ export default function BreathingScreen() {
   }, [phase]);
 
   const startAmbientAnimations = () => {
-    // Heart pulse animation
-    heartPulse.value = withRepeat(
-      withTiming(1.2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
-
-    // Sparkle rotation
-    sparkleRotation.value = withRepeat(
-      withTiming(360, { duration: 8000, easing: Easing.linear }),
-      -1,
-      false
-    );
-
-    // Background shimmer
-    backgroundShimmer.value = withRepeat(
-      withTiming(1, { duration: 6000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true
-    );
+    heartPulse.value = withRepeat(withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }), -1, true);
+    sparkleRotation.value = withRepeat(withTiming(360, { duration: 8000, easing: Easing.linear }), -1, false);
   };
 
   const startBreathingCycle = () => {
     let currentBreath = 0;
     
     const breathingCycle = () => {
-      // Inhale (4 seconds)
-      circleScale.value = withTiming(1.4, { 
-        duration: 4000, 
-        easing: Easing.inOut(Easing.ease) 
-      });
-      circleOpacity.value = withTiming(0.9, { 
-        duration: 4000, 
-        easing: Easing.inOut(Easing.ease) 
-      });
-
-      // Hold briefly then exhale (4 seconds)
+      circleScale.value = withTiming(1.4, { duration: 4000, easing: Easing.inOut(Easing.ease) });
+      circleOpacity.value = withTiming(0.9, { duration: 4000, easing: Easing.inOut(Easing.ease) });
       setTimeout(() => {
-        circleScale.value = withTiming(0.8, { 
-          duration: 4000, 
-          easing: Easing.inOut(Easing.ease) 
-        });
-        circleOpacity.value = withTiming(0.4, { 
-          duration: 4000, 
-          easing: Easing.inOut(Easing.ease) 
-        });
+        circleScale.value = withTiming(0.8, { duration: 4000, easing: Easing.inOut(Easing.ease) });
+        circleOpacity.value = withTiming(0.4, { duration: 4000, easing: Easing.inOut(Easing.ease) });
       }, 4000);
     };
 
-    // Start first cycle
     breathingCycle();
     currentBreath = 1;
     setBreathCount(1);
 
-    // Continue cycles
     const interval = setInterval(() => {
       currentBreath++;
       setBreathCount(currentBreath);
-      
-      if (currentBreath <= 3) {
-        breathingCycle();
-      }
-      
+      if (currentBreath <= 3) breathingCycle();
       if (currentBreath >= 3) {
         clearInterval(interval);
-        // Wait for last cycle to complete, then show button
-        setTimeout(() => {
-          console.log('🎉 Breathing complete, showing ready button...');
-          setPhase('done');
-        }, 8000);
+        setTimeout(() => setPhase('done'), 8000);
       }
-    }, 8000); // 8 seconds per complete cycle
+    }, 8000);
 
     return () => clearInterval(interval);
   };
 
-  const handleStartBreathing = () => {
-    console.log('🫁 Starting breathing exercise...');
-    setPhase('breathing');
-    setBreathCount(0);
-  };
+  const handleStartBreathing = () => setPhase('breathing');
+  const handleReady = () => router.push('/onboarding/astrology');
 
-  const handleReady = () => {
-    console.log('➡️ User is ready, navigating to astrology setup...');
-    router.push('/onboarding/astrology');
-  };
-
-  // Animated styles
-  const circleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: circleScale.value }],
-    opacity: circleOpacity.value,
-  }));
-
-  const heartStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: heartPulse.value }],
-  }));
-
-  const sparkleStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${sparkleRotation.value}deg` }],
-  }));
-
-  const backgroundStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(backgroundShimmer.value, [0, 1], [0.1, 0.3]),
-  }));
+  const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
+  const circleStyle = useAnimatedStyle(() => ({ transform: [{ scale: circleScale.value }], opacity: circleOpacity.value }));
+  const heartStyle = useAnimatedStyle(() => ({ transform: [{ scale: heartPulse.value }] }));
+  const sparkleStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${sparkleRotation.value}deg` }] }));
 
   const getBreathingText = () => {
     if (breathCount === 1) return 'Breathe in... and out...';
@@ -155,283 +95,125 @@ export default function BreathingScreen() {
       case 'prepare':
         return (
           <>
-            <View style={styles.iconContainer}>
-              <Animated.View style={heartStyle}>
-                <Heart size={60} color="#1e3a8a" fill="#1e3a8a" strokeWidth={1.5} />
-              </Animated.View>
-            </View>
+            <Animated.View style={[styles.iconContainer, heartStyle]}>
+              <LinearGradient colors={['#10b981', '#34d399']} style={styles.iconGradient}>
+                <Heart size={80} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} />
+              </LinearGradient>
+            </Animated.View>
 
             <Text style={styles.title}>Connect inward before we begin</Text>
             <Text style={styles.subtitle}>
-              Place your finger gently on the screen and take three slow breaths. As you do, imagine tuning into your heart and allowing your inner clarity to rise.
+              Take three slow, deep breaths. Allow your inner clarity to rise.
             </Text>
 
-            <Pressable style={styles.button} onPress={handleStartBreathing}>
-              <View style={styles.buttonSolid}>
-                <Text style={styles.buttonText}>Begin Breathing</Text>
-              </View>
+            <Pressable onPress={handleStartBreathing}>
+              <LinearGradient colors={['#10b981', '#34d399']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>Begin Breathing</Text>
+              </LinearGradient>
             </Pressable>
           </>
         );
-      
       case 'breathing':
         return (
           <>
             <View style={styles.breathingContainer}>
               <Animated.View style={[styles.breathingCircle, circleStyle]}>
                 <View style={styles.innerCircle}>
-                  <Animated.View style={sparkleStyle}>
-                    <Sparkles size={32} color="#FFFFFF" />
-                  </Animated.View>
+                  <Animated.View style={sparkleStyle}><Sparkles size={32} color="#FFFFFF" /></Animated.View>
                 </View>
               </Animated.View>
             </View>
-
-            <Text style={styles.breathingText}>
-              {getBreathingText()}
-            </Text>
-            
-            <Text style={styles.breathingCount}>
-              Breath {breathCount} of 3
-            </Text>
-
-            <Text style={styles.breathingInstruction}>
-              Follow the circle as it expands and contracts
-            </Text>
+            <Text style={styles.breathingText}>{getBreathingText()}</Text>
+            <Text style={styles.breathingCount}>Breath {breathCount} of 3</Text>
           </>
         );
-      
       case 'done':
         return (
           <>
-            <View style={styles.iconContainer}>
-              <Animated.View style={heartStyle}>
-                <Heart size={60} color="#1e3a8a" fill="#1e3a8a" strokeWidth={1.5} />
-              </Animated.View>
-            </View>
+            <Animated.View style={[styles.iconContainer, heartStyle]}>
+              <LinearGradient colors={['#10b981', '#34d399']} style={styles.iconGradient}>
+                <Heart size={80} color="#FFFFFF" fill="#FFFFFF" strokeWidth={1.5} />
+              </LinearGradient>
+            </Animated.View>
             <Text style={styles.title}>Centered</Text>
-            <Pressable style={styles.button} onPress={handleReady}>
-              <View style={styles.buttonSolid}>
-                <Text style={styles.buttonText}>I'm Ready →</Text>
-              </View>
+            <Pressable onPress={handleReady}>
+              <LinearGradient colors={['#10b981', '#34d399']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.primaryButton}>
+                <Text style={styles.primaryButtonText}>I'm Ready →</Text>
+              </LinearGradient>
             </Pressable>
           </>
         );
-
-      default:
-        return null;
+      default: return null;
     }
   };
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
-        style={StyleSheet.absoluteFill}
-      />
-      {/* Animated background effects */}
-      <Animated.View style={[styles.backgroundShimmer, backgroundStyle]} />
-      
-      {/* Floating particles */}
-      <View style={styles.particleContainer}>
-        {[...Array(12)].map((_, index) => (
-          <View
-            key={index}
-            style={[
-              styles.particle,
-              {
-                left: Math.random() * screenWidth,
-                top: Math.random() * screenHeight,
-              }
-            ]}
-          >
-            {index % 3 === 0 ? (
-              <Sparkles size={8} color="#1e3a8a" />
-            ) : index % 3 === 1 ? (
-              <Star size={6} color="#1e40af" />
-            ) : (
-              <View style={[styles.particleDot, { 
-                width: Math.random() * 4 + 2,
-                height: Math.random() * 4 + 2,
-                backgroundColor: index % 2 ? '#1e3a8a' : '#1e40af'
-              }]} />
-            )}
-          </View>
-        ))}
-      </View>
-
-      <View style={styles.content}>
-        {renderContent()}
-      </View>
+      <LinearGradient colors={['#0a0a0a', '#051111', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+      <Animated.View style={[styles.glow, animatedGlowStyle]} />
+      <View style={styles.content}>{renderContent()}</View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    position: 'relative',
+  container: { flex: 1, backgroundColor: '#0a0a0a', overflow: 'hidden' },
+  glow: {
+    position: 'absolute', top: '20%', left: '50%', width: 400, height: 400,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)', borderRadius: 200,
+    transform: [{ translateX: -200 }], filter: 'blur(90px)', 
   },
-  
-  // Background effects
-  backgroundShimmer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(30, 58, 138, 0.1)',
-  },
-  
-  particleContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: 'none',
-  },
-  
-  particle: {
-    position: 'absolute',
-    opacity: 0.6,
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-  },
-  particleDot: {
-    borderRadius: 4,
-  },
-  
   content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
+    flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32,
   },
-  
   iconContainer: {
-    marginBottom: 32,
-    width: 80,
-    height: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
+    width: 120, height: 120, alignItems: 'center', justifyContent: 'center',
+    borderRadius: 30, shadowColor: '#10b981', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5, shadowRadius: 20, elevation: 10, marginBottom: 48,
   },
-  
+  iconGradient: {
+    width: '100%', height: '100%', borderRadius: 30,
+    alignItems: 'center', justifyContent: 'center',
+  },
   title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
-    textAlign: 'center',
-    marginBottom: 20,
+    fontSize: 32, fontFamily: 'Inter-Bold', color: '#F9FAFB',
+    textAlign: 'center', marginBottom: 24, lineHeight: 40,
   },
-  
   subtitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Medium',
-    color: '#D1D5DB', 
-    textAlign: 'center',
-    marginBottom: 16,
-    lineHeight: 26,
+    fontSize: 18, fontFamily: 'Inter-Regular', color: '#D1D5DB',
+    textAlign: 'center', lineHeight: 26, maxWidth: 320, marginBottom: 48,
   },
-  
-  description: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginBottom: 40,
-    lineHeight: 24,
-    maxWidth: 300,
+  primaryButton: {
+    borderRadius: 12, paddingVertical: 18, paddingHorizontal: 32,
+    alignItems: 'center', shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4,
+    shadowRadius: 10, elevation: 8,
   },
-  
-  // Breathing animation
+  primaryButtonText: {
+    fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#F9FAFB',
+  },
   breathingContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 40, 
+    width: screenWidth * 0.8, height: screenWidth * 0.8,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 48,
   },
-  
   breathingCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(30, 58, 138, 0.3)',
-    borderWidth: 3,
-    borderColor: '#1e3a8a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 20,
-    elevation: 20,
+    width: '100%', height: '100%',
+    borderRadius: (screenWidth * 0.8) / 2,
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  
   innerCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: 'rgba(30, 58, 138, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    width: '50%', height: '50%',
+    borderRadius: (screenWidth * 0.4) / 2,
+    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  
   breathingText: {
-    fontSize: 24,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F9FAFB',
-    textAlign: 'center',
-    marginBottom: 16,
+    fontSize: 24, fontFamily: 'Inter-SemiBold', color: '#F9FAFB',
+    textAlign: 'center', marginBottom: 16,
   },
-  
   breathingCount: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#9CA3AF', 
+    fontSize: 16, fontFamily: 'Inter-Medium', color: '#A1A1AA',
     textAlign: 'center',
-    marginBottom: 12,
-  },
-  
-  breathingInstruction: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  
-  // Buttons
-  button: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  
-  buttonSolid: {
-    backgroundColor: '#374151',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  
-  buttonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F9FAFB',
   },
 });

@@ -1,35 +1,42 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
 import { Sparkles } from 'lucide-react-native';
 
 export default function WelcomeScreen() {
-  // Animation values
-  const iconScale = useSharedValue(1);
-  const iconOpacity = useSharedValue(0.8);
+  const iconRotation = useSharedValue(0);
+  const glowScale = useSharedValue(1);
   
-  React.useEffect(() => {
-    // Start gentle pulse animation
-    iconScale.value = withRepeat(
-      withTiming(1.1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+  useEffect(() => {
+    // Pulsating glow animation
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.4, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
+      ),
       -1,
       true
     );
-    
-    iconOpacity.value = withRepeat(
-      withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+
+    // Gentle icon rotation
+    iconRotation.value = withRepeat(
+      withTiming(360, { duration: 20000, easing: Easing.linear }),
       -1,
-      true
+      false
     );
   }, []);
+
+  const animatedGlowStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: glowScale.value }],
+    };
+  });
   
-  // Create animated style
   const animatedIconStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ scale: iconScale.value }],
-      opacity: iconOpacity.value,
+      transform: [{ rotate: `${iconRotation.value}deg` }],
     };
   });
 
@@ -41,13 +48,20 @@ export default function WelcomeScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a']}
         style={StyleSheet.absoluteFill}
       />
+      <Animated.View style={[styles.glow, animatedGlowStyle]} />
+
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-          <Animated.View style={animatedIconStyle}>
-            <Sparkles size={80} color="#1e3a8a" strokeWidth={1.5} />
+        <View style={styles.iconSection}>
+          <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
+            <LinearGradient
+              colors={['#1e40af', '#3b82f6']}
+              style={styles.iconGradient}
+            >
+              <Sparkles size={80} color="#FFFFFF" strokeWidth={1.5} />
+            </LinearGradient>
           </Animated.View>
         </View>
         
@@ -59,42 +73,66 @@ export default function WelcomeScreen() {
         
       </View>
       
-      <Pressable style={styles.button} onPress={handleContinue}>
-        <View style={styles.buttonSolid}>
-          <Text style={styles.buttonText}>Let’s Begin →</Text>
-        </View>
+      <Pressable onPress={handleContinue}>
+        <LinearGradient
+            colors={['#3b82f6', '#8b5cf6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>Let’s Begin →</Text>
+          </LinearGradient>
       </Pressable>
     </View>
   );
 }
 
-const animatedIconStyle = {
-  transform: [{ scale: 1 }],
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
     paddingTop: 80,
     paddingBottom: 40,
+    backgroundColor: '#0a0a0a',
+    overflow: 'hidden',
+  },
+  glow: {
+    position: 'absolute',
+    top: '10%',
+    left: '50%',
+    width: 400,
+    height: 400,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    borderRadius: 200,
+    transform: [{ translateX: -200 }],
+    filter: 'blur(80px)', 
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  iconSection: {
+    marginBottom: 48,
+  },
   iconContainer: {
-    marginBottom: 40,
-    width: 100,
-    height: 100,
+    width: 120,
+    height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
+    borderRadius: 30,
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
     shadowRadius: 20,
-    elevation: 20,
+    elevation: 10,
+  },
+  iconGradient: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     fontSize: 32,
@@ -113,25 +151,18 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     maxWidth: 320,
   },
-  description: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 300,
-  },
-  button: {
-    borderRadius: 25,
-    overflow: 'hidden',
-  },
-  buttonSolid: {
-    backgroundColor: '#374151',
-    paddingVertical: 16,
+  primaryButton: {
+    borderRadius: 12,
+    paddingVertical: 18,
     paddingHorizontal: 32,
     alignItems: 'center',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  buttonText: {
+  primaryButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#F9FAFB',

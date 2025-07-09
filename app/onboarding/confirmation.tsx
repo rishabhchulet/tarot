@@ -1,95 +1,93 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { CheckCircle } from 'lucide-react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 
 export default function ConfirmationScreen() {
-  const handleContinue = () => {
-    router.replace('/(tabs)');
-  };
+  const glowScale = useSharedValue(1);
+  const iconScale = useSharedValue(0.8);
+
+  useEffect(() => {
+    glowScale.value = withRepeat(
+      withSequence(
+        withTiming(1.6, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+      ), -1, true
+    );
+    iconScale.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.back(2)) });
+  }, []);
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
+  const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
+
+  const handleContinue = () => router.replace('/(tabs)');
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
-        style={StyleSheet.absoluteFill}
-      />
+      <LinearGradient colors={['#052e16', '#064e3b', '#052e16']} style={StyleSheet.absoluteFill} />
+      <Animated.View style={[styles.glow, animatedGlowStyle]} />
+
       <View style={styles.content}>
-        <View style={styles.iconContainer}>
-            <CheckCircle size={80} color="#10B981" strokeWidth={1.5} />
-        </View>
+        <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
+          <LinearGradient colors={['#10b981', '#6ee7b7']} style={styles.iconGradient}>
+            <CheckCircle size={80} color="#FFFFFF" strokeWidth={1.5} />
+          </LinearGradient>
+        </Animated.View>
         
         <Text style={styles.title}>Powerful.</Text>
         
         <Text style={styles.subtitle}>
-          In a moment, I’ll take you to your personal profile. You’ll be able to read your personal life map, based on your astrological placements.
-          {"\\n\\n"}
-          Each day, you’ll have the opportunity to connect intentionally using the Daily Reflection button. This tool combines astrology, the I Ching, and card-based guidance with intuitive prompts. It’s designed by master-level facilitators with over 15 years of experience across modalities.
-          {"\\n\\n"}
-          If you’re consistent with it, you’ll begin to notice powerful shifts—from the inside out.
+          You are ready to begin. Each day, you will have the opportunity to connect intentionally. If you’re consistent, you will notice powerful shifts—from the inside out.
         </Text>
-        
       </View>
       
-      <Pressable style={styles.button} onPress={handleContinue}>
-        <View style={styles.buttonSolid}>
-          <Text style={styles.buttonText}>Let’s Go →</Text>
-        </View>
-      </Pressable>
+      <View style={styles.buttonContainer}>
+        <Pressable onPress={handleContinue}>
+          <LinearGradient
+              colors={['#10b981', '#34d399']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.primaryButton}
+            >
+              <Text style={styles.primaryButtonText}>Let’s Go →</Text>
+            </LinearGradient>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 80,
-    paddingBottom: 40,
+  container: { flex: 1, backgroundColor: '#052e16' },
+  glow: {
+    position: 'absolute', top: '15%', left: '50%', width: 400, height: 400,
+    backgroundColor: 'rgba(16, 185, 129, 0.25)', borderRadius: 200,
+    transform: [{ translateX: -200 }], filter: 'blur(90px)', 
   },
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  content: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
   iconContainer: {
-    marginBottom: 40,
-    width: 100,
-    height: 100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: 120, height: 120, alignItems: 'center', justifyContent: 'center',
+    borderRadius: 60, shadowColor: '#10b981', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5, shadowRadius: 20, elevation: 10, marginBottom: 32, alignSelf: 'center',
+  },
+  iconGradient: {
+    width: '100%', height: '100%', borderRadius: 60,
+    alignItems: 'center', justifyContent: 'center',
   },
   title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 40,
+    fontSize: 40, fontFamily: 'Inter-Bold', color: '#F8FAFC',
+    textAlign: 'center', marginBottom: 24,
   },
   subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#D1D5DB',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 24,
-    maxWidth: 340,
+    fontSize: 18, fontFamily: 'Inter-Regular', color: '#d1fae5',
+    textAlign: 'center', lineHeight: 28, maxWidth: 340,
   },
-  button: {
-    borderRadius: 25,
-    overflow: 'hidden',
+  buttonContainer: { paddingHorizontal: 32, paddingBottom: 40, paddingTop: 20 },
+  primaryButton: {
+    borderRadius: 12, paddingVertical: 18, alignItems: 'center',
+    shadowColor: '#10b981', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,
   },
-  buttonSolid: {
-    backgroundColor: '#374151',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    alignItems: 'center',
-  },
-  buttonText: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F9FAFB',
-  },
+  primaryButtonText: { fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#064e3b' },
 }); 

@@ -18,10 +18,11 @@ export default function JournalScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>My Journal</Text>
         <Text style={styles.subtitle}>Your reflection archive</Text>
@@ -48,7 +49,7 @@ export default function JournalScreen() {
           </View>
         )}
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -65,13 +66,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   scrollView: {
     flex: 1,

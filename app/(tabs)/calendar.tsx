@@ -59,23 +59,24 @@ export default function CalendarScreen() {
   const groupedEntries = groupEntriesByMonth();
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>Your Journey</Text>
         <Text style={styles.subtitle}>Tracking your inner growth</Text>
         
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
-            <TrendingUp size={24} color="#F59E0B" />
+            <TrendingUp size={24} color="#1e3a8a" />
             <Text style={styles.statNumber}>{streak}</Text>
             <Text style={styles.statLabel}>Day Streak</Text>
           </View>
           
           <View style={styles.statCard}>
-            <CalendarIcon size={24} color="#3B82F6" />
+            <CalendarIcon size={24} color="#1e40af" />
             <Text style={styles.statNumber}>{entries.length}</Text>
             <Text style={styles.statLabel}>Total Reflections</Text>
           </View>
@@ -118,7 +119,7 @@ export default function CalendarScreen() {
           </View>
         )}
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -135,13 +136,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
     marginBottom: 30,
   },
   statsContainer: {
@@ -149,25 +150,25 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   statCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     minWidth: 120,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   statNumber: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginTop: 8,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   scrollView: {
     flex: 1,

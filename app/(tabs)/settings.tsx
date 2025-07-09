@@ -119,10 +119,11 @@ export default function SettingsScreen() {
   );
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <View style={styles.header}>
         <Text style={styles.title}>Settings</Text>
         <Text style={styles.userName}>Welcome back, {user?.name || 'friend'}</Text>
@@ -139,8 +140,8 @@ export default function SettingsScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={toggleNotifications}
-                trackColor={{ false: '#374151', true: '#F59E0B' }}
-                thumbColor={notificationsEnabled ? '#FFFFFF' : '#9CA3AF'}
+                trackColor={{ false: '#374151', true: '#1e3a8a' }}
+                thumbColor={notificationsEnabled ? '#F9FAFB' : '#6B7280'}
               />
             }
           />
@@ -187,7 +188,7 @@ export default function SettingsScreen() {
           <Text style={styles.footerText}>Made with ♡ for your inner journey</Text>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -204,13 +205,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   userName: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   scrollView: {
     flex: 1,
@@ -222,23 +223,23 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
     marginBottom: 16,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   settingItemDisabled: {
     opacity: 0.6,
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    backgroundColor: 'rgba(30, 58, 138, 0.04)',
   },
   settingLeft: {
     flexDirection: 'row',

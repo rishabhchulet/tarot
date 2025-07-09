@@ -73,10 +73,11 @@ export function LoadingState({
   });
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       {/* Background glow effect */}
       <Animated.View style={[styles.backgroundGlow, glowAnimatedStyle]} />
       
@@ -84,7 +85,7 @@ export function LoadingState({
         {/* Animated icon */}
         <View style={styles.iconContainer}>
           <Animated.View style={sparkleAnimatedStyle}>
-            <Sparkles size={48} color="#F59E0B" strokeWidth={1.5} />
+            <Sparkles size={48} color="#1e3a8a" strokeWidth={1.5} />
           </Animated.View>
         </View>
         
@@ -101,7 +102,7 @@ export function LoadingState({
           <View style={styles.progressContainer}>
             <View style={styles.progressBar}>
               <LinearGradient
-                colors={['#F59E0B', '#D97706']}
+                colors={['#1e3a8a', '#1e40af']}
                 style={[styles.progressFill, { width: `${Math.max(0, Math.min(100, progress))}%` }]}
               />
             </View>
@@ -145,7 +146,7 @@ export function LoadingState({
           ))}
         </View>
       </View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     top: '40%',
     alignSelf: 'center',
   },
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: 24,
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 20,
@@ -181,14 +182,14 @@ const styles = StyleSheet.create({
   message: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 8,
   },
   submessage: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,

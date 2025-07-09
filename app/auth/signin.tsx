@@ -65,14 +65,15 @@ export default function SignInScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#F3F4F6" />
+            <ArrowLeft size={24} color="#F9FAFB" />
           </Pressable>
           <Text style={styles.title}>Welcome Back</Text>
           <Text style={styles.subtitle}>Continue your inner journey</Text>
@@ -93,7 +94,7 @@ export default function SignInScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="Enter your email"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6B7280"
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -108,7 +109,7 @@ export default function SignInScreen() {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Enter your password"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#6B7280"
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -118,9 +119,9 @@ export default function SignInScreen() {
                 onPress={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color="#9CA3AF" />
+                  <EyeOff size={20} color="#6B7280" />
                 ) : (
-                  <Eye size={20} color="#9CA3AF" />
+                  <Eye size={20} color="#6B7280" />
                 )}
               </Pressable>
             </View>
@@ -138,14 +139,11 @@ export default function SignInScreen() {
             onPress={handleSignIn}
             disabled={loading}
           >
-            <LinearGradient
-              colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
-              style={styles.buttonGradient}
-            >
+            <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
               <Text style={styles.signInButtonText}>
                 {loading ? 'Signing In...' : 'Sign In'}
               </Text>
-            </LinearGradient>
+            </View>
           </Pressable>
 
           <Pressable style={styles.signUpLink} onPress={() => router.push('/auth/signup')}>
@@ -155,7 +153,7 @@ export default function SignInScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -181,13 +179,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   form: {
     flex: 1,
@@ -216,27 +214,27 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   passwordInput: {
     flex: 1,
@@ -244,7 +242,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
   },
   eyeButton: {
     paddingHorizontal: 16,
@@ -257,7 +255,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#F59E0B',
+    color: '#1e3a8a',
   },
   signInButton: {
     borderRadius: 25,
@@ -267,15 +265,19 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   signInButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
   signUpLink: {
     alignItems: 'center',
@@ -284,10 +286,10 @@ const styles = StyleSheet.create({
   signUpLinkText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   linkHighlight: {
-    color: '#F59E0B',
+    color: '#1e3a8a',
     fontFamily: 'Inter-SemiBold',
   },
 });

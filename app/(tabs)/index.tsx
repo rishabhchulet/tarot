@@ -420,10 +420,11 @@ export default function TodayScreen() {
 
   // Default state - enhanced with magical animations and SYNCHRONIZED time-based icon
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <SafeAreaView style={{ flex: 1 }} edges={['top', 'left', 'right']}> 
         {/* Animated background shimmer */}
         <Animated.View style={[styles.backgroundShimmer, backgroundShimmerStyle]} />
@@ -436,7 +437,7 @@ export default function TodayScreen() {
               delay={index * 500}
               duration={3000 + (index * 200)}
               size={Math.random() * 6 + 2}
-              color={['#F59E0B', '#8B5CF6', '#3B82F6', '#10B981'][index % 4]}
+              color={['#1e3a8a', '#374151', '#1e40af', '#1f2937'][index % 4]}
             />
           ))}
         </View>
@@ -444,19 +445,19 @@ export default function TodayScreen() {
         {/* Constellation background */}
         <View style={styles.constellationContainer}>
           <Animated.View style={[styles.star, styles.star1, starRotationStyle]}>
-            <Star size={8} color="#F59E0B" fill="#F59E0B" />
+            <Star size={8} color="#1e3a8a" fill="#1e3a8a" />
           </Animated.View>
           <Animated.View style={[styles.star, styles.star2, starRotationStyle]}>
-            <Star size={6} color="#8B5CF6" fill="#8B5CF6" />
+            <Star size={6} color="#374151" fill="#374151" />
           </Animated.View>
           <Animated.View style={[styles.star, styles.star3, starRotationStyle]}>
-            <Star size={10} color="#3B82F6" fill="#3B82F6" />
+            <Star size={10} color="#1e40af" fill="#1e40af" />
           </Animated.View>
           <Animated.View style={[styles.star, styles.star4, starRotationStyle]}>
-            <Star size={7} color="#10B981" fill="#10B981" />
+            <Star size={7} color="#1f2937" fill="#1f2937" />
           </Animated.View>
           <Animated.View style={[styles.star, styles.star5, starRotationStyle]}>
-            <Star size={5} color="#F59E0B" fill="#F59E0B" />
+            <Star size={5} color="#1e3a8a" fill="#1e3a8a" />
           </Animated.View>
         </View>
 
@@ -490,7 +491,7 @@ export default function TodayScreen() {
             <Animated.View style={[styles.intentionBox, intentionBoxStyle]}>
               {/* Magical border effect */}
               <LinearGradient
-                colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+                colors={['#1e3a8a', '#374151', '#1e40af', '#1e3a8a']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.intentionBorder}
@@ -499,7 +500,7 @@ export default function TodayScreen() {
                   {/* Floating sparkle in the box */}
                   <View style={styles.intentionSparkleContainer}>
                     <Animated.View style={starRotationStyle}>
-                      <Sparkles size={24} color="#F59E0B" />
+                      <Sparkles size={24} color="#1e3a8a" />
                     </Animated.View>
                   </View>
                   
@@ -523,22 +524,17 @@ export default function TodayScreen() {
             {/* Enhanced button with pulse animation */}
             <Animated.View style={buttonPulseStyle}>
               <Pressable style={styles.pullButton} onPress={handleCardPull}>
-                <LinearGradient
-                  colors={['#F59E0B', '#D97706', '#F59E0B']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.pullButtonGradient}
-                >
+                <View style={styles.pullButtonSolid}>
                   {/* Button glow effect */}
                   <View style={styles.buttonGlow} />
                   
                   {/* Button content */}
                   <View style={styles.buttonContent}>
-                    <Zap size={20} color="#FFFFFF" />
+                    <Zap size={20} color="#F9FAFB" />
                     <Text style={styles.pullButtonText}>Reveal your message</Text>
-                    <Sparkles size={16} color="#FFFFFF" />
+                    <Sparkles size={16} color="#F9FAFB" />
                   </View>
-                </LinearGradient>
+                </View>
               </Pressable>
             </Animated.View>
 
@@ -549,7 +545,7 @@ export default function TodayScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -573,7 +569,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     textAlign: 'center',
   },
   
@@ -584,7 +580,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.05)',
     transform: [{ skewX: '-15deg' }],
   },
   
@@ -601,7 +597,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: Math.random() * screenWidth,
     top: Math.random() * screenHeight,
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 4,
@@ -619,7 +615,7 @@ const styles = StyleSheet.create({
   },
   star: {
     position: 'absolute',
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 8,
@@ -650,21 +646,21 @@ const styles = StyleSheet.create({
     elevation: 16,
     borderRadius: 25,
     padding: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
   },
   greeting: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
-    textShadowColor: 'rgba(245, 158, 11, 0.3)',
+    textShadowColor: 'rgba(30, 58, 138, 0.3)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
   },
   date: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   
   // Pull container
@@ -676,7 +672,7 @@ const styles = StyleSheet.create({
   // Enhanced intention box
   intentionBox: {
     marginBottom: 40,
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -687,7 +683,7 @@ const styles = StyleSheet.create({
     padding: 3,
   },
   intentionContent: {
-    backgroundColor: 'rgba(31, 41, 55, 0.95)',
+    backgroundColor: 'rgba(15, 15, 15, 0.95)',
     borderRadius: 21,
     padding: 32,
     alignItems: 'center',
@@ -701,7 +697,7 @@ const styles = StyleSheet.create({
   intentionText: {
     fontSize: 18,
     fontFamily: 'Inter-Medium',
-    color: '#D1D5DB',
+    color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 12,
@@ -709,7 +705,7 @@ const styles = StyleSheet.create({
   intentionQuestion: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
     textAlign: 'center',
     lineHeight: 28,
     fontStyle: 'italic',
@@ -722,7 +718,7 @@ const styles = StyleSheet.create({
   },
   runeSymbol: {
     fontSize: 16,
-    color: '#8B5CF6',
+    color: '#374151',
     fontFamily: 'Inter-Bold',
   },
   
@@ -731,13 +727,14 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     overflow: 'hidden',
     minWidth: 220,
-    shadowColor: '#F59E0B',
+    shadowColor: '#1e3a8a',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 16,
     elevation: 16,
   },
-  pullButtonGradient: {
+  pullButtonSolid: {
+    backgroundColor: '#374151',
     position: 'relative',
     overflow: 'hidden',
   },
@@ -747,7 +744,7 @@ const styles = StyleSheet.create({
     left: -2,
     right: -2,
     bottom: -2,
-    backgroundColor: 'rgba(245, 158, 11, 0.3)',
+    backgroundColor: 'rgba(30, 58, 138, 0.2)',
     borderRadius: 32,
   },
   buttonContent: {
@@ -761,7 +758,7 @@ const styles = StyleSheet.create({
   pullButtonText: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
@@ -771,18 +768,18 @@ const styles = StyleSheet.create({
   mysticalFooter: {
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+    color: '#1e3a8a',
     marginTop: 24,
     fontStyle: 'italic',
-    textShadowColor: 'rgba(245, 158, 11, 0.8)',
+    textShadowColor: 'rgba(30, 58, 138, 0.8)',
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 8,
-    backgroundColor: 'rgba(31, 41, 55, 0.6)',
+    backgroundColor: 'rgba(15, 15, 15, 0.6)',
     paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: 'rgba(30, 58, 138, 0.3)',
   },
   
   // Completed state styles

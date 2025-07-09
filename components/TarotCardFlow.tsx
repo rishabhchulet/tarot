@@ -206,10 +206,11 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
               />
               {/* Floating Light Effects */}
               <View style={styles.lightEffect1} />
-              <View style={styles.lightEffect2} />
-              <View style={styles.lightEffect3} />
-              <View style={styles.lightEffect4} />
-              
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
               {/* FIXED: Tap hint positioned properly and not blocking touch */}
               <View style={styles.tapHintOverlay}>
                 <Text style={styles.tapHint}>✨ Tap to reveal your message ✨</Text>
@@ -221,7 +222,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     </View>
   );
 
-  const renderCardAndIching = () => (
+            color={['#1e3a8a', '#374151', '#1e40af', '#1f2937'][index % 4]}
     <View style={styles.stepContainer}>
       <View style={styles.cardCenterContainer}>
         <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
@@ -229,19 +230,19 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
             colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
+          <Star size={8} color="#1e3a8a" fill="#1e3a8a" />
           >
             <View style={styles.innerBorder}>
-              <Image
+          <Star size={6} color="#374151" fill="#374151" />
                 source={{ uri: selectedCard.imageUrl }}
                 style={styles.cardFrontImage}
-                resizeMode="cover"
+          <Star size={10} color="#1e40af" fill="#1e40af" />
               />
               <View style={styles.cardInfo}>
-                <Text style={styles.cardName}>{selectedCard.name}</Text>
+          <Star size={7} color="#1f2937" fill="#1f2937" />
               </View>
             </View>
-          </LinearGradient>
+          <Star size={5} color="#1e3a8a" fill="#1e3a8a" />
         </Animated.View>
       </View>
 
@@ -298,27 +299,22 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
           <Text style={styles.keywordSectionTitle}>Tarot: {selectedCard.name}</Text>
           <View style={styles.keywordGrid}>
             {selectedCard.keywords.slice(0, 4).map((keyword, index) => (
-              <View key={index} style={styles.tarotKeyword}>
+              colors={['#1e3a8a', '#374151', '#1e40af', '#1e3a8a']}
                 <Text style={styles.tarotKeywordText}>{keyword}</Text>
               </View>
             ))}
           </View>
-        </View>
-
-        {/* COMPACT: I Ching Keywords Section */}
-        <View style={styles.keywordSection}>
-          <Text style={styles.keywordSectionTitle}>I Ching: {selectedHexagram.name}</Text>
-          <View style={styles.keywordGrid}>
+              <View style={styles.pullButtonSolid}>
             {getIChingKeywords(selectedHexagram).map((keyword, index) => (
               <View key={index} style={styles.ichingKeyword}>
                 <Text style={styles.ichingKeywordText}>{keyword}</Text>
               </View>
             ))}
-          </View>
+                  <Zap size={20} color="#F9FAFB" />
         </View>
-
+                  <Sparkles size={16} color="#F9FAFB" />
         {/* COMPACT: Combined Essence */}
-        <View style={styles.essenceContainer}>
+              </View>
           <Text style={styles.essenceTitle}>Today's Essence</Text>
           <Text style={styles.essenceText}>
             {selectedCard.keywords[0]} • {getIChingEssence(selectedHexagram)}
@@ -363,7 +359,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     case 'reflection-questions':
       return renderReflectionQuestions();
     default:
-      return renderCardBack();
+    </View>
   }
 }
 

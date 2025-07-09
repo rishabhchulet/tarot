@@ -94,10 +94,11 @@ export default function SignUpScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={['#1F2937', '#374151', '#6B46C1']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        style={StyleSheet.absoluteFill}
+      />
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Pressable 
@@ -105,7 +106,7 @@ export default function SignUpScreen() {
             onPress={() => router.back()} 
             disabled={loading}
           >
-            <ArrowLeft size={24} color={loading ? "#6B7280" : "#F3F4F6"} />
+            <ArrowLeft size={24} color={loading ? "#6B7280" : "#F9FAFB"} />
           </Pressable>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Begin your inner journey</Text>
@@ -126,7 +127,7 @@ export default function SignUpScreen() {
               value={name}
               onChangeText={setName}
               placeholder="Enter your full name"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6B7280"
               autoCapitalize="words"
               autoCorrect={false}
               editable={!loading}
@@ -142,7 +143,7 @@ export default function SignUpScreen() {
               value={email}
               onChangeText={setEmail}
               placeholder="Enter your email"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor="#6B7280"
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -160,7 +161,7 @@ export default function SignUpScreen() {
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Create a password"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#6B7280"
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -176,9 +177,9 @@ export default function SignUpScreen() {
                 accessibilityRole="button"
               >
                 {showPassword ? (
-                  <EyeOff size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
+                  <EyeOff size={20} color={loading ? "#6B7280" : "#6B7280"} />
                 ) : (
-                  <Eye size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
+                  <Eye size={20} color={loading ? "#6B7280" : "#6B7280"} />
                 )}
               </Pressable>
             </View>
@@ -192,7 +193,7 @@ export default function SignUpScreen() {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 placeholder="Confirm your password"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor="#6B7280"
                 secureTextEntry={!showConfirmPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -208,9 +209,9 @@ export default function SignUpScreen() {
                 accessibilityRole="button"
               >
                 {showConfirmPassword ? (
-                  <EyeOff size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
+                  <EyeOff size={20} color={loading ? "#6B7280" : "#6B7280"} />
                 ) : (
-                  <Eye size={20} color={loading ? "#6B7280" : "#9CA3AF"} />
+                  <Eye size={20} color={loading ? "#6B7280" : "#6B7280"} />
                 )}
               </Pressable>
             </View>
@@ -223,14 +224,11 @@ export default function SignUpScreen() {
             accessibilityLabel={loading ? "Creating account" : "Create account"}
             accessibilityRole="button"
           >
-            <LinearGradient
-              colors={loading ? ['#6B7280', '#4B5563'] : ['#F59E0B', '#D97706']}
-              style={styles.buttonGradient}
-            >
+            <View style={[styles.buttonSolid, loading && styles.buttonSolidDisabled]}>
               <Text style={styles.signUpButtonText}>
                 {loading ? 'Creating Account...' : 'Create Account'}
               </Text>
-            </LinearGradient>
+            </View>
           </Pressable>
 
           <Pressable 
@@ -246,7 +244,7 @@ export default function SignUpScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -272,13 +270,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontFamily: 'Inter-Bold',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   form: {
     flex: 1,
@@ -307,31 +305,31 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontFamily: 'Inter-Medium',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   inputDisabled: {
     opacity: 0.6,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.04)',
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(30, 58, 138, 0.15)',
   },
   passwordInput: {
     flex: 1,
@@ -339,7 +337,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F3F4F6',
+    color: '#F9FAFB',
   },
   eyeButton: {
     paddingHorizontal: 16,
@@ -354,15 +352,19 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
-  buttonGradient: {
+  buttonSolid: {
+    backgroundColor: '#374151',
     paddingVertical: 16,
     paddingHorizontal: 32,
     alignItems: 'center',
   },
+  buttonSolidDisabled: {
+    backgroundColor: '#4B5563',
+  },
   signUpButtonText: {
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
+    color: '#F9FAFB',
   },
   signInLink: {
     alignItems: 'center',
@@ -371,10 +373,10 @@ const styles = StyleSheet.create({
   signInLinkText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#6B7280',
   },
   linkHighlight: {
-    color: '#F59E0B',
+    color: '#1e3a8a',
     fontFamily: 'Inter-SemiBold',
   },
   linkDisabled: {

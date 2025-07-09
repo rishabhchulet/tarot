@@ -37,7 +37,7 @@ export default function HomeScreen() {
           console.log('📖 Today\'s entry exists - going to daily question');
           router.replace('/daily-question');
         } else {
-          console.log('✨ No entry today - showing home screen to start ritual');
+          console.log('✨ No entry today - showing home screen to start daily practice');
         }
       } catch (error) {
         console.error('❌ Error checking today\'s entry:', error);

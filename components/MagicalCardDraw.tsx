@@ -187,6 +187,7 @@ export function MagicalCardDraw({ onComplete }: MagicalCardDrawProps) {
             
             setTimeout(() => {
               if (isMounted.current) {
+                console.log('🎴 Animation complete, triggering callback');
                 runOnJS(safeOnComplete)();
               }
             }, 1500);

@@ -89,6 +89,8 @@ export async function POST(request: Request) {
         return await handleReflectionPrompts(data, openai);
       case 'personalized-guidance':
         return await handlePersonalizedGuidance(data, openai);
+      case 'north-node-insight':
+        return await handleNorthNodeInsight(data, openai);
       default:
         return new Response('Invalid request type', { status: 400 });
     }
@@ -253,6 +255,58 @@ Format as a JSON array of exactly 3 strings. Make them personal, life-focused, a
     }
   } catch (error) {
     console.error('OpenAI API Error:', error);
+    throw error;
+  }
+}
+
+async function handleNorthNodeInsight(data: {
+  northNodeSign: string;
+  northNodeHouse: string;
+  userName: string;
+}, openai: OpenAI) {
+  const { northNodeSign, northNodeHouse, userName } = data;
+
+  const prompt = `
+    You are an expert astrologer who specializes in providing soulful, encouraging, and practical guidance based on the North Node.
+    The user, ${userName}, has their North Node in ${northNodeSign} in the ${northNodeHouse}.
+
+    Please generate a concise (80-120 words) and empowering reflection for ${userName}. The reflection should:
+    1.  Start by directly addressing the user's North Node placement.
+    2.  Explain the core life lesson or soul journey associated with this placement in a simple, beautiful way.
+    3.  Offer a piece of actionable wisdom or a question for contemplation.
+    4.  Maintain a warm, personal, and inspiring tone.
+    5.  Do NOT use generic astrological jargon. Frame it as a personal path of growth.
+
+    Example style: "With your North Node in Taurus, your soul's journey in this lifetime is towards embracing stability and finding peace in the simple, profound security of the material world. It's about learning to trust your own values. What is one small step you can take today to build something real and lasting for yourself?"
+  `;
+
+  try {
+    const completion = await retryOperation(async () => {
+      return await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: "You are a wise, soulful astrologer providing empowering insights about a user's North Node. Your tone is personal, warm, and encouraging."
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 250,
+        temperature: 0.75,
+      });
+    });
+
+    const insight = completion.choices[0]?.message?.content || 'Unable to generate insight at this time.';
+
+    return Response.json({
+      insight,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('OpenAI API Error in North Node Insight:', error);
     throw error;
   }
 }

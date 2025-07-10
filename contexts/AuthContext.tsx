@@ -4,6 +4,7 @@ import { getCurrentUser, type AuthUser } from '@/utils/auth';
 import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { router } from 'expo-router';
+import { AstrologicalPlacements, getAstrologicalPlacements } from '@/utils/astrology';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -16,6 +17,8 @@ interface AuthContextType {
   retryConnection: () => Promise<void>;
   testSignOut: () => Promise<void>;
   updateUser: (updates: Partial<AuthUser>) => void;
+  placements: AstrologicalPlacements | null;
+  calculatePlacements: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,9 +31,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting');
   const [retryCount, setRetryCount] = useState(0);
   const [lastSuccessfulConnection, setLastSuccessfulConnection] = useState<Date | null>(null);
+  const [placements, setPlacements] = useState<AstrologicalPlacements | null>(null);
 
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
+
+  const calculatePlacements = async () => {
+    if (user && user.birthDate && user.birthTime && user.birthLocation) {
+      const date = new Date(user.birthDate);
+      const time = user.birthTime.split(':');
+      const placements = await getAstrologicalPlacements(
+        user.name,
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+        parseInt(time[0]),
+        parseInt(time[1]),
+        user.birthLocation
+      );
+      setPlacements(placements);
+    }
+  };
 
   const refreshUser = async () => {
     try {
@@ -136,6 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Only clear user if we don't have existing data
       if (!user) {
         setUser(null);
+        setPlacements(null);
       }
     }
   };
@@ -214,6 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
+      setPlacements(null);
 
       // Step 4: Navigation
       if (signOutSuccess) {
@@ -251,21 +274,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     console.log('[AuthContext signOut] State before sign out:', beforeState);
     await _doSignOut();
-  };
-
-  const contextValue = {
-    user,
-    session,
-    loading,
-    error,
-    signOut,
-    refreshUser,
-    connectionStatus,
-    retryConnection,
-    testSignOut: signOut,
-    updateUser: (updates: Partial<AuthUser>) => {
-      setUser(prev => prev ? { ...prev, ...updates } : null);
-    },
   };
 
   useEffect(() => {
@@ -436,6 +444,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return () => clearTimeout(retryTimer);
     }
   }, [connectionStatus, retryCount, loading]);
+
+  useEffect(() => {
+    if (user && !placements) {
+      calculatePlacements();
+    }
+  }, [user]);
+
+  const contextValue = {
+    user,
+    session,
+    loading,
+    error,
+    signOut,
+    refreshUser,
+    connectionStatus,
+    retryConnection,
+    testSignOut: signOut,
+    updateUser: (updates: Partial<AuthUser>) => {
+      setUser(prev => prev ? { ...prev, ...updates } : null);
+    },
+    placements,
+    calculatePlacements,
+  };
 
   return (
     <AuthContext.Provider value={contextValue}>

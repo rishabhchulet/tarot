@@ -169,113 +169,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await refreshUser();
   };
 
-  // Move the original signOut logic to a private function
-  const _doSignOut = async () => {
+  const signOut = async () => {
     try {
-      console.log('[AuthContext signOut] Context sign out called');
-      let test = 1 + 1;
-      console.log('[AuthContext signOut] Test log after first line');
-      console.log('[AuthContext signOut] Before isSigningOutRef.current = true');
       isSigningOutRef.current = true;
-      console.log('[AuthContext signOut] After isSigningOutRef.current = true');
-      console.log('[AuthContext signOut] Before starting sign out process log');
       console.log('🚪 [signOut] Starting sign out process...');
 
-      // Step 1: Attempt Supabase sign out (global, then fallback)
-      let signOutSuccess = false;
-      let lastError = null;
-      try {
-        console.log('📤 [signOut] Signing out from Supabase (global)...');
-        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
-        if (globalError) {
-          console.warn('⚠️ [signOut] Global sign out error:', globalError);
-          const { error } = await supabase.auth.signOut();
-          if (error) {
-            console.warn('⚠️ [signOut] Regular sign out error:', error);
-            lastError = error;
-          } else {
-            signOutSuccess = true;
-          }
-        } else {
-          signOutSuccess = true;
-        }
-      } catch (err) {
-        console.error('❌ [signOut] Exception during Supabase sign out:', err);
-        lastError = err;
+      // Attempt Supabase sign out
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('❌ [signOut] Error:', error);
+        // Even if there's an error, proceed with cleanup
       }
 
-      // Step 2: Manually clear all storage
-      try {
-        console.log('🧹 [signOut] Manually clearing storage...');
-        if (typeof window !== 'undefined' && window.localStorage) {
-          const keys = Object.keys(localStorage);
-          const supabaseKeys = keys.filter(key => 
-            key.includes('supabase') || 
-            key.includes('sb-') || 
-            key.includes('auth-token')
-          );
-          supabaseKeys.forEach(key => {
-            localStorage.removeItem(key);
-            console.log('🗑️ [signOut] Removed localStorage key:', key);
-          });
-          try {
-            sessionStorage.clear();
-            console.log('��️ [signOut] Cleared session storage');
-          } catch (e) {
-            console.warn('⚠️ [signOut] Session storage clear error:', e);
-          }
-        }
-      } catch (storageError) {
-        console.warn('⚠️ [signOut] Storage clearing error:', storageError);
-      }
-
-      // Step 3: Clear local state
+      // Manually clear local state just in case
       setUser(null);
       setSession(null);
-      setError(null);
-      setConnectionStatus('disconnected');
-      setLastSuccessfulConnection(null);
-      setRetryCount(0);
       setPlacements(null);
-
-      // Step 4: Navigation
-      if (signOutSuccess) {
-        console.log('📱 [signOut] Navigating to /auth (success)...');
-        router.replace('/auth');
-      } else {
-        console.error('❌ [signOut] Sign out failed, not navigating.');
-        if (typeof window !== 'undefined' && window.alert) {
-          window.alert('Sign out failed. Please try again.');
-        }
-      }
-    } catch (error) {
-      console.error('❌ [signOut] Unexpected error during sign out:', error);
-      setUser(null);
-      setSession(null);
-      setError(null);
       setConnectionStatus('disconnected');
-      if (typeof window !== 'undefined' && window.alert) {
-        window.alert('Sign out failed due to an unexpected error.');
-      }
+      
+      console.log('📱 [signOut] Navigating to /auth');
+      router.replace('/auth');
+    } catch (e) {
+      console.error('💥 [signOut] Unexpected exception:', e);
     } finally {
-      setTimeout(() => {
-        console.log('🔓 [signOut] Resetting sign out flag after delay');
-        isSigningOutRef.current = false;
-      }, 3000);
+      isSigningOutRef.current = false;
     }
   };
 
-  const signOut = async () => {
-    console.log('[AuthContext signOut] testSignOut logic called');
-    const beforeState = {
-      hasUser: !!user,
-      hasSession: !!session,
-      userId: user?.id
-    };
-    console.log('[AuthContext signOut] State before sign out:', beforeState);
-    await _doSignOut();
+  const testSignOut = async () => {
+    console.log('🚪 [testSignOut] Starting test sign out...');
+    await signOut();
+    console.log('🚪 [testSignOut] Test sign out complete.');
   };
 
+  // Auth state change listener
   useEffect(() => {
     console.log('🚀 AuthContext initializing...');
     setConnectionStatus('connecting');

@@ -376,7 +376,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     const profileResult = await createTimeoutWrapper(
       () => supabase
         .from('users')
-        .select('name, archetype, birth_date, birth_time, birth_location, latitude, longitude, onboarding_step')
+        .select('name, archetype')
         .eq('id', user.id)
         .single(),
       10000, // INCREASED: 10 second timeout
@@ -393,12 +393,6 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         email: user.email || '',
         name: profileResult.data.name,
         archetype: profileResult.data.archetype || undefined,
-        birthDate: profileResult.data.birth_date || undefined,
-        birthTime: profileResult.data.birth_time || undefined,
-        birthLocation: profileResult.data.birth_location || undefined,
-        latitude: profileResult.data.latitude || undefined,
-        longitude: profileResult.data.longitude || undefined,
-        onboardingStep: profileResult.data.onboarding_step || undefined,
       };
     }
 
@@ -431,24 +425,6 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
     }
     if (updates.archetype !== undefined) {
       updateData.archetype = updates.archetype;
-    }
-    if (updates.birthDate !== undefined) {
-      updateData.birth_date = updates.birthDate;
-    }
-    if (updates.birthTime !== undefined) {
-      updateData.birth_time = updates.birthTime;
-    }
-    if (updates.birthLocation !== undefined) {
-      updateData.birth_location = updates.birthLocation;
-    }
-    if (updates.latitude !== undefined) {
-      updateData.latitude = updates.latitude;
-    }
-    if (updates.longitude !== undefined) {
-      updateData.longitude = updates.longitude;
-    }
-    if (updates.onboardingStep !== undefined) {
-      updateData.onboarding_step = updates.onboardingStep;
     }
 
     // Update the users table

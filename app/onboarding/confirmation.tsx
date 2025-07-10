@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { CheckCircle } from 'lucide-react-native';
+import { CircleCheck as CheckCircle } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 
 export default function ConfirmationScreen() {
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   glow: {
     position: 'absolute', top: '15%', left: '50%', width: 400, height: 400,
     backgroundColor: 'rgba(16, 185, 129, 0.25)', borderRadius: 200,
-    transform: [{ translateX: -200 }], filter: 'blur(90px)', 
+    transform: [{ translateX: -200 }],
   },
   content: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
   iconContainer: {

@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, CreditCard, HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
-import { SignOutTestButton } from '@/components/SignOutTestButton';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out of your account?',
@@ -19,8 +19,15 @@ export default function SettingsScreen() {
         { 
           text: 'Sign Out', 
           style: 'destructive',
-          onPress: () => {
-            signOut?.();
+          onPress: async () => {
+            setIsSigningOut(true);
+            try {
+              await signOut?.();
+            } catch (error) {
+              console.error("Sign out error", error)
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+              setIsSigningOut(false);
+            }
           }
         }
       ]
@@ -28,9 +35,9 @@ export default function SettingsScreen() {
   };
 
   const SettingItem = ({ icon: Icon, title, onPress, rightElement, isDestructive = false }) => (
-    <Pressable style={styles.itemContainer} onPress={onPress}>
+    <Pressable style={styles.itemContainer} onPress={onPress} disabled={isSigningOut}>
         <View style={[styles.iconContainer, isDestructive && { backgroundColor: 'rgba(239, 68, 68, 0.1)'}]}>
-            <Icon size={22} color={isDestructive ? '#F87171' : '#A78BFA'} />
+            <Icon size={22} color={isDestructive ? '#F87171' : '#3B82F6'} />
         </View>
         <Text style={[styles.itemTitle, isDestructive && { color: '#F87171'}]}>{title}</Text>
         <View style={{flex: 1}} />
@@ -45,7 +52,7 @@ export default function SettingsScreen() {
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.header}>
-        <SettingsIcon size={28} color="#A78BFA" />
+        <SettingsIcon size={28} color="#3B82F6" />
         <Text style={styles.title}>Settings</Text>
       </View>
 
@@ -68,7 +75,7 @@ export default function SettingsScreen() {
               <Switch
                 value={notificationsEnabled}
                 onValueChange={setNotificationsEnabled}
-                trackColor={{ false: '#374151', true: '#8B5CF6' }}
+                trackColor={{ false: '#374151', true: '#3B82F6' }}
                 thumbColor={notificationsEnabled ? '#F9FAFB' : '#6B7280'}
               />
             }
@@ -92,13 +99,17 @@ export default function SettingsScreen() {
         <View style={[styles.section, {marginTop: 24}]}>
             <SettingItem
                 icon={LogOut}
-                title="Sign Out"
+                title={isSigningOut ? "Signing Out..." : "Sign Out"}
                 onPress={handleSignOut}
                 isDestructive
             />
         </View>
-
       </ScrollView>
+      {isSigningOut && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -144,7 +155,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     iconContainer: {
-        backgroundColor: 'rgba(167, 139, 250, 0.1)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
         padding: 8,
         borderRadius: 99,
         marginRight: 16,
@@ -153,5 +164,11 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: 'Inter-Medium',
         color: '#F9FAFB',
+    },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 });

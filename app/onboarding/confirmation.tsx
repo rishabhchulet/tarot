@@ -39,7 +39,7 @@ export default function ConfirmationScreen() {
         <Text style={styles.title}>Powerful.</Text>
         
         <Text style={styles.subtitle}>
-          You are ready to begin. Each day, you will have the opportunity to connect intentionally. If you’re consistent, you will notice powerful shifts—from the inside out.
+          You are ready to begin. Each day, you will have the opportunity to connect intentionally. If you’re consistent, you will notice powerful shifts from the inside out.
         </Text>
       </View>
       

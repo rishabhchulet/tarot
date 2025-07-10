@@ -171,28 +171,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
+      console.log('🚪 [signOut] Starting robust sign out process...');
       isSigningOutRef.current = true;
-      console.log('🚪 [signOut] Starting sign out process...');
-
-      // Attempt Supabase sign out
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('❌ [signOut] Error:', error);
-        // Even if there's an error, proceed with cleanup
+      
+      let signOutSuccess = false;
+      try {
+        const { error: globalError } = await supabase.auth.signOut({ scope: 'global' });
+        if (globalError) {
+          console.warn('⚠️ [signOut] Global sign out failed, trying local. Error:', globalError.message);
+          const { error: localError } = await supabase.auth.signOut();
+          if (localError) {
+            console.error('❌ [signOut] Local sign out also failed. Error:', localError.message);
+          } else {
+            signOutSuccess = true;
+          }
+        } else {
+          signOutSuccess = true;
+        }
+      } catch (err) {
+        console.error('💥 [signOut] Exception during Supabase sign out:', err);
+      }
+      
+      try {
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+            console.log('🧹 [signOut] Clearing web storage...');
+            const keys = Object.keys(localStorage);
+            const supabaseKeys = keys.filter(key => key.startsWith('sb-'));
+            supabaseKeys.forEach(key => {
+                localStorage.removeItem(key);
+                console.log(`🗑️ Removed localStorage key: ${key}`);
+            });
+        }
+      } catch (storageError) {
+          console.warn('⚠️ [signOut] Could not clear web storage:', storageError)
       }
 
-      // Manually clear local state just in case
       setUser(null);
       setSession(null);
-      setPlacements(null);
+      setError(null);
       setConnectionStatus('disconnected');
-      
-      console.log('📱 [signOut] Navigating to /auth');
+      setLastSuccessfulConnection(null);
+      setRetryCount(0);
+      setPlacements(null);
+
+      console.log('📱 [signOut] Navigating to /auth...');
       router.replace('/auth');
-    } catch (e) {
-      console.error('💥 [signOut] Unexpected exception:', e);
+
+    } catch (error) {
+      console.error('💥 [signOut] Unexpected error during sign out:', error);
     } finally {
-      isSigningOutRef.current = false;
+        // Delay resetting the flag to prevent race conditions on navigation
+        setTimeout(() => {
+            isSigningOutRef.current = false;
+        }, 1500);
     }
   };
 

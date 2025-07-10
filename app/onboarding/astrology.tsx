@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
 import { LocationInput } from '@/components/LocationInput';
 import { WebDateTimePicker } from '@/components/WebDateTimePicker';
+import { ScrollView } from 'react-native';
 
 export default function AstrologyScreen() {
   const { user, updateUser } = useAuth();
@@ -112,10 +113,6 @@ export default function AstrologyScreen() {
       if (error) throw new Error(error);
       
       await updateUser({
-        id: user!.id,
-        email: user!.email,
-        name: user!.name,
-        archetype: user!.archetype,
         ...updates
       });
       
@@ -148,7 +145,12 @@ export default function AstrologyScreen() {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
+    <ScrollView 
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
       <LinearGradient colors={['#0f172a', '#1e293b', '#0f172a']} style={StyleSheet.absoluteFill} />
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
 
@@ -240,12 +242,16 @@ export default function AstrologyScreen() {
            'Ready to create your energetic map'}
         </Text>
       </View>
-    </KeyboardAvoidingView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f172a' },
+  scrollContent: { 
+    flexGrow: 1,
+    paddingBottom: 40,
+  },
   glow: {
     position: 'absolute', top: '5%', left: '50%', width: 400, height: 400,
     backgroundColor: 'rgba(245, 158, 11, 0.25)', borderRadius: 200,

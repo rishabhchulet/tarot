@@ -418,15 +418,11 @@ const styles = StyleSheet.create({
   
   // Mobile picker styles
   pickerContainer: {
-    position: 'absolute',
-    top: 60,
-    left: 0,
-    right: 0,
+    marginTop: 8,
     backgroundColor: 'rgba(30, 41, 59, 0.98)',
     borderRadius: 12,
     borderWidth: 1,
     borderColor: '#334155',
-    zIndex: 1000,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,

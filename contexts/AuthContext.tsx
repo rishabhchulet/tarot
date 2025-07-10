@@ -15,6 +15,7 @@ interface AuthContextType {
   connectionStatus: 'connected' | 'connecting' | 'disconnected' | 'error';
   retryConnection: () => Promise<void>;
   testSignOut: () => Promise<void>;
+  updateUser: (updates: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -262,6 +263,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     connectionStatus,
     retryConnection,
     testSignOut: signOut
+    updateUser: (updates: Partial<AuthUser>) => {
+      setUser(prev => prev ? { ...prev, ...updates } : null);
+    },
   };
 
   useEffect(() => {

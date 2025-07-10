@@ -13,8 +13,9 @@ import { LocationInput } from '@/components/LocationInput';
 export default function AstrologyScreen() {
   const { user, updateUser } = useAuth();
 
-  const [date, setDate] = useState(new Date());
-  const [time, setTime] = useState(new Date());
+  // Initialize with empty/default values instead of current date/time
+  const [date, setDate] = useState<Date | null>(null);
+  const [time, setTime] = useState<Date | null>(null);
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
 
@@ -33,7 +34,7 @@ export default function AstrologyScreen() {
       ), -1, true
     );
     
-    // Set default location text if user has one
+    // Load existing user data if available
     if (user?.birthLocation) {
       setLocation(user.birthLocation);
       if (user.latitude && user.longitude) {
@@ -43,20 +44,34 @@ export default function AstrologyScreen() {
         });
       }
     }
-  }, []);
+    
+    // Load existing birth date/time if available
+    if (user?.birthDate) {
+      setDate(new Date(user.birthDate));
+    }
+    if (user?.birthTime) {
+      // Parse time string (HH:MM:SS) and create a Date object
+      const [hours, minutes] = user.birthTime.split(':');
+      const timeDate = new Date();
+      timeDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      setTime(timeDate);
+    }
+  }, [user]);
   
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios');
-    setDate(currentDate);
+    if (selectedDate) {
+      setDate(selectedDate);
+    }
   };
 
   const onTimeChange = (event: any, selectedTime?: Date) => {
-    const currentTime = selectedTime || time;
     setShowTimePicker(Platform.OS === 'ios');
-    setTime(currentTime);
+    if (selectedTime) {
+      setTime(selectedTime);
+    }
   };
 
   const handleLocationChange = (newLocation: string, newCoordinates?: { latitude: number; longitude: number }) => {
@@ -93,8 +108,8 @@ export default function AstrologyScreen() {
     setLoading(true);
 
     const updates = {
-      birthDate: date.toISOString().split('T')[0], // YYYY-MM-DD
-      birthTime: time.toTimeString().split(' ')[0], // HH:MM:SS
+      birthDate: date!.toISOString().split('T')[0], // YYYY-MM-DD
+      birthTime: time ? time.toTimeString().split(' ')[0] : '12:00:00', // HH:MM:SS or default noon
       birthLocation: location.trim(),
       latitude: coordinates?.latitude || null,
       longitude: coordinates?.longitude || null,
@@ -123,14 +138,40 @@ export default function AstrologyScreen() {
     }
   };
 
-  const renderInput = (icon: React.ReactNode, placeholder: string, value: string, onPress: () => void) => (
-    <Pressable onPress={onPress}>
-      <View style={styles.inputContainer}>
-        {icon}
-        <Text style={[styles.inputText, value ? styles.inputTextValue : {}]}>
-          {value || placeholder}
-        </Text>
-      </View>
+  const formatDate = (date: Date | null) => {
+    if (!date) return '';
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (time: Date | null) => {
+    if (!time) return '';
+    return time.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const renderDateInput = () => (
+    <Pressable onPress={() => setShowDatePicker(true)} style={styles.inputContainer}>
+      <Calendar size={20} color="#94a3b8" style={styles.inputIcon} />
+      <Text style={[styles.inputText, date ? styles.inputTextValue : {}]}>
+        {date ? formatDate(date) : 'Select your birth date'}
+      </Text>
+      {!date && <Text style={styles.requiredIndicator}>*</Text>}
+    </Pressable>
+  );
+
+  const renderTimeInput = () => (
+    <Pressable onPress={() => setShowTimePicker(true)} style={styles.inputContainer}>
+      <Clock size={20} color="#94a3b8" style={styles.inputIcon} />
+      <Text style={[styles.inputText, time ? styles.inputTextValue : {}]}>
+        {time ? formatTime(time) : 'Select birth time (optional)'}
+      </Text>
     </Pressable>
   );
 
@@ -149,19 +190,8 @@ export default function AstrologyScreen() {
         </View>
         
         <View style={styles.inputGroup}>
-          {renderInput(
-            <Calendar size={20} color="#94a3b8" style={styles.inputIcon} />,
-            'Birthdate (YYYY-MM-DD)',
-            date ? date.toLocaleDateString() : '',
-            () => setShowDatePicker(true)
-          )}
-          
-          {renderInput(
-            <Clock size={20} color="#94a3b8" style={styles.inputIcon} />,
-            'Birth Time (optional)',
-            time ? time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            () => setShowTimePicker(true)
-          )}
+          {renderDateInput()}
+          {renderTimeInput()}
 
           <LocationInput
             value={location}
@@ -176,38 +206,76 @@ export default function AstrologyScreen() {
               <Text style={styles.coordinatesText}>
                 📍 Coordinates: {coordinates.latitude.toFixed(4)}, {coordinates.longitude.toFixed(4)}
               </Text>
+              <Text style={styles.coordinatesSubtext}>
+                Perfect for accurate astrology charts
+              </Text>
             </View>
           )}
+
+          {/* Progress indicator */}
+          <View style={styles.progressContainer}>
+            <View style={styles.progressItem}>
+              <View style={[styles.progressDot, date && styles.progressDotComplete]} />
+              <Text style={[styles.progressText, date && styles.progressTextComplete]}>Birth Date</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressItem}>
+              <View style={[styles.progressDot, time && styles.progressDotComplete]} />
+              <Text style={[styles.progressText, time && styles.progressTextComplete]}>Birth Time</Text>
+            </View>
+            <View style={styles.progressLine} />
+            <View style={styles.progressItem}>
+              <View style={[styles.progressDot, coordinates && styles.progressDotComplete]} />
+              <Text style={[styles.progressText, coordinates && styles.progressTextComplete]}>Location</Text>
+            </View>
+          </View>
         </View>
       </View>
       
       {showDatePicker && (
         <DateTimePicker
           testID="datePicker"
-          value={date}
+          value={date || new Date(1990, 0, 1)} // Default to Jan 1, 1990 if no date selected
           mode="date"
-          display="spinner"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onDateChange}
+          maximumDate={new Date()} // Can't be born in the future
+          minimumDate={new Date(1900, 0, 1)} // Reasonable minimum date
         />
       )}
       
       {showTimePicker && (
         <DateTimePicker
           testID="timePicker"
-          value={time}
+          value={time || new Date(2000, 0, 1, 12, 0)} // Default to noon if no time selected
           mode="time"
-          display="spinner"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={onTimeChange}
         />
       )}
 
       <View style={styles.buttonContainer}>
-        <Pressable onPress={handleContinue} disabled={loading} style={styles.primaryButton}>
-            {loading ? 
-              <ActivityIndicator color="#0f172a" /> : 
-              <Text style={styles.primaryButtonText}>Generate My Map</Text>
-            }
+        <Pressable 
+          onPress={handleContinue} 
+          disabled={loading || !date || !location.trim()} 
+          style={[styles.primaryButton, (loading || !date || !location.trim()) && styles.primaryButtonDisabled]}
+        >
+          {loading ? (
+            <ActivityIndicator color="#0f172a" />
+          ) : (
+            <Text style={[styles.primaryButtonText, (loading || !date || !location.trim()) && styles.primaryButtonTextDisabled]}>
+              Generate My Map
+            </Text>
+          )}
         </Pressable>
+        
+        {/* Helper text */}
+        <Text style={styles.buttonHelperText}>
+          {!date ? 'Please select your birth date' : 
+           !location.trim() ? 'Please enter your birth location' :
+           !coordinates ? 'Searching for coordinates...' :
+           'Ready to create your energetic map'}
+        </Text>
       </View>
     </KeyboardAvoidingView>
   );
@@ -240,7 +308,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.8)',
     borderRadius: 12, borderWidth: 1, borderColor: '#334155',
-    minHeight: 58,
+    minHeight: 58, position: 'relative',
   },
   inputIcon: { marginHorizontal: 16 },
   inputText: {
@@ -250,12 +318,19 @@ const styles = StyleSheet.create({
   inputTextValue: {
     color: '#F8FAFC',
   },
+  requiredIndicator: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#ef4444',
+    marginRight: 16,
+  },
   coordinatesDisplay: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
     borderRadius: 8,
     padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.3)',
+    alignItems: 'center',
   },
   coordinatesText: {
     fontSize: 12,
@@ -263,12 +338,76 @@ const styles = StyleSheet.create({
     color: '#10b981',
     textAlign: 'center',
   },
-  buttonContainer: { paddingHorizontal: 32, paddingBottom: 40, paddingTop: 20 },
+  coordinatesSubtext: {
+    fontSize: 10,
+    fontFamily: 'Inter-Regular',
+    color: '#6ee7b7',
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  progressItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  progressDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#334155',
+    marginBottom: 8,
+  },
+  progressDotComplete: {
+    backgroundColor: '#10b981',
+  },
+  progressText: {
+    fontSize: 10,
+    fontFamily: 'Inter-Medium',
+    color: '#64748b',
+    textAlign: 'center',
+  },
+  progressTextComplete: {
+    color: '#10b981',
+  },
+  progressLine: {
+    height: 2,
+    backgroundColor: '#334155',
+    flex: 0.5,
+    marginHorizontal: 8,
+    marginBottom: 20,
+  },
+  buttonContainer: { paddingHorizontal: 32, paddingBottom: 40, paddingTop: 20, alignItems: 'center' },
   primaryButton: {
     backgroundColor: '#f59e0b',
     borderRadius: 12, paddingVertical: 18, alignItems: 'center',
     shadowColor: '#f59e0b', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,
+    width: '100%',
   },
-  primaryButtonText: { fontSize: 18, fontFamily: 'Inter-SemiBold', color: '#0f172a' },
+  primaryButtonDisabled: {
+    backgroundColor: '#64748b',
+    shadowOpacity: 0,
+  },
+  primaryButtonText: { 
+    fontSize: 18, 
+    fontFamily: 'Inter-SemiBold', 
+    color: '#0f172a' 
+  },
+  primaryButtonTextDisabled: {
+    color: '#334155',
+  },
+  buttonHelperText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Regular',
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 12,
+    maxWidth: 280,
+  },
 });

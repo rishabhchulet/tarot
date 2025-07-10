@@ -426,6 +426,24 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
     if (updates.archetype !== undefined) {
       updateData.archetype = updates.archetype;
     }
+    if (updates.birthDate !== undefined) {
+      updateData.birth_date = updates.birthDate;
+    }
+    if (updates.birthTime !== undefined) {
+      updateData.birth_time = updates.birthTime;
+    }
+    if (updates.birthLocation !== undefined) {
+      updateData.birth_location = updates.birthLocation;
+    }
+    if (updates.latitude !== undefined) {
+      updateData.latitude = updates.latitude;
+    }
+    if (updates.longitude !== undefined) {
+      updateData.longitude = updates.longitude;
+    }
+    if (updates.onboardingStep !== undefined) {
+      updateData.onboarding_step = updates.onboardingStep;
+    }
 
     // Update the users table
     const { error } = await supabase

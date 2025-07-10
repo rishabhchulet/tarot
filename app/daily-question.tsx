@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, BookOpen, Repeat, Home } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Repeat, Chrome as Home } from 'lucide-react-native';
 import { getTodaysEntry } from '@/utils/database';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
 

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator } from 'react-native';
-import { MapPin, Navigation, Search } from 'lucide-react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator, ScrollView } from 'react-native';
+import { MapPin, Navigation, Search, X } from 'lucide-react-native';
 import { geocodeLocation, getCurrentLocation } from '@/utils/geocoding';
 
 interface LocationInputProps {
@@ -9,6 +9,20 @@ interface LocationInputProps {
   placeholder?: string;
   disabled?: boolean;
 }
+
+// Extended list of popular cities for better suggestions
+const POPULAR_CITIES = [
+  'New York', 'London', 'Paris', 'Tokyo', 'Sydney', 'Toronto', 'Berlin', 'Mumbai', 
+  'Beijing', 'Moscow', 'Los Angeles', 'Chicago', 'San Francisco', 'Miami', 'Vancouver',
+  'Mexico City', 'Buenos Aires', 'São Paulo', 'Rio de Janeiro', 'Cape Town', 'Cairo',
+  'Dubai', 'Singapore', 'Hong Kong', 'Seoul', 'Bangkok', 'Jakarta', 'Manila', 'Delhi',
+  'Bangalore', 'Kolkata', 'Chennai', 'Karachi', 'Lahore', 'Dhaka', 'Istanbul', 'Madrid',
+  'Barcelona', 'Rome', 'Milan', 'Amsterdam', 'Brussels', 'Zurich', 'Vienna', 'Stockholm',
+  'Oslo', 'Copenhagen', 'Helsinki', 'Warsaw', 'Prague', 'Budapest', 'Bucharest', 'Athens',
+  'Lisbon', 'Dublin', 'Edinburgh', 'Manchester', 'Birmingham', 'Glasgow', 'Montreal',
+  'Calgary', 'Ottawa', 'Edmonton', 'Winnipeg', 'Quebec City', 'Halifax', 'Melbourne',
+  'Brisbane', 'Perth', 'Adelaide', 'Auckland', 'Wellington', 'Christchurch'
+];
 
 export function LocationInput({ 
   value, 
@@ -19,11 +33,24 @@ export function LocationInput({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleLocationSearch = async () => {
-    if (!value.trim() || loading) return;
+  // Auto-search for coordinates when user stops typing
+  useEffect(() => {
+    if (value.trim() && value.length > 2) {
+      const timeoutId = setTimeout(() => {
+        autoSearchCoordinates();
+      }, 1500); // Wait 1.5 seconds after user stops typing
 
-    setLoading(true);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [value]);
+
+  const autoSearchCoordinates = async () => {
+    if (!value.trim() || loading || isSearching) return;
+
+    setIsSearching(true);
     setError(null);
 
     try {
@@ -35,7 +62,33 @@ export function LocationInput({
           longitude: result.coordinates.longitude
         });
         setError(null);
-        console.log('📍 Location found:', result.coordinates);
+        console.log('📍 Auto-found location:', result.coordinates);
+      }
+    } catch (err: any) {
+      // Don't show error for auto-search, just log it
+      console.log('Auto-search failed:', err.message);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleLocationSearch = async () => {
+    if (!value.trim() || loading) return;
+
+    setLoading(true);
+    setError(null);
+    setShowSuggestions(false);
+
+    try {
+      const result = await geocodeLocation(value.trim());
+      
+      if (result.coordinates) {
+        onLocationChange(value.trim(), {
+          latitude: result.coordinates.latitude,
+          longitude: result.coordinates.longitude
+        });
+        setError(null);
+        console.log('📍 Manual search - location found:', result.coordinates);
       } else {
         setError(result.error || 'Location not found');
       }
@@ -49,6 +102,7 @@ export function LocationInput({
   const handleCurrentLocation = async () => {
     setLoading(true);
     setError(null);
+    setShowSuggestions(false);
 
     try {
       const result = await getCurrentLocation();
@@ -74,20 +128,35 @@ export function LocationInput({
     onLocationChange(text);
     setError(null);
     
-    // Simple suggestions based on common city patterns
-    if (text.length > 2) {
-      const commonCities = [
-        'New York', 'London', 'Paris', 'Tokyo', 'Sydney', 'Toronto', 
-        'Berlin', 'Mumbai', 'Beijing', 'Moscow', 'Los Angeles', 'Chicago'
-      ];
-      
-      const filtered = commonCities.filter(city => 
+    // Generate suggestions based on input
+    if (text.length > 1) {
+      const filtered = POPULAR_CITIES.filter(city => 
         city.toLowerCase().includes(text.toLowerCase())
       );
-      setSuggestions(filtered.slice(0, 3));
+      setSuggestions(filtered.slice(0, 5)); // Show top 5 matches
+      setShowSuggestions(filtered.length > 0);
     } else {
       setSuggestions([]);
+      setShowSuggestions(false);
     }
+  };
+
+  const handleSuggestionSelect = (suggestion: string) => {
+    onLocationChange(suggestion);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    
+    // Auto-search for coordinates after selection
+    setTimeout(() => {
+      autoSearchCoordinates();
+    }, 100);
+  };
+
+  const clearInput = () => {
+    onLocationChange('');
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setError(null);
   };
 
   return (
@@ -103,20 +172,63 @@ export function LocationInput({
           editable={!disabled && !loading}
           onSubmitEditing={handleLocationSearch}
           returnKeyType="search"
+          onFocus={() => {
+            if (suggestions.length > 0) {
+              setShowSuggestions(true);
+            }
+          }}
         />
         
-        {loading ? (
+        {/* Loading indicator for auto-search */}
+        {isSearching && (
           <ActivityIndicator size="small" color="#f59e0b" style={styles.actionButton} />
-        ) : (
-          <Pressable 
-            style={styles.actionButton} 
-            onPress={handleLocationSearch}
-            disabled={!value.trim() || disabled}
-          >
-            <Search size={16} color={value.trim() && !disabled ? "#f59e0b" : "#64748b"} />
+        )}
+        
+        {/* Clear button */}
+        {value.length > 0 && !loading && !isSearching && (
+          <Pressable style={styles.actionButton} onPress={clearInput}>
+            <X size={16} color="#64748b" />
           </Pressable>
         )}
+        
+        {/* Manual search button */}
+        {!isSearching && (
+          <>
+            {loading ? (
+              <ActivityIndicator size="small" color="#f59e0b" style={styles.actionButton} />
+            ) : (
+              <Pressable 
+                style={styles.actionButton} 
+                onPress={handleLocationSearch}
+                disabled={!value.trim() || disabled}
+              >
+                <Search size={16} color={value.trim() && !disabled ? "#f59e0b" : "#64748b"} />
+              </Pressable>
+            )}
+          </>
+        )}
       </View>
+
+      {/* Suggestions Dropdown */}
+      {showSuggestions && suggestions.length > 0 && (
+        <View style={styles.suggestionsContainer}>
+          <ScrollView style={styles.suggestionsList} nestedScrollEnabled>
+            {suggestions.map((suggestion, index) => (
+              <Pressable
+                key={index}
+                style={[
+                  styles.suggestionItem,
+                  index === suggestions.length - 1 && styles.suggestionItemLast
+                ]}
+                onPress={() => handleSuggestionSelect(suggestion)}
+              >
+                <MapPin size={14} color="#64748b" />
+                <Text style={styles.suggestionText}>{suggestion}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Current Location Button */}
       <Pressable 
@@ -130,34 +242,18 @@ export function LocationInput({
         </Text>
       </Pressable>
 
-      {/* Suggestions */}
-      {suggestions.length > 0 && (
-        <View style={styles.suggestionsContainer}>
-          {suggestions.map((suggestion, index) => (
-            <Pressable
-              key={index}
-              style={styles.suggestionItem}
-              onPress={() => {
-                onLocationChange(suggestion);
-                setSuggestions([]);
-                // Auto-search for coordinates
-                setTimeout(() => handleLocationSearch(), 100);
-              }}
-            >
-              <Text style={styles.suggestionText}>{suggestion}</Text>
-            </Pressable>
-          ))}
-        </View>
-      )}
-
       {/* Error Message */}
       {error && (
-        <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorHint}>Try entering a major city name like "New York" or "London"</Text>
+        </View>
       )}
 
       {/* Helper Text */}
       <Text style={styles.helperText}>
-        Enter a city name to get coordinates for your astrology chart
+        {isSearching ? 'Searching for coordinates...' : 
+         'Enter a city name to get coordinates for your astrology chart'}
       </Text>
     </View>
   );
@@ -166,6 +262,7 @@ export function LocationInput({
 const styles = StyleSheet.create({
   container: {
     gap: 8,
+    position: 'relative',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -217,28 +314,60 @@ const styles = StyleSheet.create({
     color: '#64748b',
   },
   suggestionsContainer: {
-    backgroundColor: 'rgba(30, 41, 59, 0.9)',
+    position: 'absolute',
+    top: 58,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(30, 41, 59, 0.95)',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#334155',
-    overflow: 'hidden',
+    maxHeight: 200,
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  suggestionsList: {
+    maxHeight: 200,
   },
   suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#334155',
+    gap: 12,
+  },
+  suggestionItemLast: {
+    borderBottomWidth: 0,
   },
   suggestionText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#F8FAFC',
+    flex: 1,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
   },
   errorText: {
     fontSize: 12,
-    fontFamily: 'Inter-Regular',
+    fontFamily: 'Inter-Medium',
     color: '#ef4444',
-    marginTop: 4,
+    marginBottom: 4,
+  },
+  errorHint: {
+    fontSize: 11,
+    fontFamily: 'Inter-Regular',
+    color: '#fca5a5',
   },
   helperText: {
     fontSize: 12,

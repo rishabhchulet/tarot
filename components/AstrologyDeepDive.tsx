@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { BarChart3, PieChart } from 'lucide-react-native';
+import { ChartBar as BarChart3, ChartPie as PieChart } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { AstrologyCharts } from './AstrologyCharts';
 

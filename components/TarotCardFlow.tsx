@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Image, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { 
@@ -17,104 +17,7 @@ import { router } from 'expo-router';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-type FlowStep = 'card-back' | 'card-and-iching' | 'keywords-only' | 'reflection-questions';
-
-export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
-  const [currentStep, setCurrentStep] = useState<FlowStep>('card-back');
-  const [selectedCard] = useState(() => {
-    const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
-    return TAROT_CARDS[randomIndex];
-  });
-  const [selectedHexagram] = useState(() => {
-    const randomIndex = Math.floor(Math.random() * I_CHING_HEXAGRAMS.length);
-    return I_CHING_HEXAGRAMS[randomIndex];
-  });
-
-  const flipAnimation = useSharedValue(0);
-  const glowAnimation = useSharedValue(0);
-  const scaleAnimation = useSharedValue(0.8);
-  const borderAnimation = useSharedValue(0);
-
-  const handleRevealCard = () => {
-    console.log('🎴 Card reveal triggered!');
-    
-    glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
-    borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
-    
-    scaleAnimation.value = withSequence(
-      withTiming(1.05, { duration: 800, easing: Easing.out(Easing.cubic) }),
-      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
-    );
-    
-    flipAnimation.value = withDelay(1200, withTiming(1, { 
-      duration: 1200, 
-      easing: Easing.inOut(Easing.cubic) 
-    }));
-    
-    setTimeout(() => {
-      setCurrentStep('card-and-iching');
-    }, 2000);
-  };
-
-  const handleShowKeywords = () => {
-    setCurrentStep('keywords-only');
-  };
-
-  const handleShowReflection = () => {
-    setCurrentStep('reflection-questions');
-  };
-
-  const handleReflectionComplete = () => {
-    console.log('⭐ Reflection complete callback triggered');
-    if (onComplete) {
-      onComplete();
-    } else {
-      // Fallback navigation if no callback provided
-      router.replace('/daily-question');
-    }
-  };
-
-  const frontAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipAnimation.value, [0, 1], [0, 180], 'clamp');
-    return {
-      transform: [
-        { scale: scaleAnimation.value },
-        { rotateY: `${rotateY}deg` }
-      ],
-      opacity: interpolate(flipAnimation.value, [0, 0.5], [1, 0], 'clamp'),
-    };
-  });
-
-  const backAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipAnimation.value, [0, 1], [180, 360], 'clamp');
-    return {
-      transform: [
-        { scale: scaleAnimation.value },
-        { rotateY: `${rotateY}deg` }
-      ],
-      opacity: interpolate(flipAnimation.value, [0.5, 1], [0, 1], 'clamp'),
-    };
-  });
-
-  const glowAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: glowAnimation.value,
-      transform: [
-        { scale: interpolate(glowAnimation.value, [0, 1], [0.8, 1.2], 'clamp') }
-      ],
-    };
-  });
-
-  const borderAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: borderAnimation.value,
-      transform: [
-        { scale: interpolate(borderAnimation.value, [0, 1], [0.9, 1.1], 'clamp') }
-      ],
-    };
-  });
-
-  const getIChingEssence = (hexagram: any) => {
+const getIChingEssence = (hexagram: any) => {
     const essenceMap: { [key: string]: string } = {
       'The Creative': 'Creation',
       'The Receptive': 'Receptivity',
@@ -168,7 +71,103 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     return keywordMap[hexagram.name] || ['Wisdom', 'Growth', 'Understanding'];
   };
 
-  const renderCardBack = () => (
+type FlowStep = 'card-and-iching' | 'keywords-only' | 'reflection-questions';
+
+export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
+  const [currentStep, setCurrentStep] = useState<FlowStep>('card-and-iching');
+  const [selectedCard] = useState(() => {
+    const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
+    return TAROT_CARDS[randomIndex];
+  });
+  const [selectedHexagram] = useState(() => {
+    const randomIndex = Math.floor(Math.random() * I_CHING_HEXAGRAMS.length);
+    return I_CHING_HEXAGRAMS[randomIndex];
+  });
+
+  const flipAnimation = useSharedValue(0);
+  const glowAnimation = useSharedValue(0);
+  const scaleAnimation = useSharedValue(0.8);
+  const borderAnimation = useSharedValue(0);
+
+  useEffect(() => {
+    handleRevealCard();
+  }, []);
+
+  const handleRevealCard = () => {
+    console.log('🎴 Card reveal triggered!');
+    
+    glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
+    
+    scaleAnimation.value = withSequence(
+      withTiming(1.05, { duration: 800, easing: Easing.out(Easing.cubic) }),
+      withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
+    );
+    
+    flipAnimation.value = withDelay(1200, withTiming(1, { 
+      duration: 1200, 
+      easing: Easing.inOut(Easing.cubic) 
+    }));
+    
+    setTimeout(() => {
+      setCurrentStep('card-and-iching');
+    }, 2000);
+  };
+
+  const handleShowKeywords = () => {
+    setCurrentStep('keywords-only');
+  };
+
+  const handleShowReflection = () => {
+    setCurrentStep('reflection-questions');
+  };
+
+  const handleReflectionComplete = () => {
+    console.log('⭐ Reflection complete callback triggered');
+    if (onComplete) {
+      onComplete();
+    } else {
+      // Fallback navigation if no callback provided
+      router.replace('/daily-question');
+    }
+  };
+
+  const frontAnimatedStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipAnimation.value, [0, 1], [0, 180], 'clamp');
+    return {
+      transform: [
+        { scale: scaleAnimation.value },
+        { rotateY: `${rotateY}deg` }
+      ],
+      opacity: interpolate(flipAnimation.value, [0, 0.5], [1, 0], 'clamp'),
+    };
+  });
+
+  const backAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { perspective: 1000 },
+        { rotateY: `${interpolate(flipAnimation.value, [0, 1], [180, 360])}deg` },
+        { scale: scaleAnimation.value }
+      ],
+    };
+  });
+
+  const glowAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: glowAnimation.value,
+      transform: [{ scale: glowAnimation.value * 1.5 }]
+    };
+  });
+
+  const borderAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: borderAnimation.value,
+      transform: [{ scale: 1 + borderAnimation.value * 0.1 }]
+    };
+  });
+
+  const renderCardAndIching = () => (
     <View style={styles.stepContainer}>
       <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
       <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
@@ -192,33 +191,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
           >
             <View style={styles.innerBorder}>
               <Image
-                source={require('@/assets/images/back of the deck.jpeg')}
-                style={styles.cardBackImage}
-                resizeMode="cover"
-              />
-              <View style={styles.lightEffect1} />
-              <View style={styles.tapHintOverlay}>
-                <Text style={styles.tapHint}>✨ Tap to reveal your message ✨</Text>
-              </View>
-            </View>
-          </LinearGradient>
-        </Animated.View>
-      </Pressable>
-    </View>
-  );
-
-  const renderCardAndIching = () => (
-    <View style={styles.stepContainer}>
-      <View style={styles.cardCenterContainer}>
-        <Animated.View style={[styles.cardContainer, styles.cardFront, backAnimatedStyle]}>
-          <LinearGradient
-            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
-          >
-            <View style={styles.innerBorder}>
-              <Image
                 source={{ uri: selectedCard.imageUrl }}
                 style={styles.cardFrontImage}
                 resizeMode="cover"
@@ -226,16 +198,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
             </View>
           </LinearGradient>
         </Animated.View>
-      </View>
-
-      <View style={styles.ichingContainer}>
-        <Text style={styles.ichingTitle}>I Ching Guidance</Text>
-        <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
-        <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
-      </View>
-
-      <Pressable style={styles.continueButton} onPress={handleShowKeywords}>
-        <Text style={styles.continueButtonText}>Continue</Text>
       </Pressable>
     </View>
   );
@@ -284,8 +246,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 'card-back':
-        return renderCardBack();
       case 'card-and-iching':
         return renderCardAndIching();
       case 'keywords-only':
@@ -293,7 +253,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
       case 'reflection-questions':
         return renderReflectionQuestions();
       default:
-        return renderCardBack();
+        return renderCardAndIching();
     }
   };
 

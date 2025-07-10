@@ -26,7 +26,7 @@ export function DailyReflectionCard() {
   });
 
   const handlePress = () => {
-    router.push('/draw');
+    router.push('/draw-prompt');
   };
 
   return (

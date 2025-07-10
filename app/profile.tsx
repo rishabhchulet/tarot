@@ -1,308 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { ArrowLeft, Save, User, Mail, Heart } from 'lucide-react-native';
+import { ArrowLeft, Save, User, Sun, Moon, Star } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
 
 const FOCUS_AREAS = [
-  { id: 'inner', title: 'Inner Development', icon: Heart },
-  { id: 'relationships', title: 'Relationships', icon: User },
-  { id: 'money', title: 'Money & Resources', icon: Mail },
-  { id: 'health', title: 'Physical & Mental Health', icon: Heart },
+  { id: 'inner_development', title: 'Inner Development', icon: Sun },
+  { id: 'relationships', title: 'Relationships', icon: Moon },
+  { id: 'career_finance', title: 'Career & Finance', icon: Star },
+  { id: 'wellbeing', title: 'Wellbeing', icon: User },
 ];
 
 export default function ProfileScreen() {
   const { user, refreshUser } = useAuth();
-  const [name, setName] = useState(user?.name || '');
-  const [email] = useState(user?.email || '');
-  const [selectedFocusArea, setSelectedFocusArea] = useState(user?.focusArea || '');
+  const [name, setName] = useState('');
+  const [selectedFocusArea, setSelectedFocusArea] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setName(user.name);
-      setSelectedFocusArea(user.focusArea || '');
+      setName(user.name || '');
+      setSelectedFocusArea(user.archetype || '');
     }
   }, [user]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter your name');
+      Alert.alert('Name Required', 'Please enter your name.');
       return;
     }
-
     setLoading(true);
-
     try {
-      console.log('💾 Updating profile...');
-      const { error } = await updateUserProfile({
-        name: name.trim(),
-        focusArea: selectedFocusArea,
-      });
-
-      if (error) {
-        console.error('❌ Error updating profile:', error);
-        Alert.alert('Error', 'Failed to update profile. Please try again.');
-      } else {
-        console.log('✅ Profile updated successfully');
-        await refreshUser();
-        Alert.alert(
-          'Success',
-          'Your profile has been updated successfully!',
-          [
-            {
-              text: 'OK',
-              onPress: () => router.back(),
-            }
-          ]
-        );
-      }
+      await updateUserProfile({ name: name.trim(), archetype: selectedFocusArea });
+      await refreshUser();
+      Alert.alert('Profile Saved', 'Your information has been updated.', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (error) {
-      console.error('💥 Unexpected error updating profile:', error);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      Alert.alert('Error', 'Could not save profile. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const getFocusAreaTitle = (id: string) => {
-    const area = FOCUS_AREAS.find(area => area.id === id);
-    return area ? area.title : 'Not selected';
-  };
+  }, [name, selectedFocusArea, refreshUser]);
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
-        style={StyleSheet.absoluteFill}
-      />
+    <SafeAreaView style={styles.container}>
+      <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
       <View style={styles.header}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#F9FAFB" />
+          <ArrowLeft size={24} color="#F3F4F6" />
         </Pressable>
-        <Text style={styles.title}>Profile</Text>
-        <View style={styles.placeholder} />
+        <Text style={styles.title}>Edit Profile</Text>
+        <Pressable style={styles.saveButton} onPress={handleSave} disabled={loading}>
+          {loading ? <ActivityIndicator color="#A78BFA" /> : <Save size={24} color="#A78BFA" />}
+        </Pressable>
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter your full name"
-              placeholderTextColor="#9CA3AF"
-              autoCapitalize="words"
-              autoCorrect={false}
-            />
-          </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Name</Text>
+          <TextInput
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Your name"
+            placeholderTextColor="#6B7280"
+          />
+        </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email Address</Text>
-            <TextInput
-              style={[styles.input, styles.inputDisabled]}
-              value={email}
-              editable={false}
-              placeholder="Email address"
-              placeholderTextColor="#9CA3AF"
-            />
-            <Text style={styles.helperText}>Email cannot be changed</Text>
-          </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={[styles.input, styles.inputDisabled]}
+            value={user?.email || ''}
+            editable={false}
+          />
+        </View>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Focus Area</Text>
-            <View style={styles.focusAreaContainer}>
-              <Text style={styles.focusAreaText}>
-                {getFocusAreaTitle(selectedFocusArea)}
-              </Text>
-              <Text style={styles.helperText}>
-                This helps personalize your daily guidance
-              </Text>
-            </View>
-            
-            <View style={styles.focusOptions}>
-              {FOCUS_AREAS.map((area) => {
-                const IconComponent = area.icon;
-                const isSelected = selectedFocusArea === area.id;
-                
-                return (
-                  <Pressable
-                    key={area.id}
-                    style={[styles.focusOption, isSelected && styles.focusOptionSelected]}
-                    onPress={() => setSelectedFocusArea(area.id)}
-                  >
-                    <View style={[styles.focusIconContainer, isSelected && styles.focusIconContainerSelected]}>
-                      <IconComponent 
-                        size={20} 
-                        color={isSelected ? '#F59E0B' : '#9CA3AF'} 
-                        strokeWidth={2}
-                      />
-                    </View>
-                    <Text style={[styles.focusOptionTitle, isSelected && styles.focusOptionTitleSelected]}>
-                      {area.title}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Primary Focus</Text>
+          <Text style={styles.subtitle}>This helps tailor your experience.</Text>
+          <View style={styles.focusGrid}>
+            {FOCUS_AREAS.map((area) => {
+              const Icon = area.icon;
+              const isSelected = selectedFocusArea === area.id;
+              return (
+                <Pressable
+                  key={area.id}
+                  style={[styles.focusOption, isSelected && styles.focusOptionSelected]}
+                  onPress={() => setSelectedFocusArea(area.id)}
+                >
+                  <Icon size={28} color={isSelected ? '#F9FAFB' : '#A1A1AA'} />
+                  <Text style={[styles.focusOptionText, isSelected && styles.focusOptionTextSelected]}>
+                    {area.title}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
-
-          <Pressable
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            <View style={[styles.saveButtonSolid, loading && styles.saveButtonSolidDisabled]}>
-              <Save size={20} color="#F9FAFB" />
-              <Text style={styles.saveButtonText}>
-                {loading ? 'Saving...' : 'Save Changes'}
-              </Text>
-            </View>
-          </Pressable>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: '#0a0a0a' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-  },
-  backButton: {
-    padding: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
-  },
-  placeholder: {
-    width: 40,
-  },
-  scrollView: {
-    flex: 1,
-    paddingHorizontal: 24,
-  },
-  form: {
-    paddingBottom: 40,
-  },
-  inputContainer: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#F9FAFB',
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingVertical: 12,
+  },
+  backButton: { padding: 8 },
+  title: { fontFamily: 'Inter-Bold', fontSize: 20, color: '#F9FAFB' },
+  saveButton: { padding: 8 },
+  scrollView: { flex: 1, paddingHorizontal: 24, paddingTop: 16 },
+  formGroup: { marginBottom: 32 },
+  label: {
+    fontFamily: 'Inter-SemiBold',
     fontSize: 16,
+    color: '#E4E4E7',
+    marginBottom: 12,
+  },
+  subtitle: {
     fontFamily: 'Inter-Regular',
-    color: '#F9FAFB',
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
-  },
-  inputDisabled: {
-    backgroundColor: 'rgba(30, 58, 138, 0.05)',
-    color: '#6B7280',
-  },
-  helperText: {
     fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    marginTop: 6,
-  },
-  focusAreaContainer: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
+    color: '#A1A1AA',
     marginBottom: 16,
   },
-  focusAreaText: {
+  input: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 10,
+    padding: 16,
+    fontFamily: 'Inter-Regular',
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#1e3a8a',
-    marginBottom: 4,
+    color: '#F9FAFB',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  focusOptions: {
+  inputDisabled: { color: '#6B7280' },
+  focusGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
     gap: 12,
   },
   focusOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
+    width: '48%',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 12,
-    padding: 16,
+    padding: 20,
+    alignItems: 'center',
+    gap: 12,
     borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   focusOptionSelected: {
-    backgroundColor: 'rgba(30, 58, 138, 0.15)',
-    borderColor: '#1e3a8a',
+    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+    borderColor: 'rgba(167, 139, 250, 0.5)',
   },
-  focusIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
+  focusOptionText: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    color: '#A1A1AA',
   },
-  focusIconContainerSelected: {
-    backgroundColor: 'rgba(30, 58, 138, 0.15)',
-  },
-  focusOptionTitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
+  focusOptionTextSelected: {
     color: '#F9FAFB',
-    flex: 1,
-  },
-  focusOptionTitleSelected: {
-    color: '#1e3a8a',
-  },
-  saveButton: {
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginTop: 24,
-  },
-  saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonSolid: {
-    backgroundColor: '#374151',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    gap: 8,
-  },
-  saveButtonSolidDisabled: {
-    backgroundColor: '#4B5563',
-  },
-  saveButtonText: {
-    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    color: '#F9FAFB',
   },
 });

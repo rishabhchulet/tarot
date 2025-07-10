@@ -7,7 +7,7 @@ export function FreeReadingCard() {
   const handlePress = () => {
     // This will eventually navigate to a different card drawing flow
     // For now, it can point to the same one
-    router.push('/draw');
+    router.push('/draw-prompt');
   };
 
   return (

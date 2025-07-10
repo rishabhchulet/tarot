@@ -1,249 +1,187 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getJournalEntries } from '@/utils/database';
-import { Calendar as CalendarIcon, TrendingUp } from 'lucide-react-native';
+import { Calendar, CalendarUtils } from 'react-native-calendars';
+import { router, useFocusEffect } from 'expo-router';
+import { BookText, TrendingUp, Sparkles } from 'lucide-react-native';
 
-export default function CalendarScreen() {
+const INITIAL_DATE = CalendarUtils.getToday();
+
+export default function HistoryScreen() {
   const [entries, setEntries] = useState<any[]>([]);
-  const [streak, setStreak] = useState(0);
+  const [selectedDate, setSelectedDate] = useState(INITIAL_DATE);
 
-  useEffect(() => {
-    loadEntries();
-  }, []);
-
-  const loadEntries = async () => {
+  const loadEntries = useCallback(async () => {
     const journalEntries = await getJournalEntries();
     setEntries(journalEntries);
-    calculateStreak(journalEntries);
-  };
+  }, []);
 
-  const calculateStreak = (entries: any[]) => {
-    // Simple streak calculation - consecutive days
-    const today = new Date().toDateString();
-    let currentStreak = 0;
-    
-    // Sort entries by date (most recent first)
-    const sortedEntries = entries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
-    for (let i = 0; i < sortedEntries.length; i++) {
-      const entryDate = new Date(sortedEntries[i].date).toDateString();
-      const expectedDate = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toDateString();
-      
-      if (entryDate === expectedDate) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-    
-    setStreak(currentStreak);
-  };
+  useFocusEffect(
+    useCallback(() => {
+      loadEntries();
+    }, [loadEntries])
+  );
 
-  const groupEntriesByMonth = () => {
-    const grouped: { [key: string]: any[] } = {};
-    
+  const markedDates = useMemo(() => {
+    const marked: { [key: string]: any } = {};
     entries.forEach(entry => {
-      const date = new Date(entry.date);
-      const monthKey = date.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
-      
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = [];
-      }
-      grouped[monthKey].push(entry);
+      const dateString = CalendarUtils.getCalendarDateString(entry.date);
+      marked[dateString] = {
+        marked: true,
+        dotColor: '#A78BFA',
+        // customStyles: { ... }
+      };
     });
-    
-    return grouped;
-  };
+    if (marked[selectedDate]) {
+      marked[selectedDate].selected = true;
+    } else {
+      marked[selectedDate] = { selected: true, selectedColor: '#3B82F6' };
+    }
+    return marked;
+  }, [entries, selectedDate]);
 
-  const groupedEntries = groupEntriesByMonth();
+  const selectedEntry = useMemo(() => {
+    return entries.find(entry => CalendarUtils.getCalendarDateString(entry.date) === selectedDate);
+  }, [entries, selectedDate]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        colors={['#0a0a0a', '#171717', '#0a0a0a']}
         style={StyleSheet.absoluteFill}
       />
       <View style={styles.header}>
-        <Text style={styles.title}>Your Journey</Text>
-        <Text style={styles.subtitle}>Tracking your inner growth</Text>
-        
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <TrendingUp size={24} color="#1e3a8a" />
-            <Text style={styles.statNumber}>{streak}</Text>
-            <Text style={styles.statLabel}>Day Streak</Text>
-          </View>
-          
-          <View style={styles.statCard}>
-            <CalendarIcon size={24} color="#1e40af" />
-            <Text style={styles.statNumber}>{entries.length}</Text>
-            <Text style={styles.statLabel}>Total Reflections</Text>
-          </View>
-        </View>
+        <Calendar size={28} color="#3B82F6" />
+        <Text style={styles.title}>History</Text>
       </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {Object.keys(groupedEntries).length === 0 ? (
-          <View style={styles.emptyState}>
-            <CalendarIcon size={64} color="#6B7280" strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>Your journey begins</Text>
-            <Text style={styles.emptyDescription}>
-              Start your daily practice to see your inner growth over time.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.historyContainer}>
-            {Object.entries(groupedEntries).map(([month, monthEntries]) => (
-              <View key={month} style={styles.monthSection}>
-                <Text style={styles.monthTitle}>{month}</Text>
-                <View style={styles.monthEntries}>
-                  {monthEntries.map((entry, index) => (
-                    <View key={entry.id || index} style={styles.historyEntry}>
-                      <View style={styles.entryDate}>
-                        <Text style={styles.entryDay}>
-                          {new Date(entry.date).getDate()}
-                        </Text>
-                      </View>
-                      <View style={styles.entryContent}>
-                        <Text style={styles.entryCardName}>{entry.card_name}</Text>
-                        <Text style={styles.entryPreview} numberOfLines={2}>
-                          {entry.reflection}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
+      <Calendar
+        current={INITIAL_DATE}
+        style={calendarTheme.calendar}
+        theme={calendarTheme}
+        onDayPress={day => setSelectedDate(day.dateString)}
+        markedDates={markedDates}
+      />
+      <View style={styles.detailsContainer}>
+        {selectedEntry ? (
+            <Pressable style={styles.entryCard} onPress={() => router.push('/journal')}>
+                <View style={styles.cardHeader}>
+                    <Text style={styles.cardDate}>{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
                 </View>
-              </View>
-            ))}
-          </View>
+                <View style={styles.cardBody}>
+                    <Sparkles size={22} color="#FBBF24" style={{marginRight: 12}}/>
+                    <View>
+                        <Text style={styles.cardTitle}>{selectedEntry.card_name}</Text>
+                        <Text style={styles.cardPreview} numberOfLines={2}>{selectedEntry.reflection}</Text>
+                    </View>
+                </View>
+                <Text style={styles.viewEntryText}>View Full Entry →</Text>
+            </Pressable>
+        ) : (
+            <View style={styles.emptyCard}>
+                <BookText size={32} color="#4B5563" />
+                <Text style={styles.emptyText}>No reflection recorded on this day.</Text>
+            </View>
         )}
-      </ScrollView>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const calendarTheme = {
+    backgroundColor: 'transparent',
+    calendarBackground: 'transparent',
+    textSectionTitleColor: '#A1A1AA',
+    selectedDayBackgroundColor: '#3B82F6',
+    selectedDayTextColor: '#ffffff',
+    todayTextColor: '#8B5CF6',
+    dayTextColor: '#D1D5DB',
+    textDisabledColor: '#4B5563',
+    dotColor: '#A78BFA',
+    selectedDotColor: '#ffffff',
+    arrowColor: '#3B82F6',
+    disabledArrowColor: '#374151',
+    monthTextColor: '#F9FAFB',
+    indicatorColor: 'blue',
+    textDayFontFamily: 'Inter-Regular',
+    textMonthFontFamily: 'Inter-Bold',
+    textDayHeaderFontFamily: 'Inter-SemiBold',
+    textDayFontSize: 16,
+    textMonthFontSize: 20,
+    textDayHeaderFontSize: 12,
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0a0a0a',
   },
   header: {
-    paddingTop: 60,
-    paddingBottom: 30,
-    paddingHorizontal: 24,
+    flexDirection: 'row',
     alignItems: 'center',
+    paddingTop: 24,
+    paddingBottom: 16,
+    paddingHorizontal: 24,
+    gap: 12,
   },
   title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    marginBottom: 30,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  statCard: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    minWidth: 120,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
-  },
-  statNumber: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
     color: '#F9FAFB',
-    marginTop: 8,
-    marginBottom: 4,
   },
-  statLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#6B7280',
-  },
-  scrollView: {
+  detailsContainer: {
     flex: 1,
-    paddingHorizontal: 24,
+    padding: 24,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255, 0.08)',
   },
-  emptyState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
+  entryCard: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 16,
+    padding: 20,
   },
-  emptyTitle: {
-    fontSize: 24,
-    fontFamily: 'Inter-SemiBold',
-    color: '#9CA3AF',
-    marginTop: 20,
-    marginBottom: 12,
-  },
-  emptyDescription: {
-    fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 280,
-  },
-  historyContainer: {
-    paddingBottom: 100,
-  },
-  monthSection: {
-    marginBottom: 32,
-  },
-  monthTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F59E0B',
+  cardHeader: {
     marginBottom: 16,
   },
-  monthEntries: {
-    gap: 12,
+  cardDate: {
+    fontFamily: 'Inter-SemiBold',
+    color: '#A1A1AA',
+    fontSize: 14,
   },
-  historyEntry: {
+  cardBody: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  entryDate: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F59E0B',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
   },
-  entryDay: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#FFFFFF',
-  },
-  entryContent: {
-    flex: 1,
-  },
-  entryCardName: {
-    fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    color: '#F3F4F6',
+  cardTitle: {
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
+    fontSize: 18,
     marginBottom: 4,
   },
-  entryPreview: {
-    fontSize: 14,
+  cardPreview: {
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#D1D5DB',
+    fontSize: 14,
     lineHeight: 20,
   },
+  viewEntryText: {
+    fontFamily: 'Inter-SemiBold',
+    color: '#3B82F6',
+    fontSize: 14,
+    marginTop: 16,
+    textAlign: 'right',
+  },
+  emptyCard: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    gap: 16,
+  },
+  emptyText: {
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    fontSize: 16,
+  }
 });

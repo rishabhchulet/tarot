@@ -6,7 +6,7 @@ import { Calendar, CalendarUtils } from 'react-native-calendars';
 import { router, useFocusEffect } from 'expo-router';
 import { BookText, TrendingUp, Sparkles } from 'lucide-react-native';
 
-const INITIAL_DATE = CalendarUtils.getToday();
+const INITIAL_DATE = new Date().toISOString().split('T')[0];
 
 export default function HistoryScreen() {
   const [entries, setEntries] = useState<any[]>([]);
@@ -26,7 +26,7 @@ export default function HistoryScreen() {
   const markedDates = useMemo(() => {
     const marked: { [key: string]: any } = {};
     entries.forEach(entry => {
-      const dateString = CalendarUtils.getCalendarDateString(entry.date);
+      const dateString = new Date(entry.date).toISOString().split('T')[0];
       marked[dateString] = {
         marked: true,
         dotColor: '#A78BFA',
@@ -42,7 +42,7 @@ export default function HistoryScreen() {
   }, [entries, selectedDate]);
 
   const selectedEntry = useMemo(() => {
-    return entries.find(entry => CalendarUtils.getCalendarDateString(entry.date) === selectedDate);
+    return entries.find(entry => new Date(entry.date).toISOString().split('T')[0] === selectedDate);
   }, [entries, selectedDate]);
 
   return (

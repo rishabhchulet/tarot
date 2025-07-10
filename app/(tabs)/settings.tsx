@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, CreditCard, HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SettingsScreen() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [isSigningOut, setIsSigningOut] = useState(false);
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     Alert.alert(
       'Sign Out',
       'Are you sure you want to sign out of your account?',
@@ -19,15 +18,8 @@ export default function SettingsScreen() {
         { 
           text: 'Sign Out', 
           style: 'destructive',
-          onPress: async () => {
-            setIsSigningOut(true);
-            try {
-              await signOut?.();
-            } catch (error) {
-              console.error("Sign out error", error)
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
-              setIsSigningOut(false);
-            }
+          onPress: () => {
+            signOut?.();
           }
         }
       ]
@@ -35,7 +27,7 @@ export default function SettingsScreen() {
   };
 
   const SettingItem = ({ icon: Icon, title, onPress, rightElement, isDestructive = false }) => (
-    <Pressable style={styles.itemContainer} onPress={onPress} disabled={isSigningOut}>
+    <Pressable style={styles.itemContainer} onPress={onPress}>
         <View style={[styles.iconContainer, isDestructive && { backgroundColor: 'rgba(239, 68, 68, 0.1)'}]}>
             <Icon size={22} color={isDestructive ? '#F87171' : '#3B82F6'} />
         </View>
@@ -99,17 +91,12 @@ export default function SettingsScreen() {
         <View style={[styles.section, {marginTop: 24}]}>
             <SettingItem
                 icon={LogOut}
-                title={isSigningOut ? "Signing Out..." : "Sign Out"}
+                title={"Sign Out"}
                 onPress={handleSignOut}
                 isDestructive
             />
         </View>
       </ScrollView>
-      {isSigningOut && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#FFFFFF" />
-        </View>
-      )}
     </SafeAreaView>
   );
 }
@@ -165,10 +152,4 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Medium',
         color: '#F9FAFB',
     },
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.6)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    }
 });

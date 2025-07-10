@@ -6,7 +6,7 @@ import { Calendar, Clock, MapPin, Star } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/utils/supabase';
+import { updateUserProfile } from '@/utils/auth';
 
 export default function AstrologyScreen() {
   const { user, updateUser } = useAuth();
@@ -55,20 +55,23 @@ export default function AstrologyScreen() {
     setLoading(true);
 
     const updates = {
-      id: user!.id,
-      birth_date: date.toISOString().split('T')[0], // YYYY-MM-DD
-      birth_time: time.toTimeString().split(' ')[0], // HH:MM:SS
-      birth_location: location,
+      birthDate: date.toISOString().split('T')[0], // YYYY-MM-DD
+      birthTime: time.toTimeString().split(' ')[0], // HH:MM:SS
+      birthLocation: location,
       latitude: null,
       longitude: null,
-      onboarding_step: 'confirmation',
+      onboardingStep: 'confirmation',
     };
 
     try {
-      const { error } = await supabase.from('profiles').update(updates).eq('id', user!.id);
-      if (error) throw error;
+      const { error } = await updateUserProfile(updates);
+      if (error) throw new Error(error);
       
       await updateUser({
+        id: user!.id,
+        email: user!.email,
+        name: user!.name,
+        archetype: user!.archetype,
         ...updates
       });
       

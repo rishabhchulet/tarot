@@ -262,7 +262,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshUser,
     connectionStatus,
     retryConnection,
-    testSignOut: signOut
+    testSignOut: signOut,
     updateUser: (updates: Partial<AuthUser>) => {
       setUser(prev => prev ? { ...prev, ...updates } : null);
     },

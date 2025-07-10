@@ -9,7 +9,7 @@ import { SignOutTestButton } from '@/components/SignOutTestButton';
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const SettingItem = ({ icon: Icon, title, onPress, rightElement }) => (
+  const SettingItem = ({ icon: Icon, title, onPress, rightElement, isDestructive = false }) => (
     <Pressable style={styles.itemContainer} onPress={onPress}>
         <View style={[styles.iconContainer, isDestructive && { backgroundColor: 'rgba(239, 68, 68, 0.1)'}]}>
             <Icon size={22} color={isDestructive ? '#F87171' : '#3B82F6'} />

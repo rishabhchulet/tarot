@@ -1,23 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Calendar, Clock, MapPin, Star } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/utils/supabase';
-
-// TODO: Move API Key to a secure environment variable
-const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_PLACES_API_KEY;
 
 export default function AstrologyScreen() {
   const { user, updateUser } = useAuth();
 
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
-  const [location, setLocation] = useState<{description: string, lat: number | null, lng: number | null} | null>(null);
+  const [location, setLocation] = useState<string>('');
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -25,7 +21,6 @@ export default function AstrologyScreen() {
   const [loading, setLoading] = useState(false);
   
   const glowScale = useSharedValue(1);
-  const autocompleteRef = useRef<any>(null);
 
   useEffect(() => {
     glowScale.value = withRepeat(
@@ -35,10 +30,6 @@ export default function AstrologyScreen() {
       ), -1, true
     );
     
-    // Set default location text if user has one
-    if (user?.birth_location) {
-      autocompleteRef.current?.setAddressText(user.birth_location);
-    }
   }, []);
   
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
@@ -67,9 +58,9 @@ export default function AstrologyScreen() {
       id: user!.id,
       birth_date: date.toISOString().split('T')[0], // YYYY-MM-DD
       birth_time: time.toTimeString().split(' ')[0], // HH:MM:SS
-      birth_location: location.description,
-      latitude: location.lat,
-      longitude: location.lng,
+      birth_location: location,
+      latitude: null,
+      longitude: null,
       onboarding_step: 'confirmation',
     };
 
@@ -130,41 +121,16 @@ export default function AstrologyScreen() {
             () => setShowTimePicker(true)
           )}
 
-          <GooglePlacesAutocomplete
-            ref={autocompleteRef}
-            placeholder="Birth Location (City, Country)"
-            onPress={(data, details = null) => {
-              setLocation({
-                description: data.description,
-                lat: details?.geometry.location.lat ?? null,
-                lng: details?.geometry.location.lng ?? null
-              });
-            }}
-            query={{
-              key: GOOGLE_PLACES_API_KEY,
-              language: 'en',
-              types: '(cities)',
-            }}
-            fetchDetails={true}
-            styles={{
-              container: { flex: 0 },
-              textInput: styles.inputText,
-              textInputContainer: styles.inputContainer,
-              predefinedPlacesDescription: { color: '#F8FAFC' },
-              listView: {
-                backgroundColor: '#1e293b',
-                borderRadius: 12,
-                marginTop: 4,
-              },
-              row: { paddingVertical: 12 },
-              description: { color: '#F8FAFC', fontFamily: 'Inter-Regular' },
-              separator: { height: 1, backgroundColor: '#334155' }
-            }}
-            renderLeftButton={() => <MapPin size={20} color="#94a3b8" style={styles.inputIcon} />}
-            textInputProps={{
-              placeholderTextColor: '#64748b',
-            }}
-          />
+          <View style={styles.inputContainer}>
+            <MapPin size={20} color="#94a3b8" style={styles.inputIcon} />
+            <TextInput
+              style={styles.inputText}
+              placeholder="Birth Location (City, Country)"
+              placeholderTextColor="#64748b"
+              value={location}
+              onChangeText={setLocation}
+            />
+          </View>
         </View>
       </View>
       

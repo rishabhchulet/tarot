@@ -5,10 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Calendar, Clock, Star } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
 import { LocationInput } from '@/components/LocationInput';
+import { WebDateTimePicker } from '@/components/WebDateTimePicker';
 
 export default function AstrologyScreen() {
   const { user, updateUser } = useAuth();
@@ -19,9 +19,6 @@ export default function AstrologyScreen() {
   const [location, setLocation] = useState('');
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  
   const [loading, setLoading] = useState(false);
   
   const glowScale = useSharedValue(1);
@@ -60,18 +57,12 @@ export default function AstrologyScreen() {
   
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setDate(selectedDate);
-    }
+  const onDateChange = (selectedDate: Date) => {
+    setDate(selectedDate);
   };
 
-  const onTimeChange = (event: any, selectedTime?: Date) => {
-    setShowTimePicker(Platform.OS === 'ios');
-    if (selectedTime) {
-      setTime(selectedTime);
-    }
+  const onTimeChange = (selectedTime: Date) => {
+    setTime(selectedTime);
   };
 
   const handleLocationChange = (newLocation: string, newCoordinates?: { latitude: number; longitude: number }) => {
@@ -156,25 +147,6 @@ export default function AstrologyScreen() {
     });
   };
 
-  const renderDateInput = () => (
-    <Pressable onPress={() => setShowDatePicker(true)} style={styles.inputContainer}>
-      <Calendar size={20} color="#94a3b8" style={styles.inputIcon} />
-      <Text style={[styles.inputText, date ? styles.inputTextValue : {}]}>
-        {date ? formatDate(date) : 'Select your birth date'}
-      </Text>
-      {!date && <Text style={styles.requiredIndicator}>*</Text>}
-    </Pressable>
-  );
-
-  const renderTimeInput = () => (
-    <Pressable onPress={() => setShowTimePicker(true)} style={styles.inputContainer}>
-      <Clock size={20} color="#94a3b8" style={styles.inputIcon} />
-      <Text style={[styles.inputText, time ? styles.inputTextValue : {}]}>
-        {time ? formatTime(time) : 'Select birth time (optional)'}
-      </Text>
-    </Pressable>
-  );
-
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
       <LinearGradient colors={['#0f172a', '#1e293b', '#0f172a']} style={StyleSheet.absoluteFill} />
@@ -190,8 +162,21 @@ export default function AstrologyScreen() {
         </View>
         
         <View style={styles.inputGroup}>
-          {renderDateInput()}
-          {renderTimeInput()}
+          <WebDateTimePicker
+            mode="date"
+            value={date}
+            onChange={onDateChange}
+            placeholder="Select your birth date"
+            disabled={loading}
+          />
+          
+          <WebDateTimePicker
+            mode="time"
+            value={time}
+            onChange={onTimeChange}
+            placeholder="Select birth time (optional)"
+            disabled={loading}
+          />
 
           <LocationInput
             value={location}
@@ -232,28 +217,6 @@ export default function AstrologyScreen() {
         </View>
       </View>
       
-      {showDatePicker && (
-        <DateTimePicker
-          testID="datePicker"
-          value={date || new Date(1990, 0, 1)} // Default to Jan 1, 1990 if no date selected
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onDateChange}
-          maximumDate={new Date()} // Can't be born in the future
-          minimumDate={new Date(1900, 0, 1)} // Reasonable minimum date
-        />
-      )}
-      
-      {showTimePicker && (
-        <DateTimePicker
-          testID="timePicker"
-          value={time || new Date(2000, 0, 1, 12, 0)} // Default to noon if no time selected
-          mode="time"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={onTimeChange}
-        />
-      )}
-
       <View style={styles.buttonContainer}>
         <Pressable 
           onPress={handleContinue} 
@@ -305,25 +268,6 @@ const styles = StyleSheet.create({
     textAlign: 'center', marginBottom: 20,
   },
   inputGroup: { gap: 16 },
-  inputContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(30, 41, 59, 0.8)',
-    borderRadius: 12, borderWidth: 1, borderColor: '#334155',
-    minHeight: 58, position: 'relative',
-  },
-  inputIcon: { marginHorizontal: 16 },
-  inputText: {
-    flex: 1, paddingVertical: 18, fontSize: 16,
-    fontFamily: 'Inter-Regular', color: '#64748b',
-  },
-  inputTextValue: {
-    color: '#F8FAFC',
-  },
-  requiredIndicator: {
-    fontSize: 18,
-    fontFamily: 'Inter-Bold',
-    color: '#ef4444',
-    marginRight: 16,
-  },
   coordinatesDisplay: {
     backgroundColor: 'rgba(16, 185, 129, 0.1)',
     borderRadius: 8,

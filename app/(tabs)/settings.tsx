@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, User, CreditCard, HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react-native';
+import { Bell, User, CreditCard, CircleHelp as HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { SignOutTestButton } from '@/components/SignOutTestButton';

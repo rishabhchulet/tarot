@@ -132,7 +132,6 @@ const styles = StyleSheet.create({
         top: '10%',
         left: '50%',
         transform: [{ translateX: -300 }],
-        filter: 'blur(100px)',
     },
     loadingContainer: {
         flex: 1,

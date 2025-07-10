@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
         borderRadius: 200,
         backgroundColor: '#8b5cf6',
         opacity: 0.3,
-        filter: 'blur(80px)',
     },
     title: {
         fontSize: 32,

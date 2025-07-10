@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Dimensions, View, Text, Easing } from 'react-native';
-import { Canvas, Circle, Group, useValue, Skia, Path, useClock, mix, Fill, Shader, vec, LinearGradient, RadialGradient, SkiaValue } from '@shopify/react-native-skia';
+import { StyleSheet, Dimensions, View, Text, Easing, Platform } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, runOnJS } from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
@@ -15,55 +14,115 @@ interface PlanetaryCardRevealProps {
   onComplete: () => void;
 }
 
-// Generate random stars
-const stars = Array.from({ length: NUM_STARS }, () => ({
-  x: Math.random() * width,
-  y: Math.random() * height,
-  r: Math.random() * 1.5 + 0.5,
-}));
+// Web-compatible component
+const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
+  const cardOpacity = useSharedValue(0);
+  const cardScale = useSharedValue(0.5);
+  const glowOpacity = useSharedValue(0);
+  const textOpacity = useSharedValue(1);
 
-// Planet configuration
-const planets = [
-  { id: 'mercury', color: '#B7A597', size: 6, orbitR: 80, speed: 1.5 },
-  { id: 'venus', color: '#F8D5A3', size: 10, orbitR: 130, speed: 1.2 },
-  { id: 'earth', color: '#7E99A5', size: 11, orbitR: 190, speed: 1 },
-  { id: 'mars', color: '#D96941', size: 8, orbitR: 250, speed: 0.8 },
-];
+  useEffect(() => {
+    const sequence = setTimeout(() => {
+      // Start glow effect
+      glowOpacity.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
 
-const Planet = ({ config, progress, alignment }) => {
-  const orbitPath = Skia.Path.Make();
-  orbitPath.addOval({ x: center.x - config.orbitR, y: center.y - config.orbitR, width: config.orbitR * 2, height: config.orbitR * 2 });
+      setTimeout(() => {
+        // Reveal card
+        cardOpacity.value = withTiming(1, { duration: 1000 });
+        cardScale.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.back(1.5)) });
+        glowOpacity.value = withTiming(0, { duration: 2000 });
 
-  const pos = useValue({ x: 0, y: 0 });
+        setTimeout(() => {
+          runOnJS(onComplete)();
+        }, 1500);
+      }, 2000);
+    }, 3000);
 
-  useClock(clock => {
-    const totalTime = 10000 / config.speed;
-    const currentProgress = (clock.current % totalTime) / totalTime;
-    const point = orbitPath.getPoint(currentProgress);
-    
-    const alignmentProgress = Easing.inOut(Easing.ease)(alignment.current);
+    return () => clearTimeout(sequence);
+  }, []);
 
-    pos.current = {
-      x: mix(alignmentProgress, point.x, center.x),
-      y: mix(alignmentProgress, point.y, center.y),
-    };
-  });
+  useEffect(() => {
+    textOpacity.value = withSequence(
+      withDelay(1000, withTiming(0, { duration: 1000 }))
+    );
+  }, []);
+
+  const animatedTextStyle = useAnimatedStyle(() => ({
+    opacity: textOpacity.value
+  }));
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value * 0.8,
+  }));
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [{ scale: cardScale.value }],
+  }));
 
   return (
-    <Circle cx={pos.current.x} cy={pos.current.y} r={config.size} color={config.color}>
-        <RadialGradient c={vec(pos.current.x, pos.current.y)} r={config.size * 2} colors={[`${config.color}FF`, `${config.color}00`]} />
-    </Circle>
+    <View style={styles.container}>
+      <Animated.View style={[styles.webGlow, animatedGlowStyle]} />
+      <Animated.View style={[styles.webCard, animatedCardStyle]} />
+      <Animated.View style={[styles.textContainer, animatedTextStyle]}>
+        <Text style={styles.text}>The cosmos aligns...</Text>
+      </Animated.View>
+    </View>
   );
 };
 
-
-export const PlanetaryCardReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
+// Skia component for native platforms
+const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
+  // Import Skia components only when needed
+  const { Canvas, Circle, Group, useValue, Skia, Path, useClock, mix, Fill, vec, LinearGradient, RadialGradient } = require('@shopify/react-native-skia');
+  
   const clock = useClock();
   const alignment = useValue(0);
   const cardOpacity = useValue(0);
   const cardScale = useValue(0.5);
   const glowOpacity = useValue(0);
   const textOpacity = useSharedValue(1);
+
+  // Generate random stars
+  const stars = Array.from({ length: NUM_STARS }, () => ({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    r: Math.random() * 1.5 + 0.5,
+  }));
+
+  // Planet configuration
+  const planets = [
+    { id: 'mercury', color: '#B7A597', size: 6, orbitR: 80, speed: 1.5 },
+    { id: 'venus', color: '#F8D5A3', size: 10, orbitR: 130, speed: 1.2 },
+    { id: 'earth', color: '#7E99A5', size: 11, orbitR: 190, speed: 1 },
+    { id: 'mars', color: '#D96941', size: 8, orbitR: 250, speed: 0.8 },
+  ];
+
+  const Planet = ({ config, progress, alignment }) => {
+    const orbitPath = Skia.Path.Make();
+    orbitPath.addOval({ x: center.x - config.orbitR, y: center.y - config.orbitR, width: config.orbitR * 2, height: config.orbitR * 2 });
+
+    const pos = useValue({ x: 0, y: 0 });
+
+    useClock(clock => {
+      const totalTime = 10000 / config.speed;
+      const currentProgress = (clock.current % totalTime) / totalTime;
+      const point = orbitPath.getPoint(currentProgress);
+      
+      const alignmentProgress = Easing.inOut(Easing.ease)(alignment.current);
+
+      pos.current = {
+        x: mix(alignmentProgress, point.x, center.x),
+        y: mix(alignmentProgress, point.y, center.y),
+      };
+    });
+
+    return (
+      <Circle cx={pos.current.x} cy={pos.current.y} r={config.size} color={config.color}>
+          <RadialGradient c={vec(pos.current.x, pos.current.y)} r={config.size * 2} colors={[`${config.color}FF`, `${config.color}00`]} />
+      </Circle>
+    );
+  };
 
   useEffect(() => {
     const sequence = setTimeout(() => {
@@ -134,6 +193,14 @@ export const PlanetaryCardReveal = ({ onComplete }: PlanetaryCardRevealProps) =>
     </View>
   );
 };
+export const PlanetaryCardReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
+  // Use platform-specific implementation
+  if (Platform.OS === 'web') {
+    return <WebPlanetaryReveal onComplete={onComplete} />;
+  } else {
+    return <SkiaPlanetaryReveal onComplete={onComplete} />;
+  }
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -142,6 +209,26 @@ const styles = StyleSheet.create({
   },
   canvas: {
     flex: 1,
+  },
+  webGlow: {
+    position: 'absolute',
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    backgroundColor: 'rgba(139, 92, 246, 0.3)',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -200 }, { translateY: -200 }],
+  },
+  webCard: {
+    position: 'absolute',
+    width: TAROT_CARD_WIDTH,
+    height: TAROT_CARD_HEIGHT,
+    backgroundColor: '#FBBF24',
+    borderRadius: 10,
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -TAROT_CARD_WIDTH / 2 }, { translateY: -TAROT_CARD_HEIGHT / 2 }],
   },
   textContainer: {
     position: 'absolute',

@@ -103,7 +103,7 @@ export default function AstrologyScreen() {
             <Star size={60} color="#0f172a" fill="#facc15" strokeWidth={1.5} />
           </View>
           <Text style={styles.title}>Your Energetic Map</Text>
-          <Text style={styles.subtitle}>Enter what you know—approximations are okay.</Text>
+          <Text style={styles.subtitle}>Enter what you know, approximations are okay.</Text>
         </View>
         
         <View style={styles.inputGroup}>

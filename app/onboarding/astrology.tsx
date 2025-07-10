@@ -1,13 +1,14 @@
 import 'react-native-get-random-values';
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, ActivityIndicator, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Calendar, Clock, MapPin, Star } from 'lucide-react-native';
+import { Calendar, Clock, Star } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
+import { LocationInput } from '@/components/LocationInput';
 
 export default function AstrologyScreen() {
   const { user, updateUser } = useAuth();
@@ -15,6 +16,7 @@ export default function AstrologyScreen() {
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [location, setLocation] = useState('');
+  const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -34,6 +36,12 @@ export default function AstrologyScreen() {
     // Set default location text if user has one
     if (user?.birthLocation) {
       setLocation(user.birthLocation);
+      if (user.latitude && user.longitude) {
+        setCoordinates({
+          latitude: user.latitude,
+          longitude: user.longitude
+        });
+      }
     }
   }, []);
   
@@ -51,20 +59,45 @@ export default function AstrologyScreen() {
     setTime(currentTime);
   };
 
+  const handleLocationChange = (newLocation: string, newCoordinates?: { latitude: number; longitude: number }) => {
+    setLocation(newLocation);
+    if (newCoordinates) {
+      setCoordinates(newCoordinates);
+      console.log('📍 Location coordinates updated:', newCoordinates);
+    }
+  };
+
   const handleContinue = async () => {
     if (!date || !location.trim()) {
       Alert.alert('Incomplete Information', 'Please provide your birthdate and location to continue.');
       return;
     }
 
+    // Show warning if no coordinates found
+    if (!coordinates) {
+      Alert.alert(
+        'Location Coordinates',
+        'We couldn\'t find exact coordinates for this location. You can continue and update this later, or try entering a major city name.',
+        [
+          { text: 'Continue Anyway', onPress: () => proceedWithSave() },
+          { text: 'Try Again', style: 'cancel' }
+        ]
+      );
+      return;
+    }
+
+    proceedWithSave();
+  };
+
+  const proceedWithSave = async () => {
     setLoading(true);
 
     const updates = {
       birthDate: date.toISOString().split('T')[0], // YYYY-MM-DD
       birthTime: time.toTimeString().split(' ')[0], // HH:MM:SS
       birthLocation: location.trim(),
-      latitude: null, // No coordinates available with TextInput
-      longitude: null, // No coordinates available with TextInput
+      latitude: coordinates?.latitude || null,
+      longitude: coordinates?.longitude || null,
       onboardingStep: 'confirmation',
     };
 
@@ -80,6 +113,7 @@ export default function AstrologyScreen() {
         ...updates
       });
       
+      console.log('✅ Astrology data saved:', updates);
       router.push('/onboarding/confirmation');
     } catch (error: any) {
       Alert.alert('Error', "We couldn't save your energetic map details. Please try again.");
@@ -129,16 +163,21 @@ export default function AstrologyScreen() {
             () => setShowTimePicker(true)
           )}
 
-          <View style={styles.inputContainer}>
-            <MapPin size={20} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput
-              style={styles.inputText}
-              placeholder="Birth Location (City, Country)"
-              placeholderTextColor="#64748b"
-              value={location}
-              onChangeText={setLocation}
-            />
-          </View>
+          <LocationInput
+            value={location}
+            onLocationChange={handleLocationChange}
+            placeholder="Birth Location (City, Country)"
+            disabled={loading}
+          />
+
+          {/* Show coordinates if found */}
+          {coordinates && (
+            <View style={styles.coordinatesDisplay}>
+              <Text style={styles.coordinatesText}>
+                📍 Coordinates: {coordinates.latitude.toFixed(4)}, {coordinates.longitude.toFixed(4)}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
       
@@ -206,10 +245,23 @@ const styles = StyleSheet.create({
   inputIcon: { marginHorizontal: 16 },
   inputText: {
     flex: 1, paddingVertical: 18, fontSize: 16,
-    fontFamily: 'Inter-Regular', color: '#F8FAFC',
+    fontFamily: 'Inter-Regular', color: '#64748b',
   },
   inputTextValue: {
     color: '#F8FAFC',
+  },
+  coordinatesDisplay: {
+    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.3)',
+  },
+  coordinatesText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#10b981',
+    textAlign: 'center',
   },
   buttonContainer: { paddingHorizontal: 32, paddingBottom: 40, paddingTop: 20 },
   primaryButton: {

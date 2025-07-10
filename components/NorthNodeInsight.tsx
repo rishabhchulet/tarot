@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Compass } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { getApiBaseUrl } from '@/utils/ai';
 
 export function NorthNodeInsight() {
   const { user, placements } = useAuth();
@@ -13,7 +14,8 @@ export function NorthNodeInsight() {
       if (placements?.northNode && user) {
         setIsLoading(true);
         try {
-          const response = await fetch('/ai', {
+          const baseUrl = getApiBaseUrl();
+          const response = await fetch(`${baseUrl}/ai`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

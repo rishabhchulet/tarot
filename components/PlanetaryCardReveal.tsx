@@ -2,6 +2,30 @@ import React, { useEffect } from 'react';
 import { StyleSheet, Dimensions, View, Text, Easing, Platform } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, runOnJS } from 'react-native-reanimated';
 
+// Import Skia components at the top level for proper hook usage
+let Canvas, Circle, Group, useValue, Skia, Path, useClock, mix, Fill, vec, LinearGradient, RadialGradient;
+
+// Only import Skia on native platforms
+if (Platform.OS !== 'web') {
+  try {
+    const SkiaModule = require('@shopify/react-native-skia');
+    Canvas = SkiaModule.Canvas;
+    Circle = SkiaModule.Circle;
+    Group = SkiaModule.Group;
+    useValue = SkiaModule.useValue;
+    Skia = SkiaModule.Skia;
+    Path = SkiaModule.Path;
+    useClock = SkiaModule.useClock;
+    mix = SkiaModule.mix;
+    Fill = SkiaModule.Fill;
+    vec = SkiaModule.vec;
+    LinearGradient = SkiaModule.LinearGradient;
+    RadialGradient = SkiaModule.RadialGradient;
+  } catch (error) {
+    console.warn('Skia not available:', error);
+  }
+}
+
 const { width, height } = Dimensions.get('window');
 const center = { x: width / 2, y: height / 2 };
 
@@ -73,9 +97,12 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
 
 // Skia component for native platforms
 const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
-  // Import Skia components only when needed
-  const { Canvas, Circle, Group, useValue, Skia, Path, useClock, mix, Fill, vec, LinearGradient, RadialGradient } = require('@shopify/react-native-skia');
-  
+  // Check if Skia is available
+  if (!Canvas || !useValue || !useClock) {
+    // Fallback to web version if Skia is not available
+    return <WebPlanetaryReveal onComplete={onComplete} />;
+  }
+
   const clock = useClock();
   const alignment = useValue(0);
   const cardOpacity = useValue(0);

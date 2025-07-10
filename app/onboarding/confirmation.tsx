@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   glow: {
     position: 'absolute', top: '15%', left: '50%', width: 400, height: 400,
     backgroundColor: 'rgba(16, 185, 129, 0.25)', borderRadius: 200,
-    transform: [{ translateX: -200 }], filter: 'blur(90px)', 
+    transform: [{ translateX: -200 }],
   },
   content: { flex: 1, justifyContent: 'center', paddingHorizontal: 32 },
   iconContainer: {

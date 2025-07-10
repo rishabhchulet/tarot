@@ -108,7 +108,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(59, 130, 246, 0.2)',
     borderRadius: 200,
     transform: [{ translateX: -200 }],
-    filter: 'blur(80px)', 
   },
   content: {
     flex: 1,

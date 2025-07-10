@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
   glow: {
     position: 'absolute', top: '5%', left: '50%', width: 400, height: 400,
     backgroundColor: 'rgba(59, 130, 246, 0.2)', borderRadius: 200,
-    transform: [{ translateX: -200 }], filter: 'blur(80px)', 
+    transform: [{ translateX: -200 }],
   },
   scrollContent: { flexGrow: 1, justifyContent: 'center' },
   header: {

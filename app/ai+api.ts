@@ -19,6 +19,47 @@ function getOpenAIClient(): OpenAI {
   return openaiClient;
 }
 
+// Retry mechanism for handling transient network errors
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  maxRetries: number = 3,
+  delay: number = 1000
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+      
+      // Check if it's a retryable error (connection issues, timeouts, etc.)
+      const isRetryable = 
+        error.code === 'ECONNRESET' ||
+        error.code === 'ENOTFOUND' ||
+        error.code === 'ETIMEDOUT' ||
+        error.message?.includes('socket hang up') ||
+        error.message?.includes('Connection error') ||
+        error.status === 429 || // Rate limit
+        error.status === 500 || // Server error
+        error.status === 502 || // Bad gateway
+        error.status === 503 || // Service unavailable
+        error.status === 504;   // Gateway timeout
+      
+      if (!isRetryable || attempt === maxRetries) {
+        throw error;
+      }
+      
+      // Exponential backoff with jitter
+      const backoffDelay = delay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+      console.log(`Attempt ${attempt} failed, retrying in ${Math.round(backoffDelay)}ms...`);
+      await new Promise(resolve => setTimeout(resolve, backoffDelay));
+    }
+  }
+  
+  throw lastError!;
+}
+
 export async function POST(request: Request) {
   try {
     // Check if OpenAI API key is available before processing
@@ -106,20 +147,22 @@ Create a personalized, insightful interpretation that:
 Keep the response between 150-250 words, written in a conversational, supportive tone.`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a compassionate inner guide who provides personalized, insightful interpretations of tarot and I Ching combinations. Your responses are warm, practical, and empowering.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 400,
-      temperature: 0.7,
+    const completion = await retryOperation(async () => {
+      return await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a compassionate inner guide who provides personalized, insightful interpretations of tarot and I Ching combinations. Your responses are warm, practical, and empowering.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 400,
+        temperature: 0.7,
+      });
     });
 
     const interpretation = completion.choices[0]?.message?.content || 'Unable to generate interpretation at this time.';
@@ -168,20 +211,22 @@ Examples of the style:
 Format as a JSON array of exactly 3 strings. Make them personal, life-focused, and meaningful.`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an inner mentor who creates deeply personal, life-focused reflection questions. Always respond with valid JSON containing exactly 3 questions.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 400,
-      temperature: 0.8,
+    const completion = await retryOperation(async () => {
+      return await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an inner mentor who creates deeply personal, life-focused reflection questions. Always respond with valid JSON containing exactly 3 questions.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 400,
+        temperature: 0.8,
+      });
     });
 
     const response = completion.choices[0]?.message?.content || '[]';
@@ -239,20 +284,22 @@ Provide a brief, personalized inner message (50-80 words) that:
 Write in a warm, friend-like tone as if you're checking in on them personally.`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a caring inner friend who offers gentle, personalized guidance. Your messages are brief, warm, and actionable.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_tokens: 150,
-      temperature: 0.7,
+    const completion = await retryOperation(async () => {
+      return await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a caring inner friend who offers gentle, personalized guidance. Your messages are brief, warm, and actionable.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 150,
+        temperature: 0.7,
+      });
     });
 
     const guidance = completion.choices[0]?.message?.content || 'Take a moment to breathe and connect with your inner wisdom today.';

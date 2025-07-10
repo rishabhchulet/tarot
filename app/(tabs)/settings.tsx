@@ -4,29 +4,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, CreditCard, HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { SignOutTestButton } from '@/components/SignOutTestButton';
 
 export default function SettingsScreen() {
-  const { signOut } = useAuth();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out of your account?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Sign Out', 
-          style: 'destructive',
-          onPress: () => {
-            signOut?.();
-          }
-        }
-      ]
-    );
-  };
-
-  const SettingItem = ({ icon: Icon, title, onPress, rightElement, isDestructive = false }) => (
+  const SettingItem = ({ icon: Icon, title, onPress, rightElement }) => (
     <Pressable style={styles.itemContainer} onPress={onPress}>
         <View style={[styles.iconContainer, isDestructive && { backgroundColor: 'rgba(239, 68, 68, 0.1)'}]}>
             <Icon size={22} color={isDestructive ? '#F87171' : '#3B82F6'} />
@@ -88,13 +71,8 @@ export default function SettingsScreen() {
           />
         </View>
 
-        <View style={[styles.section, {marginTop: 24}]}>
-            <SettingItem
-                icon={LogOut}
-                title={"Sign Out"}
-                onPress={handleSignOut}
-                isDestructive
-            />
+        <View style={[styles.section, {marginTop: 24, alignItems: 'center'}]}>
+            <SignOutTestButton />
         </View>
       </ScrollView>
     </SafeAreaView>

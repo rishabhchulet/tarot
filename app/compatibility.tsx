@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, Heart } from 'lucide-react-native';
+import { ChevronLeft, Heart, Users } from 'lucide-react-native';
 import { BirthProfileInput, BirthProfile } from '@/components/BirthProfileInput';
 import { useAuth } from '@/contexts/AuthContext';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 
 const initialProfileState: BirthProfile = {
+  name: '',
   date: null,
   time: null,
   location: '',
@@ -21,6 +22,7 @@ export default function CompatibilityScreen() {
   
   const [personA, setPersonA] = useState<BirthProfile>({
     ...initialProfileState,
+    name: user?.name || '',
     location: user?.birthLocation || '',
     coordinates: (user?.latitude && user?.longitude) ? { latitude: user.latitude, longitude: user.longitude } : null,
     date: user?.birthDate ? new Date(user.birthDate) : null,
@@ -50,27 +52,41 @@ export default function CompatibilityScreen() {
     }, 1000);
   };
   
-  const isReady = personA.date && personA.location && personB.date && personB.location;
+  const isReady = personA.name.trim() && personA.date && personA.location && 
+                  personB.name.trim() && personB.date && personB.location;
 
   return (
-    <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <LinearGradient
-        colors={['#1e293b', '#0f172a', '#1e293b']}
+        colors={['#0a0a0a', '#171717', '#0a0a0a']}
         style={StyleSheet.absoluteFill}
       />
 
+      {/* Enhanced Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={28} color="#f8fafc" />
+          <ChevronLeft size={28} color="#F9FAFB" />
         </Pressable>
-        <Text style={styles.title}>Compatibility</Text>
+        <View style={styles.headerCenter}>
+          <Users size={24} color="#a78bfa" />
+          <Text style={styles.title}>Compatibility</Text>
+        </View>
         <View style={{ width: 40 }} /> 
       </View>
 
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
+        {/* Beautiful intro section */}
+        <View style={styles.introSection}>
+          <Text style={styles.introTitle}>Discover Your Connection</Text>
+          <Text style={styles.introSubtitle}>
+            Explore the cosmic harmony between two souls through astrology and ancient wisdom
+          </Text>
+        </View>
+
         <BirthProfileInput
           title="Your Profile"
           profile={personA}
@@ -83,96 +99,171 @@ export default function CompatibilityScreen() {
           onProfileChange={setPersonB}
         />
 
+        {/* Enhanced selector */}
         <View style={styles.selectorContainer}>
           <Text style={styles.selectorLabel}>Select Report Type</Text>
-          <SegmentedControl
-            values={reportTypes}
-            selectedIndex={reportType}
-            onChange={(event) => {
-              setReportType(event.nativeEvent.selectedSegmentIndex);
-            }}
-            backgroundColor={'rgba(255, 255, 255, 0.1)'}
-            tintColor={'#6366f1'}
-            fontStyle={{ color: '#e0e7ff', fontFamily: 'Inter-SemiBold' }}
-            activeFontStyle={{ color: '#fff', fontFamily: 'Inter-Bold' }}
-          />
+          <View style={styles.segmentWrapper}>
+            <SegmentedControl
+              values={reportTypes}
+              selectedIndex={reportType}
+              onChange={(event) => {
+                setReportType(event.nativeEvent.selectedSegmentIndex);
+              }}
+              backgroundColor={'rgba(139, 92, 246, 0.1)'}
+              tintColor={'#8b5cf6'}
+              fontStyle={{ color: '#d1d5db', fontFamily: 'Inter-Medium', fontSize: 14 }}
+              activeFontStyle={{ color: '#ffffff', fontFamily: 'Inter-Bold', fontSize: 14 }}
+            />
+          </View>
         </View>
         
+        {/* Enhanced Calculate Button */}
         <Pressable 
           onPress={handleCalculate} 
           disabled={!isReady || loading}
           style={[styles.primaryButton, (!isReady || loading) && styles.primaryButtonDisabled]}
         >
-          {loading ? (
-            <ActivityIndicator color="#1e293b" />
-          ) : (
-            <>
-              <Heart size={20} color={!isReady ? "#94a3b8" : "#c7d2fe"} />
-              <Text style={[styles.primaryButtonText, !isReady && styles.primaryButtonTextDisabled]}>
-                Calculate Compatibility
-              </Text>
-            </>
-          )}
+          <LinearGradient
+            colors={!isReady || loading ? ['#374151', '#374151'] : ['#8b5cf6', '#6366f1']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.buttonGradient}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <>
+                <Heart size={20} color="#ffffff" />
+                <Text style={styles.primaryButtonText}>
+                  Calculate Compatibility
+                </Text>
+              </>
+            )}
+          </LinearGradient>
         </Pressable>
+
+        {/* Validation hints */}
+        {!isReady && (
+          <View style={styles.validationHints}>
+            <Text style={styles.hintText}>
+              Please fill in names, birth dates, and locations for both profiles
+            </Text>
+          </View>
+        )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 },
+  container: { 
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
-  backButton: { padding: 4 },
+  backButton: { 
+    padding: 8,
+    borderRadius: 12,
+  },
+  headerCenter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontFamily: 'Inter-Bold',
     fontSize: 22,
-    color: '#f8fafc',
+    color: '#F9FAFB',
   },
   scrollContent: {
     padding: 20,
+    paddingBottom: 40,
+  },
+  introSection: {
+    alignItems: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 16,
+  },
+  introTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
+    color: '#F9FAFB',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  introSubtitle: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#a1a1aa',
+    textAlign: 'center',
+    lineHeight: 24,
   },
   selectorContainer: {
-    marginVertical: 16,
+    marginVertical: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   selectorLabel: {
-    color: '#e0e7ff',
+    color: '#F9FAFB',
     fontFamily: 'Inter-SemiBold',
     fontSize: 16,
-    marginBottom: 12,
+    marginBottom: 16,
     textAlign: 'center',
   },
+  segmentWrapper: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   primaryButton: {
+    marginTop: 24,
+    borderRadius: 16,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  primaryButtonDisabled: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  buttonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#e0e7ff',
-    paddingVertical: 16,
-    borderRadius: 999,
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 8,
+    paddingVertical: 18,
+    borderRadius: 16,
     gap: 12,
   },
-  primaryButtonDisabled: {
-    backgroundColor: '#334155',
-  },
   primaryButtonText: {
-    color: '#1e293b',
+    color: '#ffffff',
     fontSize: 18,
     fontFamily: 'Inter-Bold',
   },
-  primaryButtonTextDisabled: {
-    color: '#94a3b8',
-  }
+  validationHints: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+  },
+  hintText: {
+    color: '#fbbf24',
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    textAlign: 'center',
+  },
 }); 

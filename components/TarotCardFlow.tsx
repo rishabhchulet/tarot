@@ -77,9 +77,12 @@ type FlowStep = 'card-and-iching' | 'keywords-only' | 'reflection-questions';
 export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('card-and-iching');
   
+  // Only use Major Arcana cards (0-21) that have complete structured data
   const [selectedCard] = useState(() => {
-    const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
-    return TAROT_CARDS[randomIndex];
+    const majorArcanaCards = TAROT_CARDS.filter(card => card.suit === 'Major Arcana');
+    const randomIndex = Math.floor(Math.random() * majorArcanaCards.length);
+    console.log(`🎴 Selected Major Arcana card: ${majorArcanaCards[randomIndex].name}`);
+    return majorArcanaCards[randomIndex];
   });
   
   const [selectedHexagram] = useState(() => {

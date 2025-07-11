@@ -117,30 +117,7 @@ export const getStructuredReflection = async (
     const hexagram = getHexagramByName(hexagramName);
     
     if (!card) {
-      console.log(`⚠️ Tarot card "${cardName}" not found in structured data - using fallback`);
-      // Create a basic fallback card data
-      const fallbackCard: TarotCardData = {
-        cardNumber: "",
-        name: cardName,
-        languageModelSummary: `${cardName} represents a significant energy in your current journey.`,
-        exampleOutput: `${cardName} brings an important message for your path today.`,
-        spectrumInsight: `This card invites reflection on your current situation and the energy you're embodying.`,
-        empowered: `You're aligned with the positive energy of ${cardName}.`,
-        neutral: `${cardName} asks you to consider your current perspective and approach.`,
-        distorted: `Be mindful of any imbalanced expression of ${cardName}'s energy.`
-      };
-      
-      // Use fallback card instead of throwing error
-      const hexagram = getHexagramByName(hexagramName);
-      if (!hexagram) {
-        throw new Error(`I Ching hexagram "${hexagramName}" not found in data`);
-      }
-      
-      console.log(`🔄 Using fallback data for ${cardName}`);
-      return { 
-        reflection: createFallbackResponse(fallbackCard, hexagram, isReversed), 
-        error: null 
-      };
+      throw new Error(`Tarot card "${cardName}" not found in structured data`);
     }
     
     if (!hexagram) {

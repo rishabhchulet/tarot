@@ -256,10 +256,10 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
         logAuthEvent('Trying direct profile upsert as fallback');
         
         const upsertResult = await createTimeoutWrapper(
-          () => supabase
-            .from('users')
-            .upsert({ 
-              id: user.id, 
+            () => supabase
+              .from('users')
+              .upsert({
+                id: user.id,
               name: profileName,
               email: user.email 
             }, { onConflict: 'id' }),

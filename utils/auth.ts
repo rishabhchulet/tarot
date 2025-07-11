@@ -236,8 +236,6 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
       result = await createTimeoutWrapper(
         () => supabase.rpc('ensure_user_profile_exists', {
           check_user_id: user.id,
-          user_name: profileName,
-          user_email: user.email
         }),
         attempts === 1 ? 15000 : 10000, // Longer timeout on first attempt
         [{ success: false, message: 'Timeout', user_data: {} }]
@@ -378,7 +376,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
     const profileResult = await createTimeoutWrapper(
       () => supabase
         .from('users')
-        .select('name, archetype')
+        .select('name, archetype, birth_date, birth_time, birth_location, latitude, longitude, onboarding_step')
         .eq('id', user.id)
         .single(),
       10000, // INCREASED: 10 second timeout
@@ -395,6 +393,12 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         email: user.email || '',
         name: profileResult.data.name,
         archetype: profileResult.data.archetype || undefined,
+        birthDate: profileResult.data.birth_date,
+        birthTime: profileResult.data.birth_time,
+        birthLocation: profileResult.data.birth_location,
+        latitude: profileResult.data.latitude,
+        longitude: profileResult.data.longitude,
+        onboardingStep: profileResult.data.onboarding_step,
       };
     }
 

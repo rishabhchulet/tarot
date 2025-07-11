@@ -8,7 +8,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, w
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
 import { LocationInput } from '@/components/LocationInput';
-import { WebDateTimePicker } from '@/components/WebDateTimePicker';
+import { PlatformAwareDateTimePicker } from '@/components/PlatformAwareDateTimePicker';
 import { ScrollView } from 'react-native';
 
 export default function AstrologyScreen() {
@@ -164,7 +164,7 @@ export default function AstrologyScreen() {
         </View>
         
         <View style={styles.inputGroup}>
-          <WebDateTimePicker
+          <PlatformAwareDateTimePicker
             mode="date"
             value={date}
             onChange={onDateChange}
@@ -172,7 +172,7 @@ export default function AstrologyScreen() {
             disabled={loading}
           />
           
-          <WebDateTimePicker
+          <PlatformAwareDateTimePicker
             mode="time"
             value={time}
             onChange={onTimeChange}

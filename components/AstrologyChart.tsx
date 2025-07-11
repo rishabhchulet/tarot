@@ -1,149 +1,93 @@
-import React, { useRef, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
-import { SvgXml } from 'react-native-svg';
-import { WebView } from 'react-native-webview';
-import { useAuth } from '@/contexts/AuthContext';
-import { ZODIAC_DATA } from '@/utils/astrology';
+import { Svg, Circle, Text as SvgText, G } from 'react-native-svg';
+import { PlanetPosition } from '@/utils/astrology';
 
-// We need to get the content of astrochart.js as a string to inject it.
-// This is a placeholder. In a real scenario, we might use a build script
-// or a library like `react-native-fs` if the file is bundled.
-// For now, let's assume we can get it as a string.
-// I will read the file and paste its content here later.
-const astrochartLib = require('@/lib/astrochart/astrochart.js');
+interface AstrologyChartProps {
+  positions: PlanetPosition[];
+}
 
-const mapPlacementsToAstroData = (placements) => {
-  if (!placements) {
-    return null;
-  }
+const ZODIAC_SIGNS = [
+  { sign: '♈', name: 'Aries' }, { sign: '♉', name: 'Taurus' }, { sign: '♊', name: 'Gemini' },
+  { sign: '♋', name: 'Cancer' }, { sign: '♌', name: 'Leo' }, { sign: '♍', name: 'Virgo' },
+  { sign: '♎', name: 'Libra' }, { sign: '♏', name: 'Scorpio' }, { sign: '♐', name: 'Sagittarius' },
+  { sign: '♑', name: 'Capricorn' }, { sign: '♒', name: 'Aquarius' }, { sign: '♓', name: 'Pisces' },
+];
 
-  const planets = {};
-  const allPlacements = {
-    Sun: placements.sun,
-    Moon: placements.moon,
-    Mercury: placements.planets.Mercury,
-    Venus: placements.planets.Venus,
-    Mars: placements.planets.Mars,
-    Jupiter: placements.planets.Jupiter,
-    Saturn: placements.planets.Saturn,
-    Uranus: placements.planets.Uranus,
-    Neptune: placements.planets.Neptune,
-    Pluto: placements.planets.Pluto,
-    Chiron: placements.planets.Chiron,
-    Lilith: placements.planets.Lilith,
-    NNode: placements.northNode,
-  };
-
-  for (const [name, placement] of Object.entries(allPlacements)) {
-    if (placement) {
-      const signDegree = ZODIAC_DATA[placement.sign]?.degree || 0;
-      const absoluteDegree = signDegree + placement.degree;
-      // Retrograde is not available in the simplified data, so we'll assume direct motion.
-      planets[name] = [absoluteDegree];
-    }
-  }
-
-  // Generate mock cusps based on Rising sign (Equal House system)
-  const cusps = [];
-  if (placements.rising) {
-    const risingSignDegree = ZODIAC_DATA[placements.rising.sign]?.degree || 0;
-    let ascendantDegree = risingSignDegree + placements.rising.degree;
-    for (let i = 0; i < 12; i++) {
-      cusps.push((ascendantDegree + i * 30) % 360);
-    }
-  } else {
-    // Fallback if rising sign is not available
-    for (let i = 0; i < 12; i++) {
-      cusps.push(i * 30);
-    }
-  }
-  
-  return {
-    planets,
-    cusps,
-  };
+const PLANET_GLYPHS: { [key: string]: string } = {
+  Sun: '☉', Moon: '☽', Mercury: '☿', Venus: '♀', Mars: '♂', Jupiter: '♃',
+  Saturn: '♄', Uranus: '♅', Neptune: '♆', Pluto: '♇',
 };
 
-export function AstrologyChart() {
-  const { placements } = useAuth();
-  const [svgString, setSvgString] = useState(null);
-  const webviewRef = useRef(null);
+const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
+  const { width } = Dimensions.get('window');
+  const size = width - 40;
+  const center = size / 2;
+  const radius = size / 2 - 40;
 
-  const astroData = mapPlacementsToAstroData(placements);
-
-  if (!astroData) {
-    return null;
-  }
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body, html { margin: 0; padding: 0; overflow: hidden; }
-        #chart { width: 100vw; height: 100vh; }
-      </style>
-    </head>
-    <body>
-      <div id="chart"></div>
-      <script>
-        // Injected astrochart.js content will be here.
-      </script>
-      <script>
-        try {
-          const data = ${JSON.stringify(astroData)};
-          const chart = new window.astrochart.Chart('chart', 400, 400);
-          chart.radix(data);
-          const svg = document.getElementById('chart').innerHTML;
-          window.ReactNativeWebView.postMessage(svg);
-        } catch (e) {
-          window.ReactNativeWebView.postMessage('Error: ' + e.message);
-        }
-      </script>
-    </body>
-    </html>
-  `;
-  
-  // This is a hack for now. The library needs to be injected.
-  const finalHtml = htmlContent.replace('<script>\\n        // Injected astrochart.js content will be here.\\n      </script>', `<script>${astrochartLib}</script>`);
-
-
-  const handleMessage = (event) => {
-    const message = event.nativeEvent.data;
-    if (message.startsWith('Error:')) {
-      console.error('Error from WebView:', message);
-    } else {
-      setSvgString(message);
-    }
+  const getCoordinates = (degree: number) => {
+    const angleRad = (degree - 90) * (Math.PI / 180);
+    return {
+      x: center + radius * Math.cos(angleRad),
+      y: center + radius * Math.sin(angleRad),
+    };
   };
 
   return (
     <View style={styles.container}>
-      {svgString ? (
-        <SvgXml xml={svgString} width="100%" height="100%" />
-      ) : (
-        <WebView
-          ref={webviewRef}
-          originWhitelist={['*']}
-          source={{ html: finalHtml }}
-          style={styles.webview}
-          onMessage={handleMessage}
-          javaScriptEnabled={true}
-        />
-      )}
+      <Svg height={size} width={size}>
+        <G>
+          <Circle cx={center} cy={center} r={radius} stroke="rgba(255,255,255,0.5)" strokeWidth="1" fill="transparent" />
+          <Circle cx={center} cy={center} r={radius + 20} stroke="rgba(255,255,255,0.3)" strokeWidth="1" fill="transparent" />
+          <Circle cx={center} cy={center} r={center} stroke="rgba(255,255,255,0.1)" strokeWidth="1" fill="transparent" />
+          
+          {/* Zodiac Signs */}
+          {ZODIAC_SIGNS.map((sign, index) => {
+            const degree = index * 30 + 15;
+            const coords = getCoordinates(degree);
+            return (
+              <SvgText
+                key={sign.name}
+                x={coords.x}
+                y={coords.y}
+                fontSize="20"
+                fill="white"
+                textAnchor="middle"
+                alignmentBaseline="central"
+              >
+                {sign.sign}
+              </SvgText>
+            );
+          })}
+
+          {/* Planets */}
+          {positions.map((planet) => {
+            const coords = getCoordinates(planet.longitude);
+            return (
+              <SvgText
+                key={planet.name}
+                x={coords.x}
+                y={coords.y}
+                fontSize="18"
+                fill="#C4B5FD"
+                textAnchor="middle"
+                alignmentBaseline="central"
+              >
+                {PLANET_GLYPHS[planet.name] || '?'}
+              </SvgText>
+            );
+          })}
+        </G>
+      </Svg>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
-    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  webview: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-}); 
+});
+
+export default AstrologyChart; 

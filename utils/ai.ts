@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 interface AICardInterpretationRequest {
   cardName: string;
   cardKeywords: string[];
@@ -24,7 +26,7 @@ interface AIPersonalizedGuidanceRequest {
 }
 
 // Helper function to get the correct API base URL for mobile/web
-const getApiBaseUrl = () => {
+export const getApiBaseUrl = () => {
   // For web development, use relative URLs
   if (typeof window !== 'undefined') {
     return '';

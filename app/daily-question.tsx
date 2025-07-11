@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
 import { ArrowLeft, BookOpen, Repeat, Chrome as Home } from 'lucide-react-native';
 import { getTodaysEntry } from '@/utils/database';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DailyQuestionScreen() {
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const insets = useSafeAreaInsets();
   
   const glow = useSharedValue(0);
 
@@ -45,21 +47,21 @@ export default function DailyQuestionScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator color="#A78BFA" size="large" />
           <Text style={styles.loadingText}>Loading your daily insight...</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   if (!todaysEntry) {
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top }]}>
               <Pressable style={styles.backButton} onPress={() => router.back()}>
                 <ArrowLeft size={24} color="#F3F4F6" />
               </Pressable>
@@ -74,15 +76,15 @@ export default function DailyQuestionScreen() {
                     <Text style={styles.primaryButtonText}>Draw Today's Card</Text>
                 </Pressable>
             </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color="#F3F4F6" />
         </Pressable>
@@ -114,7 +116,7 @@ export default function DailyQuestionScreen() {
             </Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -147,7 +149,6 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         paddingHorizontal: 16,
-        paddingTop: 16,
         paddingBottom: 8,
     },
     backButton: {

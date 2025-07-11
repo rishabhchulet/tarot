@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NoteEntry } from '@/components/NoteEntry';
 import { getJournalEntries } from '@/utils/database';
 import { BookOpen, BookUser } from 'lucide-react-native';
 import { useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function JournalScreen() {
   const [entries, setEntries] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const loadEntries = useCallback(async () => {
     setRefreshing(true);
@@ -24,12 +26,12 @@ export default function JournalScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#0a0a0a', '#171717', '#0a0a0a']}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <BookUser size={28} color="#A78BFA" />
         <Text style={styles.title}>Journal</Text>
       </View>
@@ -61,7 +63,7 @@ export default function JournalScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -73,7 +75,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 24,
     paddingBottom: 16,
     paddingHorizontal: 24,
     gap: 12,

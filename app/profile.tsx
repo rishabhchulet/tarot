@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowLeft, Save, User, Sun, Moon, Star } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/utils/auth';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const FOCUS_AREAS = [
   { id: 'inner_development', title: 'Inner Development', icon: Sun },
@@ -18,6 +19,7 @@ export default function ProfileScreen() {
   const [name, setName] = useState('');
   const [selectedFocusArea, setSelectedFocusArea] = useState('');
   const [loading, setLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (user) {
@@ -44,9 +46,9 @@ export default function ProfileScreen() {
   }, [name, selectedFocusArea, refreshUser]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12, paddingBottom: 12 }]}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
           <ArrowLeft size={24} color="#F3F4F6" />
         </Pressable>
@@ -100,7 +102,7 @@ export default function ProfileScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -111,7 +113,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
   },
   backButton: { padding: 8 },
   title: { fontFamily: 'Inter-Bold', fontSize: 20, color: '#F9FAFB' },

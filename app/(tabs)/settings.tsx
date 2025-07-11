@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch, Alert, SafeAreaView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Alert, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, CreditCard, CircleHelp as HelpCircle, LogOut, Settings as SettingsIcon } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { SignOutTestButton } from '@/components/SignOutTestButton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const insets = useSafeAreaInsets();
 
   const SettingItem = ({ icon: Icon, title, onPress, rightElement, isDestructive = false }) => (
     <Pressable style={styles.itemContainer} onPress={onPress}>
@@ -21,12 +23,12 @@ export default function SettingsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <LinearGradient
         colors={['#0a0a0a', '#171717', '#0a0a0a']}
         style={StyleSheet.absoluteFill}
       />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <SettingsIcon size={28} color="#3B82F6" />
         <Text style={styles.title}>Settings</Text>
       </View>
@@ -75,7 +77,7 @@ export default function SettingsScreen() {
             <SignOutTestButton />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -87,7 +89,6 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingTop: 24,
         paddingBottom: 16,
         paddingHorizontal: 24,
         gap: 12,

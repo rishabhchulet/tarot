@@ -1,52 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { FlaskConical, Eye, PenTool, User, Sparkles, Shuffle } from 'lucide-react-native';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { StarfieldBackground } from '@/components/StarfieldBackground';
 
 const ARCHETYPES = [
   { id: 'alchemist', name: 'The Alchemist', icon: FlaskConical, colors: ['#3b82f6', '#2563eb'], description: 'You walk the path of transformation and depth. Turning challenges into your power.' },
-  { id: 'seer', name: 'The Seer', icon: Eye, colors: ['#3B82F6', '#1E3A8A'], description: 'You navigate with intuition, relying on inner knowing to guide your decisions.' },
+  { id: 'seer', name: 'The Seer', icon: Eye, colors: ['#8b5cf6', '#7c3aed'], description: 'You navigate with intuition, relying on inner knowing to guide your decisions.' },
   { id: 'creator', name: 'The Creator', icon: PenTool, colors: ['#10b981', '#059669'], description: 'You are dedicated to creating something enduring, whether a home, a business, or art.' },
   { id: 'mirror', name: 'The Mirror', icon: User, colors: ['#ef4444', '#dc2626'], description: 'You have a gift for sensing the emotions and energies of those around you.' },
   { id: 'trickster', name: 'The Trickster', icon: Sparkles, colors: ['#f59e0b', '#d97706'], description: 'You challenge norms with humor and adaptability, pushing others to grow.' },
-  { id: 'shapeshifter', name: 'The Shapeshifter', icon: Shuffle, colors: ['#3B82F6', '#60A5FA'], description: 'You move between roles, but may wonder: "Which form is truly me?"' },
+  { id: 'shapeshifter', name: 'The Shapeshifter', icon: Shuffle, colors: ['#6366f1', '#4f46e5'], description: 'You move between roles, but may wonder: "Which form is truly me?"' },
 ];
 
-export default function QuizScreen() {
-  const { user, refreshUserData } = useAuth();
+export default function ArchetypeQuiz() {
+  const { refreshUser } = useAuth();
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
-  const buttonOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    if (selected) {
-      buttonOpacity.value = withTiming(1, { duration: 500, easing: Easing.out(Easing.ease) });
-    }
-  }, [selected]);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: buttonOpacity.value,
-      transform: [{ translateY: (1 - buttonOpacity.value) * 20 }],
-    };
-  });
 
   const handleContinue = async () => {
     if (!selected) return;
     setLoading(true);
     try {
-      await updateUserProfile({ archetype: selected });
-      await refreshUserData(); // Refresh user data to get the new archetype
-      router.replace('/onboarding/confirmation');
+      const { error } = await updateUserProfile({ archetype: selected });
+      if (error) {
+        Alert.alert('Update Failed', "Couldn't save your choice, but you can change it later.",
+          [{ text: 'OK', onPress: () => router.push('/onboarding/about') }]
+        );
+      } else {
+        await refreshUser();
+        router.push('/onboarding/about');
+      }
     } catch (error) {
-      Alert.alert('Error', 'Could not save your choice. Please try again.');
-      console.error(error);
+      router.push('/onboarding/about');
     } finally {
       setLoading(false);
     }
@@ -54,126 +42,94 @@ export default function QuizScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StarfieldBackground />
+      <LinearGradient colors={['#111111', '#0a0a0a']} style={StyleSheet.absoluteFill} />
       
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Choose Your Archetype</Text>
-        <Text style={styles.subtitle}>Your choice shapes your journey's focus.</Text>
+        <View style={styles.headerSection}>
+          <Text style={styles.mainTitle}>This app is your mirror.</Text>
+          <Text style={styles.subtitle}>
+            In your journey, an archetype has arrived to be your guide. Choose the one you feel most drawn to now.
+          </Text>
+        </View>
 
-        <View style={styles.cardGrid}>
-          {ARCHETYPES.map(item => (
-            <Pressable key={item.id} onPress={() => setSelected(item.id)}>
-              <LinearGradient
-                colors={selected === item.id ? item.colors : ['#1f2937', '#374151']}
-                start={{ x: 0, y: 0.1 }} end={{ x: 1, y: 0.9 }}
-                style={[styles.card, selected === item.id && styles.selectedCard]}
-              >
+        <View style={styles.cardsSection}>
+          {ARCHETYPES.map((archetype) => {
+            const IconComponent = archetype.icon;
+            const isSelected = selected === archetype.id;
+            return (
+              <Pressable key={archetype.id} onPress={() => setSelected(archetype.id)} style={[styles.archetypeCard, isSelected && styles.selectedCard]}>
                 <View style={styles.cardContent}>
-                  <item.icon size={24} color="#ffffff" />
-                  <Text style={styles.cardTitle}>{item.name}</Text>
+                  <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
+                    <IconComponent size={28} color="#FFFFFF" strokeWidth={2} />
+                  </LinearGradient>
+                  <View style={styles.cardText}>
+                    <Text style={styles.cardTitle}>{archetype.name}</Text>
+                    <Text style={styles.cardDescription}>{archetype.description}</Text>
+                  </View>
                 </View>
-                <Text style={styles.cardDescription}>{item.description}</Text>
-              </LinearGradient>
-            </Pressable>
-          ))}
+              </Pressable>
+            );
+          })}
         </View>
       </ScrollView>
 
-      <Animated.View style={[styles.buttonContainer, animatedStyle]}>
+      <View style={styles.buttonContainer}>
         <Pressable onPress={handleContinue} disabled={!selected || loading}>
           <LinearGradient
+            colors={!selected || loading ? ['#2D2D2F', '#4A4A4A'] : ['#3b82f6', '#8b5cf6']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={styles.continueButton}
-            colors={!selected || loading ? ['#2D2D2F', '#4A4A4A'] : ['#3B82F6', '#60A5FA']}
           >
-            {loading ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={[styles.buttonText, (!selected || loading) && styles.buttonTextDisabled]}>
-                Continue
-              </Text>
-            )}
+            <Text style={[styles.buttonText, (!selected || loading) && styles.buttonTextDisabled]}>
+              {loading ? 'Saving...' : 'Continue'}
+            </Text>
           </LinearGradient>
         </Pressable>
-      </Animated.View>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#030712',
-  },
-  scrollContent: {
-    padding: 24,
-  },
-  title: {
-    fontSize: 32,
-    fontFamily: 'Inter-Bold',
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-Regular',
-    color: '#9ca3af',
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  cardGrid: {
-    gap: 16,
-  },
-  card: {
-    borderRadius: 16,
-    padding: 20,
+  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  scrollContent: { paddingBottom: 140 },
+  headerSection: { paddingHorizontal: 24, paddingTop: 60, paddingBottom: 32, alignItems: 'center' },
+  mainTitle: { fontSize: 28, fontFamily: 'Inter-Bold', color: '#F9FAFB', textAlign: 'center', marginBottom: 12 },
+  subtitle: { fontSize: 16, fontFamily: 'Inter-Regular', color: '#A1A1AA', textAlign: 'center', lineHeight: 24, maxWidth: 340 },
+  cardsSection: { paddingHorizontal: 16, gap: 12 },
+  archetypeCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'transparent',
+    overflow: 'hidden',
   },
   selectedCard: {
-    borderColor: '#3B82F6',
-    shadowColor: '#3B82F6',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 15,
-    elevation: 10,
+    borderColor: '#8b5cf6',
+    backgroundColor: '#110F18',
   },
-  cardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
-    color: '#ffffff',
-  },
-  cardDescription: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#d1d5db',
-    lineHeight: 20,
-  },
-  buttonContainer: {
-    padding: 24,
-    backgroundColor: 'rgba(3, 7, 18, 0.8)',
-    borderTopWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.2)',
-  },
-  continueButton: {
-    width: '100%',
-    padding: 16,
-    borderRadius: 99,
+  cardContent: { flexDirection: 'row', padding: 16, alignItems: 'center' },
+  iconContainer: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 16,
   },
-  buttonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+  cardText: { flex: 1 },
+  cardTitle: { fontSize: 17, fontFamily: 'Inter-SemiBold', color: '#FFFFFF', marginBottom: 4 },
+  cardDescription: { fontSize: 14, fontFamily: 'Inter-Regular', color: '#A1A1AA', lineHeight: 20 },
+  buttonContainer: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    paddingHorizontal: 20, paddingBottom: 40, paddingTop: 20,
+    backgroundColor: 'transparent',
   },
-  buttonTextDisabled: {
-    color: '#9ca3af',
+  continueButton: {
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
   },
+  buttonText: { fontSize: 17, fontFamily: 'Inter-Bold', color: '#FFFFFF' },
+  buttonTextDisabled: { color: '#666' },
 });

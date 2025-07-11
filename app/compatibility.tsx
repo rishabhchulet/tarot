@@ -7,7 +7,6 @@ import { ChevronLeft, Heart, Users } from 'lucide-react-native';
 import { BirthProfileInput, BirthProfile } from '@/components/BirthProfileInput';
 import { useAuth } from '@/contexts/AuthContext';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
-import Animated, { FadeIn } from 'react-native-reanimated';
 
 const initialProfileState: BirthProfile = {
   name: '',
@@ -69,7 +68,7 @@ export default function CompatibilityScreen() {
           <ChevronLeft size={28} color="#F9FAFB" />
         </Pressable>
         <View style={styles.headerCenter}>
-          <Users size={24} color="#3B82F6" />
+          <Users size={24} color="#a78bfa" />
           <Text style={styles.title}>Compatibility</Text>
         </View>
         <View style={{ width: 40 }} /> 
@@ -125,7 +124,7 @@ export default function CompatibilityScreen() {
           style={[styles.primaryButton, (!isReady || loading) && styles.primaryButtonDisabled]}
         >
           <LinearGradient
-            colors={!isReady || loading ? ['#374151', '#374151'] : ['#3B82F6', '#60A5FA']}
+            colors={!isReady || loading ? ['#374151', '#374151'] : ['#8b5cf6', '#6366f1']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.buttonGradient}
@@ -230,7 +229,7 @@ const styles = StyleSheet.create({
   primaryButton: {
     marginTop: 24,
     borderRadius: 16,
-    shadowColor: '#3B82F6',
+    shadowColor: '#8b5cf6',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
@@ -266,11 +265,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     fontSize: 14,
     textAlign: 'center',
-  },
-  selectedCard: {
-    borderColor: '#3B82F6',
-    shadowColor: '#3B82F6',
-    shadowRadius: 15,
-    shadowOpacity: 0.5,
   },
 }); 

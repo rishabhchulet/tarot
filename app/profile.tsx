@@ -54,7 +54,7 @@ export default function ProfileScreen() {
         </Pressable>
         <Text style={styles.title}>Edit Profile</Text>
         <Pressable style={styles.saveButton} onPress={handleSave} disabled={loading}>
-          {loading ? <ActivityIndicator color="#60A5FA" /> : <Save size={24} color="#60A5FA" />}
+          {loading ? <ActivityIndicator color="#A78BFA" /> : <Save size={24} color="#A78BFA" />}
         </Pressable>
       </View>
 
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   focusOptionSelected: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    borderColor: 'rgba(59, 130, 246, 0.5)',
+    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+    borderColor: 'rgba(167, 139, 250, 0.5)',
   },
   focusOptionText: {
     fontFamily: 'Inter-Medium',

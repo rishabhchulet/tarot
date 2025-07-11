@@ -99,14 +99,14 @@ export default function SignInScreen() {
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </Pressable>
 
-          <Pressable style={styles.button} onPress={handleSignIn} disabled={loading}>
+          <Pressable onPress={handleSignIn} disabled={loading}>
             <LinearGradient
-              style={StyleSheet.absoluteFill}
-              colors={loading ? ['#475569', '#64748b'] : ['#3B82F6', '#60A5FA']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-            />
-            <Text style={styles.signInButtonText}>{loading ? 'Signing In...' : 'Sign In'}</Text>
+              colors={loading ? ['#475569', '#64748b'] : ['#3b82f6', '#8b5cf6']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={styles.signInButton}
+            >
+              <Text style={styles.signInButtonText}>{loading ? 'Signing In...' : 'Sign In'}</Text>
+            </LinearGradient>
           </Pressable>
 
           <Pressable style={styles.signUpLink} onPress={() => router.push('/auth/signup')}>
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14, fontFamily: 'Inter-Medium', color: '#60a5fa',
   },
-  button: {
+  signInButton: {
     borderRadius: 12, paddingVertical: 18, alignItems: 'center',
     shadowColor: '#3b82f6', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,

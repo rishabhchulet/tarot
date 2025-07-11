@@ -44,7 +44,7 @@ export default function HomeScreen() {
             title="Compatibility"
             subtitle="See your connections"
             href="/compatibility"
-            icon={<Users size={24} color="#60A5FA" />}
+            icon={<Users size={24} color="#a78bfa" />}
           />
         </View>
 

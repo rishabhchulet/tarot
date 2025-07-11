@@ -203,11 +203,11 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
           >
             <View style={styles.innerBorder}>
               <View style={styles.cardContent}>
-                <Image
+              <Image
                   source={{ uri: selectedCard.imageUrl }}
-                  style={styles.cardBackImage}
-                  resizeMode="cover"
-                />
+                style={styles.cardBackImage}
+                resizeMode="cover"
+              />
                 <View style={styles.cardOverlay}>
                   <Text style={styles.cardName}>{selectedCard.name}</Text>
                   <View style={styles.keywordsPreview}>
@@ -250,7 +250,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     <View style={styles.stepContainer}>
       <View style={styles.keywordsHeader}>
         <Star size={24} color="#fde047" />
-        <Text style={styles.stepTitle}>Key Themes</Text>
+      <Text style={styles.stepTitle}>Key Themes</Text>
         <Star size={24} color="#fde047" />
       </View>
       
@@ -291,7 +291,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
           end={{ x: 1, y: 1 }}
           style={styles.buttonGradient}
         >
-          <Text style={styles.continueButtonText}>Begin Reflection</Text>
+        <Text style={styles.continueButtonText}>Begin Reflection</Text>
         </LinearGradient>
       </Pressable>
     </View>

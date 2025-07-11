@@ -1,30 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, BookOpen, CheckCircle } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Repeat, Chrome as Home } from 'lucide-react-native';
 import { getTodaysEntry } from '@/utils/database';
-import { getCardByName } from '@/data/tarotCards';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, withSequence, FadeIn } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { StarfieldBackground } from '@/components/StarfieldBackground';
 
 export default function DailyQuestionScreen() {
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
-  const [cardImage, setCardImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const insets = useSafeAreaInsets();
+  
+  const glow = useSharedValue(0);
 
   const loadTodaysEntry = useCallback(async () => {
     setLoading(true);
     try {
       const entry = await getTodaysEntry();
       setTodaysEntry(entry);
-      if (entry && entry.card_name) {
-        const card = getCardByName(entry.card_name);
-        setCardImage(card?.imageUrl || null);
-      }
     } catch (error) {
-      console.error("❌ Error loading today's entry:", error);
+      console.error('❌ Error loading today\'s entry:', error);
     } finally {
       setLoading(false);
     }
@@ -36,34 +32,47 @@ export default function DailyQuestionScreen() {
     }, [loadTodaysEntry])
   );
 
+  useEffect(() => {
+    glow.value = withRepeat(
+        withSequence(
+            withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+            withTiming(0.5, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+        ), -1, true
+    )
+  }, []);
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({
+    opacity: glow.value,
+  }));
+
   if (loading) {
     return (
       <View style={styles.container}>
-        <StarfieldBackground />
+        <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#60A5FA" size="large" />
-          <Text style={styles.loadingText}>Summoning your daily insight...</Text>
+          <ActivityIndicator color="#A78BFA" size="large" />
+          <Text style={styles.loadingText}>Loading your daily insight...</Text>
         </View>
       </View>
     );
   }
 
   if (!todaysEntry) {
-    // This part of the UI can be improved later if needed
     return (
         <View style={styles.container}>
-            <StarfieldBackground />
+            <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
             <View style={[styles.header, { paddingTop: insets.top }]}>
               <Pressable style={styles.backButton} onPress={() => router.back()}>
-                <ArrowLeft size={24} color="#E5E7EB" />
+                <ArrowLeft size={24} color="#F3F4F6" />
               </Pressable>
             </View>
             <View style={styles.emptyContainer}>
+                <Repeat size={48} color="#6B7280" />
                 <Text style={styles.emptyTitle}>No Reading Found</Text>
                 <Text style={styles.emptyDescription}>
-                    You haven't drawn a card today.
+                    It looks like you haven't done a reading today.
                 </Text>
-                <Pressable style={styles.primaryButton} onPress={() => router.replace('/draw')}>
+                <Pressable style={styles.primaryButton} onPress={() => router.replace('/(tabs)')}>
                     <Text style={styles.primaryButtonText}>Draw Today's Card</Text>
                 </Pressable>
             </View>
@@ -73,41 +82,37 @@ export default function DailyQuestionScreen() {
 
   return (
     <View style={styles.container}>
-      <StarfieldBackground />
+      <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+      <Animated.View style={[styles.glow, animatedGlowStyle]} />
       <View style={[styles.header, { paddingTop: insets.top }]}>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#E5E7EB" />
+          <ArrowLeft size={24} color="#F3F4F6" />
         </Pressable>
       </View>
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Text style={styles.dateText}>{new Date(todaysEntry.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</Text>
-        
-        {cardImage && (
-            <Animated.View entering={FadeIn.duration(1500)}>
-                <Image source={{ uri: cardImage }} style={styles.cardImage} resizeMode="contain" />
-            </Animated.View>
-        )}
-
         <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
         
         <View style={styles.questionContainer}>
-            <Text style={styles.questionLabel}>Your Question for Today</Text>
+            <Text style={styles.questionLabel}>Your question for today</Text>
             <Text style={styles.questionText}>"{todaysEntry.daily_question}"</Text>
         </View>
 
-        <Text style={styles.guidanceText}>
-          Let this question gently guide your awareness. Notice what arises when you pause and reflect on it during quiet moments.
-        </Text>
+        <View style={styles.guidanceContainer}>
+          <Text style={styles.guidanceText}>
+            Let this question gently guide your awareness. Notice what arises when you pause and reflect on it during quiet moments.
+          </Text>
+        </View>
 
         <View style={styles.actions}>
-            <Pressable style={styles.secondaryButton} onPress={() => router.push('/(tabs)/journal')}>
-                <BookOpen size={18} color="#D1D5DB" />
-                <Text style={styles.secondaryButtonText}>Go to Journal</Text>
+            <Pressable style={styles.actionButton} onPress={() => router.push('/(tabs)/journal')}>
+                <BookOpen size={20} color="#F9FAFB" />
+                <Text style={styles.actionButtonText}>Go to Journal</Text>
             </Pressable>
-            <Pressable style={styles.mainActionButton} onPress={() => router.replace('/(tabs)')}>
-                <CheckCircle size={20} color="#FFFFFF" />
-                <Text style={styles.mainActionButtonText}>Done for Today</Text>
+            <Pressable style={[styles.actionButton, styles.homeButton]} onPress={() => router.replace('/(tabs)')}>
+                <Home size={20} color="#F9FAFB" />
+                <Text style={styles.actionButtonText}>Done for Today</Text>
             </Pressable>
         </View>
       </ScrollView>
@@ -118,7 +123,17 @@ export default function DailyQuestionScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#030712', // Dark blue-gray
+        backgroundColor: '#0a0a0a',
+    },
+    glow: {
+        position: 'absolute',
+        width: 600,
+        height: 600,
+        borderRadius: 300,
+        backgroundColor: 'rgba(167, 139, 250, 0.15)',
+        top: '10%',
+        left: '50%',
+        transform: [{ translateX: -300 }],
     },
     loadingContainer: {
         flex: 1,
@@ -128,18 +143,13 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontFamily: 'Inter-Medium',
-        color: '#9CA3AF',
+        color: '#A1A1AA',
         fontSize: 16,
     },
     header: {
         flexDirection: 'row',
         paddingHorizontal: 16,
         paddingBottom: 8,
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10,
     },
     backButton: {
         padding: 8,
@@ -154,76 +164,60 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: 'Inter-Bold',
         fontSize: 24,
-        color: '#F9FAFB',
+        color: '#E4E4E7',
     },
     emptyDescription: {
         fontFamily: 'Inter-Regular',
         fontSize: 16,
-        color: '#D1D5DB',
+        color: '#A1A1AA',
         textAlign: 'center',
         maxWidth: 280,
     },
     primaryButton: {
         marginTop: 24,
-        backgroundColor: '#3B82F6',
-        paddingVertical: 14,
+        backgroundColor: '#8B5CF6',
+        paddingVertical: 16,
         paddingHorizontal: 32,
         borderRadius: 99,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
     },
     primaryButtonText: {
         fontFamily: 'Inter-SemiBold',
-        color: '#FFFFFF',
+        color: '#F9FAFB',
         fontSize: 16,
     },
     scrollView: {
         flex: 1,
-    },
-    scrollContent: {
-      paddingTop: 80, // Space for header
-      paddingHorizontal: 24,
-      paddingBottom: 40,
-      alignItems: 'center',
+        paddingHorizontal: 24,
     },
     dateText: {
         fontFamily: 'Inter-Regular',
-        color: '#9CA3AF',
+        color: '#A1A1AA',
+        textAlign: 'center',
         fontSize: 16,
-        marginBottom: 16,
-    },
-    cardImage: {
-      width: 200,
-      height: 340,
-      borderRadius: 12,
-      marginBottom: 24,
-      borderWidth: 1,
-      borderColor: 'rgba(255, 255, 255, 0.1)',
+        marginBottom: 8,
     },
     cardName: {
         fontFamily: 'Inter-Bold',
         color: '#F9FAFB',
+        textAlign: 'center',
         fontSize: 32,
         marginBottom: 32,
     },
     questionContainer: {
-        backgroundColor: 'rgba(17, 24, 39, 0.8)', // Semi-transparent dark blue
+        backgroundColor: 'rgba(255, 255, 255, 0.05)',
         borderRadius: 20,
         padding: 24,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(59, 130, 246, 0.3)',
-        marginBottom: 32,
-        width: '100%',
+        borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     questionLabel: {
         fontFamily: 'Inter-Medium',
-        color: '#9CA3AF',
-        fontSize: 12,
+        color: '#A1A1AA',
+        fontSize: 14,
         marginBottom: 16,
         textTransform: 'uppercase',
-        letterSpacing: 1.5,
+        letterSpacing: 1,
     },
     questionText: {
         fontFamily: 'Inter-Bold',
@@ -232,58 +226,39 @@ const styles = StyleSheet.create({
         lineHeight: 32,
         textAlign: 'center',
     },
+    guidanceContainer: {
+        padding: 24,
+        marginTop: 16,
+    },
     guidanceText: {
         fontFamily: 'Inter-Regular',
-        color: '#D1D5DB',
-        fontSize: 15,
+        color: '#A1A1AA',
+        fontSize: 16,
         lineHeight: 24,
         textAlign: 'center',
-        marginBottom: 40,
-        maxWidth: 320,
     },
     actions: {
         flexDirection: 'row',
         justifyContent: 'center',
         gap: 16,
-        width: '100%',
+        marginTop: 24,
+        paddingBottom: 40,
     },
-    secondaryButton: {
+    actionButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
+        backgroundColor: 'rgba(255, 255, 255, 0.08)',
         paddingVertical: 12,
-        paddingHorizontal: 24,
+        paddingHorizontal: 20,
         borderRadius: 99,
-        borderWidth: 1,
-        borderColor: '#374151',
         gap: 8,
-        flex: 1,
     },
-    secondaryButtonText: {
+    homeButton: {
+        backgroundColor: '#8B5CF6',
+    },
+    actionButtonText: {
         fontFamily: 'Inter-SemiBold',
-        color: '#D1D5DB',
+        color: '#F9FAFB',
         fontSize: 14,
-    },
-    mainActionButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#3B82F6',
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-        borderRadius: 99,
-        gap: 10,
-        flex: 1,
-        shadowColor: '#3B82F6',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.4,
-        shadowRadius: 12,
-        elevation: 5,
-    },
-    mainActionButtonText: {
-        fontFamily: 'Inter-Bold',
-        color: '#FFFFFF',
-        fontSize: 16,
     },
 });

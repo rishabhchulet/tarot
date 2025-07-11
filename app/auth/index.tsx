@@ -9,8 +9,7 @@ import Animated, {
   withTiming,
   withSequence,
   withRepeat,
-  Easing,
-  FadeIn
+  Easing
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -105,18 +104,16 @@ export default function AuthWelcomeScreen() {
       </View>
       
       <View style={styles.buttonSection}>
-        <Animated.View entering={FadeIn.duration(800).delay(400)}>
-          <Pressable onPress={() => router.push('/auth/signin')}>
-            <LinearGradient
-              colors={['#3B82F6', '#60A5FA']}
-              start={{ x: 0, y: 0.5 }}
-              end={{ x: 1, y: 0.5 }}
-              style={styles.button}
-            >
-              <Text style={styles.primaryButtonText}>Get Started</Text>
-            </LinearGradient>
-          </Pressable>
-        </Animated.View>
+        <Pressable onPress={() => router.push('/auth/signup')}>
+          <LinearGradient
+            colors={['#3b82f6', '#8b5cf6']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.primaryButton}
+          >
+            <Text style={styles.primaryButtonText}>Get Started</Text>
+          </LinearGradient>
+        </Pressable>
         
         <Pressable style={styles.secondaryButton} onPress={() => router.push('/auth/signin')}>
           <Text style={styles.secondaryButtonText}>

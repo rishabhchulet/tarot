@@ -52,19 +52,13 @@ export const getHexagramByNumber = (number: number): IChingHexagramData | undefi
 
 export const getHexagramByName = (name: string): IChingHexagramData | undefined => {
   const normalizedName = name.toLowerCase().trim();
-  // First try exact match for speed
-  let hexagram = iChingData.find(hex => hex.name.toLowerCase().trim() === normalizedName);
-  
-  // If no exact match, try a more flexible search
-  if (!hexagram) {
-    hexagram = iChingData.find(hex => {
-      const hexName = hex.name.toLowerCase().trim();
-      // e.g., "Return" should match "24 – Return"
-      return hexName.includes(normalizedName);
-    });
-  }
-  
-  return hexagram;
+
+  return iChingData.find(hexagram => {
+    // The simple name (e.g., "The Creative") is part of the "number" field in the JSON
+    // Format is like "1 – The Creative"
+    const nameFromData = hexagram.number.toString().toLowerCase().split('–')[1]?.trim();
+    return nameFromData === normalizedName;
+  });
 };
 
 export const getAllTarotCards = (): TarotCardData[] => {

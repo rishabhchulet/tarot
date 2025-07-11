@@ -381,7 +381,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } else {
               console.log('🚫 Skipping user data load during sign out');
             }
-            setUser(null);
           }
         } catch (error) {
           console.error('❌ Error handling auth state change:', error);

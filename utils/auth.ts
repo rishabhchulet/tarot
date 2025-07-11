@@ -235,7 +235,9 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
       // Try using the database function first
       result = await createTimeoutWrapper(
         () => supabase.rpc('ensure_user_profile_exists', {
-          check_user_id: user.id
+          check_user_id: user.id,
+          user_name: profileName,
+          user_email: user.email
         }),
         attempts === 1 ? 15000 : 10000, // Longer timeout on first attempt
         [{ success: false, message: 'Timeout', user_data: {} }]

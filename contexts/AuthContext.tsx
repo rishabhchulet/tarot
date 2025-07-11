@@ -4,7 +4,6 @@ import { getCurrentUser, type AuthUser } from '@/utils/auth';
 import { Platform } from 'react-native';
 import type { Session } from '@supabase/supabase-js';
 import { router } from 'expo-router';
-import { AstrologicalPlacements, getAstrologicalPlacements } from '@/utils/astrology';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -17,8 +16,6 @@ interface AuthContextType {
   retryConnection: () => Promise<void>;
   testSignOut: () => Promise<void>;
   updateUser: (updates: Partial<AuthUser>) => void;
-  placements: AstrologicalPlacements | null;
-  calculatePlacements: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,39 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'connecting' | 'disconnected' | 'error'>('connecting');
   const [retryCount, setRetryCount] = useState(0);
   const [lastSuccessfulConnection, setLastSuccessfulConnection] = useState<Date | null>(null);
-  const [placements, setPlacements] = useState<AstrologicalPlacements | null>(null);
 
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
-
-  const calculatePlacements = async (userForPlacements: AuthUser | null = user) => {
-    if (userForPlacements && userForPlacements.birthDate && userForPlacements.birthTime && userForPlacements.birthLocation) {
-      try {
-        console.log('🔭 Calculating astrological placements for:', userForPlacements.name);
-        const date = new Date(userForPlacements.birthDate);
-        const time = userForPlacements.birthTime.split(':');
-        const placementsResult = await getAstrologicalPlacements(
-          userForPlacements.name,
-          date.getFullYear(),
-          date.getMonth() + 1,
-          date.getDate(),
-          parseInt(time[0]),
-          parseInt(time[1]),
-          userForPlacements.birthLocation,
-          userForPlacements.latitude, // Pass coordinates
-          userForPlacements.longitude
-        );
-        console.log('✅ Placements calculated successfully');
-        setPlacements(placementsResult);
-      } catch (error) {
-        console.error('❌ Error calculating placements:', error);
-        setPlacements(null); // Ensure placements are cleared on error
-      }
-    } else {
-      console.log('ℹ️ Insufficient data to calculate placements.');
-      setPlacements(null); // Clear placements if data is missing
-    }
-  };
 
   const refreshUser = async () => {
     try {
@@ -84,11 +51,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           archetype: currentUser.archetype 
         });
         setUser(currentUser);
-        // CRITICAL FIX: Calculate placements immediately after user data is loaded
-        if (currentUser.birthDate && currentUser.birthLocation && currentUser.birthTime) {
-          console.log('✨ User has birth data, calculating placements...');
-          calculatePlacements(currentUser); // Pass user to avoid state delay
-        }
         setError(null);
         setConnectionStatus('connected');
         setLastSuccessfulConnection(new Date());
@@ -174,7 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Only clear user if we don't have existing data
       if (!user) {
         setUser(null);
-        setPlacements(null);
       }
     }
   };
@@ -229,7 +190,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setConnectionStatus('disconnected');
       setLastSuccessfulConnection(null);
       setRetryCount(0);
-      setPlacements(null);
 
       console.log('📱 [signOut] Navigating to /auth...');
       router.replace('/auth');
@@ -420,10 +380,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [connectionStatus, retryCount, loading]);
 
   useEffect(() => {
-    if (user && !placements) {
-      calculatePlacements();
-    }
-  }, [user]);
+    // Initial load
+    console.log('🚀 AuthProvider mounted, initializing...');
+    refreshUser();
+  }, []);
 
   const contextValue = {
     user,
@@ -438,8 +398,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     updateUser: (updates: Partial<AuthUser>) => {
       setUser(prev => prev ? { ...prev, ...updates } : null);
     },
-    placements,
-    calculatePlacements,
   };
 
   return (

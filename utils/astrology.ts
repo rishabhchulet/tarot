@@ -1,10 +1,4 @@
 import {
-  sweUtcToJd,
-  sweSetTopo,
-  sweHouses,
-  sweCalcUt,
-} from 'react-native-swisseph';
-import {
   createTimeOfInterest,
   createSun,
   createMoon,
@@ -17,82 +11,6 @@ import {
   createNeptune,
   createPluto,
 } from 'astronomy-bundle';
-
-export const SE_SUN = 0;
-export const SE_MOON = 1;
-export const SE_MERCURY = 2;
-export const SE_VENUS = 3;
-export const SE_MARS = 4;
-export const SE_JUPITER = 5;
-export const SE_SATURN = 6;
-export const SE_URANUS = 7;
-export const SE_NEPTUNE = 8;
-export const SE_PLUTO = 9;
-export const SE_TRUE_NODE = 11;
-export const SEFLG_SPEED = 256;
-export const SE_GREG_CAL = 1;
-
-export interface AstrologicalPlacements {
-  planets: {
-    [name: string]: {
-      longitude: number;
-      latitude: number;
-      speed: number;
-    };
-  };
-  cusps: number[];
-  ascendant: number;
-}
-
-const PLANET_MAP = {
-  Sun: SE_SUN,
-  Moon: SE_MOON,
-  Mercury: SE_MERCURY,
-  Venus: SE_VENUS,
-  Mars: SE_MARS,
-  Jupiter: SE_JUPITER,
-  Saturn: SE_SATURN,
-  Uranus: SE_URANUS,
-  Neptune: SE_NEPTUNE,
-  Pluto: SE_PLUTO,
-  'North Node': SE_TRUE_NODE,
-};
-
-export async function getAstrologicalPlacements(
-  name: string,
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  minute: number,
-  location: string,
-  lat: number,
-  lon: number
-): Promise<AstrologicalPlacements> {
-  
-  const { tjdUt: julianDayUT } = sweUtcToJd(year, month, day, hour, minute, 0, SE_GREG_CAL);
-
-  sweSetTopo(lon, lat, 0);
-
-  const planets: AstrologicalPlacements['planets'] = {};
-
-  for (const [name, planetId] of Object.entries(PLANET_MAP)) {
-    const { longitude, latitude, longitudeSpeed } = await sweCalcUt(julianDayUT, planetId, SEFLG_SPEED);
-    planets[name] = {
-      longitude,
-      latitude,
-      speed: longitudeSpeed,
-    };
-  }
-  
-  const { cusp, ascmc } = await sweHouses(julianDayUT, lat, lon, 'P');
-
-  return {
-    planets,
-    cusps: cusp,
-    ascendant: ascmc[0],
-  };
-}
 
 // Helper function to get element color
 export const getElementColor = (element: string): string => {

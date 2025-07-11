@@ -12,10 +12,10 @@ import { CelestialInfo } from '@/components/CelestialInfo';
 import { StarfieldBackground } from '@/components/StarfieldBackground';
 
 export default function HomeScreen() {
-  const { user, placements } = useAuth();
+  const { user } = useAuth();
   const insets = useSafeAreaInsets();
 
-  if (!placements || !user) {
+  if (!user) {
     return <GeneratingPlacements />;
   }
 

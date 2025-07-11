@@ -3,11 +3,12 @@ import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, AlertCircle, Heart, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, AlertCircle, Heart, Sparkles, ArrowLeft } from 'lucide-react-native';
 import { getAICompatibilityReport, CompatibilityReportRequest } from '@/utils/ai';
 import { ScoreGauge } from '@/components/ScoreGauge';
 import { StatsList, Stat } from '@/components/StatsList';
 import { BirthProfile } from '@/components/BirthProfileInput';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 interface ReportData {
   score: number;
@@ -92,7 +93,7 @@ export default function CompatibilityResultsScreen() {
       return (
         <View style={styles.centered}>
           <View style={styles.loadingContainer}>
-            <Sparkles size={48} color="#a78bfa" />
+            <Sparkles size={48} color="#60A5FA" />
             <ActivityIndicator size="large" color="#c7d2fe" style={styles.spinner} />
             <Text style={styles.loadingText}>Consulting the stars for your connection...</Text>
             <Text style={styles.loadingSubtext}>
@@ -159,18 +160,43 @@ export default function CompatibilityResultsScreen() {
 
       {/* Enhanced Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton} disabled={loading}>
-          <ChevronLeft size={28} color="#F9FAFB" />
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <ArrowLeft size={24} color="#f9fafb" />
         </Pressable>
-        <Text style={styles.title}>Compatibility Report</Text>
-        <View style={{ width: 40 }} /> 
+        <Text style={styles.headerTitle}>Cosmic Connection</Text>
       </View>
 
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {renderContent()}
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <Animated.View entering={FadeInUp.duration(600).delay(200)}>
+          <View style={styles.iconContainer}>
+            <Sparkles size={48} color="#60A5FA" />
+          </View>
+        </Animated.View>
+
+        <Animated.Text style={styles.title} entering={FadeInUp.duration(600).delay(400)}>
+          {report?.title}
+        </Animated.Text>
+
+        <View style={styles.summaryContainer}>
+          <Text style={styles.summaryText}>{report?.summary}</Text>
+        </View>
+
+        <View style={styles.scoreContainer}>
+          <Text style={styles.scoreLabel}>Connection Score</Text>
+          <Text style={styles.score}>{report?.score}%</Text>
+          <View style={styles.progressBar}>
+            <LinearGradient
+              colors={['#3B82F6', '#60A5FA']}
+              style={[styles.progress, { width: `${report?.score}%` }]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+            />
+          </View>
+        </View>
+
+        <View style={styles.detailsSection}>
+          <Text style={styles.detailsTitle}>Deeper Analysis</Text>
+          <Text style={styles.detailsText}>{report?.summary}</Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -195,7 +221,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 12,
   },
-  title: {
+  headerTitle: {
     fontFamily: 'Inter-Bold',
     fontSize: 22,
     color: '#F9FAFB',
@@ -305,5 +331,78 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 26,
     textAlign: 'center',
-  }
+  },
+  scoreContainer: {
+    marginVertical: 24,
+    alignItems: 'center',
+  },
+  scoreLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 18,
+    color: '#94a3b8',
+    marginBottom: 8,
+  },
+  score: {
+    fontSize: 56,
+    fontFamily: 'Inter-Bold',
+    color: '#60A5FA',
+    marginBottom: 8,
+  },
+  progressBar: {
+    width: '100%',
+    height: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  progress: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  detailsSection: {
+    marginTop: 24,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  detailsTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 20,
+    color: '#F9FAFB',
+    marginBottom: 12,
+  },
+  detailsText: {
+    color: '#d1d5db',
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  title: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 26,
+    color: '#F9FAFB',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    color: '#94a3b8',
+  },
+  summaryValue: {
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    color: '#d1d5db',
+  },
 }); 

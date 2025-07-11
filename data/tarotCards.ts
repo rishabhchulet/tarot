@@ -1,3 +1,5 @@
+/// <reference lib="es2015" />
+
 export const MAJOR_ARCANA = [
   {
     name: "The Fool",
@@ -715,6 +717,12 @@ export const MINOR_ARCANA = [
 
 // Combine all cards for the complete deck
 export const TAROT_CARDS = [...MAJOR_ARCANA, ...MINOR_ARCANA];
+
+export const ALL_CARDS = [...MAJOR_ARCANA, ...MINOR_ARCANA];
+
+export const getCardByName = (name: string) => {
+  return ALL_CARDS.find(card => card.name === name);
+};
 
 // Export individual suits for easier access
 export const WANDS = MINOR_ARCANA.filter(card => card.suit === 'Wands');

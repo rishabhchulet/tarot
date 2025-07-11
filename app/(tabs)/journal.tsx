@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, RefreshControl } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { NoteEntry } from '@/components/NoteEntry';
 import { getJournalEntries } from '@/utils/database';
 import { BookOpen, BookUser } from 'lucide-react-native';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StarfieldBackground } from '@/components/StarfieldBackground';
 
 export default function JournalScreen() {
   const [entries, setEntries] = useState<any[]>([]);
@@ -27,23 +27,29 @@ export default function JournalScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient
-        colors={['#0a0a0a', '#171717', '#0a0a0a']}
-        style={StyleSheet.absoluteFill}
-      />
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <BookUser size={28} color="#A78BFA" />
-        <Text style={styles.title}>Journal</Text>
+      <StarfieldBackground />
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <View style={styles.headerLeft}>
+          <BookUser size={28} color="#60A5FA" />
+        </View>
+        <Text style={styles.title}>My Journal</Text>
+        <View style={styles.headerRight} />
       </View>
 
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={loadEntries} tintColor="#A78BFA" />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={loadEntries}
+              tintColor="#60A5FA"
+              title="Pull to refresh..."
+              titleColor="#9CA3AF"
+            />
         }
       >
-        {entries.length === 0 ? (
+        {entries.length === 0 && !refreshing ? (
           <View style={styles.emptyState}>
             <BookOpen size={64} color="#6B7280" strokeWidth={1.5} />
             <Text style={styles.emptyTitle}>Your journal is a sacred space.</Text>

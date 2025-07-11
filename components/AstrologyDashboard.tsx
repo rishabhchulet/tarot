@@ -40,7 +40,7 @@ export function AstrologyDashboard() {
         emoji={getSignEmoji(placements?.sun?.sign || '')}
       />
       <AstrologyItem
-        icon={<Moon size={28} color="#A78BFA" />}
+        icon={<Moon size={28} color="#60A5FA" />}
         label="Moon"
         sign={placements?.moon?.sign}
         emoji={getSignEmoji(placements?.moon?.sign || '')}

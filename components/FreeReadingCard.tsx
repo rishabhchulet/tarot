@@ -17,7 +17,7 @@ export function FreeReadingCard() {
         style={styles.gradientBorder}
       >
         <View style={styles.innerContainer}>
-          <Layers3 size={24} color="#a78bfa" />
+          <Layers3 size={24} color="#60A5FA" />
           <View style={styles.textContainer}>
             <Text style={styles.title}>Free Form Reading</Text>
             <Text style={styles.subtitle}>Ask a question and pull cards for insight.</Text>

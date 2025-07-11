@@ -68,24 +68,29 @@ export default function WelcomeScreen() {
           </Animated.View>
         </View>
         
-        <Text style={styles.title}>Welcome{user?.name ? `, ${user.name}` : ''}.</Text>
-        
-        <Text style={styles.subtitle}>
-          It's no coincidence you are here. This tool is a mirror and a guide, to help you tap into your inner wisdom.
-        </Text>
-        
+        <Animated.View style={[styles.titleContainer, titleAnimation]}>
+          <Text style={styles.title}>Welcome to Your Inner Cosmos</Text>
+        </Animated.View>
+
+        <Animated.View style={[styles.subtitleContainer, subtitleAnimation]}>
+          <Text style={styles.subtitle}>
+            A space to connect with your intuition and discover the wisdom within.
+          </Text>
+        </Animated.View>
       </View>
-      
-      <Pressable onPress={handleContinue}>
-        <LinearGradient
-            colors={['#3b82f6', '#8b5cf6']}
+
+      <Animated.View style={[styles.buttonContainer, buttonAnimation]}>
+        <Pressable onPress={() => router.push('/onboarding/name')}>
+          <LinearGradient
+            colors={['#3B82F6', '#60A5FA']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.primaryButton}
+            style={styles.button}
           >
             <Text style={styles.primaryButtonText}>Let’s Begin →</Text>
           </LinearGradient>
-      </Pressable>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 }

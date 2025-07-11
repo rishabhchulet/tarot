@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, Easing, withRepeat } from 'react-native-reanimated';
+import { StarfieldBackground } from '@/components/StarfieldBackground';
 
 export default function DrawPromptScreen() {
   const glowAnimation = useSharedValue(0);
   const scaleAnimation = useSharedValue(1);
+  const shineAnimation = useSharedValue(-1);
 
   React.useEffect(() => {
     glowAnimation.value = withRepeat(
@@ -25,6 +26,10 @@ export default function DrawPromptScreen() {
         -1,
         true
       );
+    shineAnimation.value = withRepeat(
+        withTiming(1, { duration: 3000, easing: Easing.linear }),
+        -1
+    );
   }, []);
 
   const glowAnimatedStyle = useAnimatedStyle(() => {
@@ -37,7 +42,15 @@ export default function DrawPromptScreen() {
     return {
         transform: [{ scale: scaleAnimation.value }]
     }
-  })
+  });
+
+  const shineAnimatedStyle = useAnimatedStyle(() => {
+    const translateX = shineAnimation.value * 300 - 100;
+    return {
+      transform: [{ translateX }, {rotate: '20deg'}],
+      opacity: 1 - shineAnimation.value
+    };
+  });
 
   const handlePress = () => {
     router.push('/draw');
@@ -45,10 +58,7 @@ export default function DrawPromptScreen() {
 
   return (
     <View style={styles.container}>
-        <LinearGradient
-            colors={['#0a0a0a', '#171717', '#0a0a0a']}
-            style={StyleSheet.absoluteFill}
-        />
+        <StarfieldBackground />
         <Animated.View style={[styles.glowEffect, glowAnimatedStyle]} />
         <Text style={styles.title}>Your Daily Card Awaits</Text>
         <Text style={styles.subtitle}>Take a moment to center yourself, then tap the card to receive today's inner message.</Text>
@@ -59,7 +69,11 @@ export default function DrawPromptScreen() {
                     style={styles.cardBackImage}
                     resizeMode="cover"
                 />
+                <Animated.View style={[styles.cardShine, shineAnimatedStyle]} />
             </Animated.View>
+        </Pressable>
+        <Pressable style={styles.skipButton} onPress={handlePress}>
+          <Text style={styles.skipButtonText}>Tap card to draw</Text>
         </Pressable>
     </View>
   );
@@ -70,16 +84,16 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#030712',
         padding: 24,
     },
     glowEffect: {
         position: 'absolute',
-        width: 400,
-        height: 400,
-        borderRadius: 200,
-        backgroundColor: '#8b5cf6',
-        opacity: 0.3,
+        width: 600,
+        height: 600,
+        borderRadius: 300,
+        backgroundColor: '#3B82F6',
+        opacity: 0.15,
     },
     title: {
         fontSize: 32,
@@ -112,4 +126,21 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
     },
+    cardShine: {
+        position: 'absolute',
+        top: -50,
+        left: 0,
+        width: 50,
+        height: '150%',
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    },
+    skipButton: {
+        position: 'absolute',
+        bottom: 50,
+    },
+    skipButtonText: {
+        fontFamily: 'Inter-Medium',
+        color: '#9CA3AF',
+        fontSize: 16,
+    }
 }); 

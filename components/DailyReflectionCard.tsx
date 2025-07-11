@@ -71,7 +71,7 @@ export function DailyReflectionCard() {
     <Pressable onPress={handlePress}>
       <Animated.View style={[styles.container, animatedStyle]}>
         <LinearGradient
-          colors={hasDrawn ? ['#374151', '#1f2937'] : ['#4f46e5', '#818cf8']}
+          colors={hasDrawn ? ['#374151', '#1f2937'] : ['#3B82F6', '#60A5FA']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
@@ -116,18 +116,19 @@ const styles = StyleSheet.create({
   gradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 24,
+    padding: 20,
     borderRadius: 24,
     overflow: 'hidden',
   },
   glow: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#a78bfa',
-    borderRadius: 24,
+    top: -10,
+    left: -10,
+    right: -10,
+    bottom: -10,
+    borderRadius: 30,
+    backgroundColor: '#3B82F6',
+    opacity: 0.7,
   },
   iconContainer: {
     width: 52,

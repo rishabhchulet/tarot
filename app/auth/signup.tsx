@@ -97,7 +97,7 @@ export default function SignUpScreen() {
 
           <Pressable onPress={handleSignUp} disabled={loading}>
             <LinearGradient
-              colors={loading ? ['#475569', '#64748b'] : ['#3b82f6', '#8b5cf6']}
+              colors={loading ? ['#475569', '#64748b'] : ['#3B82F6', '#60A5FA']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
               style={styles.signUpButton}
             >

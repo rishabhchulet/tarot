@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Dimensions, View, Text, Easing, Platform } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, runOnJS } from 'react-native-reanimated';
+import { StyleSheet, Dimensions, View, Text, Platform } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, runOnJS, Easing } from 'react-native-reanimated';
 
 // Import Skia components at the top level for proper hook usage
 let Canvas, Circle, Group, useValue, Skia, Path, useClock, mix, Fill, vec, LinearGradient, RadialGradient;

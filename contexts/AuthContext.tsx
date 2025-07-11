@@ -36,20 +36,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // CRITICAL: Use ref instead of state to avoid closure issues in auth listener
   const isSigningOutRef = React.useRef(false);
 
-  const calculatePlacements = async () => {
-    if (user && user.birthDate && user.birthTime && user.birthLocation) {
-      const date = new Date(user.birthDate);
-      const time = user.birthTime.split(':');
-      const placements = await getAstrologicalPlacements(
-        user.name,
-        date.getFullYear(),
-        date.getMonth() + 1,
-        date.getDate(),
-        parseInt(time[0]),
-        parseInt(time[1]),
-        user.birthLocation
-      );
-      setPlacements(placements);
+  const calculatePlacements = async (userForPlacements: AuthUser | null = user) => {
+    if (userForPlacements && userForPlacements.birthDate && userForPlacements.birthTime && userForPlacements.birthLocation) {
+      try {
+        console.log('🔭 Calculating astrological placements for:', userForPlacements.name);
+        const date = new Date(userForPlacements.birthDate);
+        const time = userForPlacements.birthTime.split(':');
+        const placementsResult = await getAstrologicalPlacements(
+          userForPlacements.name,
+          date.getFullYear(),
+          date.getMonth() + 1,
+          date.getDate(),
+          parseInt(time[0]),
+          parseInt(time[1]),
+          userForPlacements.birthLocation,
+          userForPlacements.latitude, // Pass coordinates
+          userForPlacements.longitude
+        );
+        console.log('✅ Placements calculated successfully');
+        setPlacements(placementsResult);
+      } catch (error) {
+        console.error('❌ Error calculating placements:', error);
+        setPlacements(null); // Ensure placements are cleared on error
+      }
+    } else {
+      console.log('ℹ️ Insufficient data to calculate placements.');
+      setPlacements(null); // Clear placements if data is missing
     }
   };
 
@@ -72,6 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           archetype: currentUser.archetype 
         });
         setUser(currentUser);
+        // CRITICAL FIX: Calculate placements immediately after user data is loaded
+        if (currentUser.birthDate && currentUser.birthLocation && currentUser.birthTime) {
+          console.log('✨ User has birth data, calculating placements...');
+          calculatePlacements(currentUser); // Pass user to avoid state delay
+        }
         setError(null);
         setConnectionStatus('connected');
         setLastSuccessfulConnection(new Date());

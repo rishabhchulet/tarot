@@ -100,10 +100,16 @@ export const getAstrologicalPlacements = async (
   day: number,
   hour: number,
   min: number,
-  city: string
+  city: string,
+  latitude?: number,
+  longitude?: number
 ): Promise<AstrologicalPlacements | null> => {
   try {
-    console.log(`Generating astrological chart for ${name} born ${day}/${month}/${year} at ${hour}:${min} in ${city}`);
+    const locationInfo = (latitude && longitude) 
+      ? `at coordinates ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`
+      : `in ${city}`;
+
+    console.log(`Generating astrological chart for ${name} born ${day}/${month}/${year} at ${hour}:${min} ${locationInfo}`);
     
     // Generate main placements
     const sun = generatePlacement(day, month, year, hour, 0);

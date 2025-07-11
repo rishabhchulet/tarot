@@ -8,7 +8,7 @@
     "dev": "EXPO_NO_TELEMETRY=1 npx expo start",
     "build:web": "npx expo export --platform web",
     "lint": "npx expo lint",
-    "postinstall": "patch-package"
+    "postinstall": "npx patch-package"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",

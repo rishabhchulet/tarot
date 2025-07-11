@@ -1,4 +1,4 @@
-import React from 'react';
+gimport React from 'react';
 import { View, StyleSheet, Dimensions } from 'react-native';
 import { Svg, Circle, Text as SvgText, G } from 'react-native-svg';
 import { PlanetPosition } from '@/utils/astrology';

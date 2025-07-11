@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
-import { MessageCircle } from 'lucide-react-native';
+import { MessageCircle, Sparkles, Edit3 } from 'lucide-react-native';
 import { StructuredReflection } from '@/components/StructuredReflection';
 
 interface DynamicReflectionQuestionsProps {
@@ -41,53 +41,62 @@ export function DynamicReflectionQuestions({
 
   return (
     <View style={styles.container}>
-      {/* Header following the pattern */}
-      <View style={[styles.header, { backgroundColor: 'rgba(30, 58, 138, 0.08)' }]}>
-        <Text style={[styles.title, { color: '#F9FAFB' }]}>Your Reflection Today</Text>
+      {/* Enhanced Header with beautiful styling */}
+      <View style={styles.header}>
+        <Sparkles size={20} color="#60a5fa" />
+        <Text style={styles.title}>Your Reflection Today</Text>
+        <Sparkles size={20} color="#60a5fa" />
       </View>
 
-      {/* Card and Hexagram description */}
-      <View style={styles.descriptionContainer}>
-        <Text style={styles.descriptionText}>
-          <Text style={[styles.cardName, { color: '#F9FAFB' }]}>{card.name}</Text> speaks to {card.keywords.slice(0, 2).join(', ').toLowerCase()}, and the deep mirroring that occurs in relationships—both with others and within yourself.
-        </Text>
-        <Text style={styles.descriptionText}>
-          <Text style={[styles.hexagramName, { color: '#1e3a8a' }]}>Hexagram {hexagram.name}</Text> invites you to honor the intensity of your inner flame: your desire, your devotion, and what lights you up from within.
-        </Text>
-      </View>
-
-      {/* New Structured Reflection Component */}
+      {/* Enhanced Structured Reflection Component */}
       <StructuredReflection
         cardName={card.name}
         hexagramName={hexagram.name}
         onReflectionGenerated={handleReflectionGenerated}
       />
 
-      {/* Reflection Input Areas */}
-      <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Your First Thoughts</Text>
-        <TextInput
-          style={styles.textInput}
-          value={reflection1}
-          onChangeText={setReflection1}
-          placeholder="Share your initial thoughts and feelings..."
-          placeholderTextColor="#6B7280"
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
+      {/* Enhanced Reflection Input Areas with better styling */}
+      <View style={styles.inputSection}>
+        <View style={styles.inputGroup}>
+          <View style={styles.inputHeader}>
+            <Edit3 size={16} color="#60a5fa" />
+            <Text style={styles.inputLabel}>Your First Thoughts</Text>
+          </View>
+          <TextInput
+            style={styles.textInput}
+            value={reflection1}
+            onChangeText={setReflection1}
+            placeholder="Share your initial thoughts and feelings..."
+            placeholderTextColor="#6B7280"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
 
-        <Text style={styles.inputLabel}>Deeper Reflection</Text>
-        <TextInput
-          style={styles.textInput}
-          value={reflection2}
-          onChangeText={setReflection2}
-          placeholder="How does this message relate to your current journey?"
-          placeholderTextColor="#6B7280"
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
+        <View style={styles.inputGroup}>
+          <View style={styles.inputHeader}>
+            <MessageCircle size={16} color="#60a5fa" />
+            <Text style={styles.inputLabel}>Deeper Reflection</Text>
+          </View>
+          <TextInput
+            style={styles.textInput}
+            value={reflection2}
+            onChangeText={setReflection2}
+            placeholder="How does this message relate to your current journey?"
+            placeholderTextColor="#6B7280"
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+          />
+        </View>
+
+        {/* Optional note */}
+        <View style={styles.optionalNote}>
+          <Text style={styles.noteText}>
+            ✨ These reflections are optional - you can save your reading with or without them
+          </Text>
+        </View>
       </View>
     </View>
   );
@@ -95,58 +104,70 @@ export function DynamicReflectionQuestions({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+    borderRadius: 16,
     marginVertical: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.2)',
   },
   header: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    gap: 12,
   },
   title: {
-    fontSize: 18,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: 20,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
     textAlign: 'center',
   },
-  descriptionContainer: {
-    padding: 20,
-    paddingBottom: 0,
+  inputSection: {
+    padding: 24,
   },
-  descriptionText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#A1A1AA',
-    lineHeight: 20,
+  inputGroup: {
+    marginBottom: 24,
+  },
+  inputHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 12,
-  },
-  cardName: {
-    fontFamily: 'Inter-SemiBold',
-  },
-  hexagramName: {
-    fontFamily: 'Inter-SemiBold',
-  },
-  inputContainer: {
-    padding: 20,
+    gap: 8,
   },
   inputLabel: {
-    color: '#E0E7FF',
-    fontFamily: 'Inter-Medium',
-    fontSize: 14,
-    marginBottom: 8,
-    marginTop: 16,
+    color: '#F9FAFB',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
   },
   textInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    padding: 16,
     color: '#F9FAFB',
     fontFamily: 'Inter-Regular',
     fontSize: 16,
-    minHeight: 80,
+    minHeight: 100,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
+    lineHeight: 24,
+  },
+  optionalNote: {
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    marginTop: 8,
+  },
+  noteText: {
+    color: '#fbbf24',
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
   },
 });

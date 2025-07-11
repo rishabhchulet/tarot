@@ -104,17 +104,6 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   };
 
   const handleSave = async () => {
-    const hasTextInput = reflection1.trim() || reflection2.trim();
-    const hasVoiceInput = voiceRecording !== null;
-
-    if (!hasTextInput && !hasVoiceInput) {
-      Alert.alert(
-        'No Reflection Added', 
-        'Please add some thoughts or record a voice memo before saving.'
-      );
-      return;
-    }
-
     setSaving(true);
 
     try {
@@ -157,6 +146,50 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       );
     } catch (error) {
       console.error('Unexpected error saving journal entry:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    setSaving(true);
+
+    try {
+      // Save minimal entry with just the cards drawn
+      const entry = {
+        date: new Date().toISOString().split('T')[0],
+        card_name: card.name,
+        card_keywords: card.keywords,
+        first_impressions: '',
+        personal_meaning: '',
+        reflection: '',
+        voice_memo_path: null,
+      };
+
+      console.log('💾 Saving reading without reflection...');
+      const { error } = await saveJournalEntry(entry);
+      
+      if (error) {
+        console.error('Error saving journal entry:', error);
+        Alert.alert('Error', 'Failed to save your reading. Please try again.');
+        return;
+      }
+
+      // Save the daily question
+      if (dailyQuestion) {
+        console.log('💾 Saving daily question...');
+        await saveDailyQuestion(dailyQuestion);
+      }
+
+      console.log('✅ Reading saved successfully');
+      
+      // Always call onComplete to reliably navigate after save
+      if (onComplete) {
+        onComplete();
+      }
+    } catch (error) {
+      console.error('Unexpected error saving reading:', error);
       Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     } finally {
       setSaving(false);
@@ -252,19 +285,31 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         )}
       </View>
 
-      {/* Save Button */}
-      <Pressable 
-        style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
-        onPress={handleSave}
-        disabled={saving}
-      >
-        <View style={[styles.saveButtonSolid, saving && styles.saveButtonSolidDisabled]}>
-          <Save size={16} color="#F9FAFB" />
-          <Text style={styles.saveButtonText}>
-            {saving ? 'Saving...' : 'Save Reflection'}
+      {/* Action Buttons */}
+      <View style={styles.actionsContainer}>
+        <Pressable 
+          style={[styles.skipButton, saving && styles.skipButtonDisabled]} 
+          onPress={handleSkip}
+          disabled={saving}
+        >
+          <Text style={[styles.skipButtonText, saving && styles.skipButtonTextDisabled]}>
+            Skip & Continue
           </Text>
-        </View>
-      </Pressable>
+        </Pressable>
+
+        <Pressable 
+          style={[styles.saveButton, saving && styles.saveButtonDisabled]} 
+          onPress={handleSave}
+          disabled={saving}
+        >
+          <View style={[styles.saveButtonSolid, saving && styles.saveButtonSolidDisabled]}>
+            <Save size={16} color="#F9FAFB" />
+            <Text style={styles.saveButtonText}>
+              {saving ? 'Saving...' : 'Save Reflection'}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
     </ScrollView>
   );
 }
@@ -409,17 +454,48 @@ const styles = StyleSheet.create({
     color: '#9CA3AF',
   },
   
-  // Compact Save Button
+  // Action Buttons Container
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  
+  // Skip Button
+  skipButton: {
+    flex: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  skipButtonDisabled: {
+    opacity: 0.6,
+  },
+  skipButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+  },
+  skipButtonTextDisabled: {
+    color: '#6B7280',
+  },
+  
+  // Save Button
   saveButton: {
+    flex: 2,
     borderRadius: 12,
     overflow: 'hidden',
-    marginTop: 16,
   },
   saveButtonDisabled: {
     opacity: 0.6,
   },
   saveButtonSolid: {
-    backgroundColor: '#374151',
+    backgroundColor: '#3b82f6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

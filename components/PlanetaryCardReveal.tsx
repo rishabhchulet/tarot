@@ -44,8 +44,12 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
   const cardScale = useSharedValue(0.5);
   const glowOpacity = useSharedValue(0);
   const textOpacity = useSharedValue(1);
+  const starsOpacity = useSharedValue(0);
 
   useEffect(() => {
+    // Start stars animation
+    starsOpacity.value = withTiming(1, { duration: 2000, easing: Easing.out(Easing.cubic) });
+    
     const sequence = setTimeout(() => {
       // Start glow effect
       glowOpacity.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
@@ -60,7 +64,7 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
           runOnJS(onComplete)();
         }, 1500);
       }, 2000);
-    }, 3000);
+    }, 1000);
 
     return () => clearTimeout(sequence);
   }, []);
@@ -75,8 +79,13 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
     opacity: textOpacity.value
   }));
 
+  const animatedStarsStyle = useAnimatedStyle(() => ({
+    opacity: starsOpacity.value,
+  }));
+
   const animatedGlowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value * 0.8,
+    transform: [{ scale: 1 + glowOpacity.value * 0.2 }],
   }));
 
   const animatedCardStyle = useAnimatedStyle(() => ({
@@ -86,10 +95,20 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
 
   return (
     <View style={styles.container}>
+      {/* Animated starfield background */}
+      <Animated.View style={[styles.starField, animatedStarsStyle]} />
+      
+      {/* Multiple glow effects */}
       <Animated.View style={[styles.webGlow, animatedGlowStyle]} />
+      <Animated.View style={[styles.webGlow2, animatedGlowStyle]} />
+      
+      {/* Card */}
       <Animated.View style={[styles.webCard, animatedCardStyle]} />
+      
+      {/* Text */}
       <Animated.View style={[styles.textContainer, animatedTextStyle]}>
         <Text style={styles.text}>The cosmos aligns...</Text>
+        <Text style={styles.subText}>Preparing your mystical revelation</Text>
       </Animated.View>
     </View>
   );
@@ -242,20 +261,38 @@ const styles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    backgroundColor: 'rgba(139, 92, 246, 0.3)',
+    backgroundColor: 'rgba(59, 130, 246, 0.4)',
     top: '50%',
     left: '50%',
     transform: [{ translateX: -200 }, { translateY: -200 }],
   },
-  webCard: {
+  webGlow2: {
     position: 'absolute',
-    width: TAROT_CARD_WIDTH,
-    height: TAROT_CARD_HEIGHT,
-    backgroundColor: '#FBBF24',
-    borderRadius: 10,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: 'rgba(96, 165, 250, 0.2)',
     top: '50%',
     left: '50%',
-    transform: [{ translateX: -TAROT_CARD_WIDTH / 2 }, { translateY: -TAROT_CARD_HEIGHT / 2 }],
+    transform: [{ translateX: -150 }, { translateY: -150 }],
+  },
+  webCard: {
+    position: 'absolute',
+    width: TAROT_CARD_WIDTH + 20,
+    height: TAROT_CARD_HEIGHT + 30,
+    backgroundColor: '#1e40af',
+    borderRadius: 15,
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -(TAROT_CARD_WIDTH + 20) / 2 }, { translateY: -(TAROT_CARD_HEIGHT + 30) / 2 }],
+    borderWidth: 2,
+    borderColor: '#60a5fa',
+  },
+  starField: {
+    position: 'absolute',
+    width: width,
+    height: height,
+    backgroundColor: 'transparent',
   },
   textContainer: {
     position: 'absolute',
@@ -268,5 +305,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'Inter-Medium',
     letterSpacing: 1,
+  },
+  subText: {
+    color: 'white',
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    marginTop: 5,
   },
 }); 

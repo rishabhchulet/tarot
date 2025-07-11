@@ -76,10 +76,12 @@ type FlowStep = 'card-and-iching' | 'keywords-only' | 'reflection-questions';
 
 export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   const [currentStep, setCurrentStep] = useState<FlowStep>('card-and-iching');
+  
   const [selectedCard] = useState(() => {
     const randomIndex = Math.floor(Math.random() * TAROT_CARDS.length);
     return TAROT_CARDS[randomIndex];
   });
+  
   const [selectedHexagram] = useState(() => {
     const randomIndex = Math.floor(Math.random() * I_CHING_HEXAGRAMS.length);
     return I_CHING_HEXAGRAMS[randomIndex];
@@ -151,6 +153,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
         { rotateY: `${interpolate(flipAnimation.value, [0, 1], [180, 360])}deg` },
         { scale: scaleAnimation.value }
       ],
+      opacity: interpolate(flipAnimation.value, [0.5, 1], [0, 1], 'clamp'),
     };
   });
 
@@ -176,33 +179,11 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
       
       <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
       
-      <Pressable 
-        style={styles.cardTouchArea} 
-        onPress={handleRevealCard}
-        accessible={true}
-        accessibilityLabel="Tap to reveal your message"
-        accessibilityRole="button"
-      >
-        <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
-          <LinearGradient
-            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
-          >
-            <View style={styles.innerBorder}>
-              <Image
-                source={{ uri: selectedCard.imageUrl }}
-                style={styles.cardFrontImage}
-                resizeMode="cover"
-              />
-            </View>
-          </LinearGradient>
-        </Animated.View>
-
+      <View style={styles.cardStack}>
+        {/* Back of card (shows after flip) */}
         <Animated.View style={[styles.cardContainer, backAnimatedStyle]}>
           <LinearGradient
-            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+            colors={['#1e40af', '#3b82f6', '#60a5fa', '#1e40af']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.mysticalBorder}
@@ -219,7 +200,25 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
             </View>
           </LinearGradient>
         </Animated.View>
-      </Pressable>
+
+        {/* Front of card (shows first, then flips) */}
+        <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
+          <LinearGradient
+            colors={['#1e40af', '#3b82f6', '#60a5fa', '#1e40af']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.mysticalBorder}
+          >
+            <View style={styles.innerBorder}>
+              <Image
+                source={{ uri: selectedCard.imageUrl }}
+                style={styles.cardFrontImage}
+                resizeMode="cover"
+              />
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </View>
 
       <Pressable style={styles.nextButton} onPress={handleShowKeywords}>
         <Text style={styles.nextButtonText}>Explore Themes</Text>
@@ -238,7 +237,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
       {/* Tarot Keywords */}
       <View style={styles.keywordsSection}>
         <View style={styles.sectionHeaderContainer}>
-          <Zap size={20} color="#c084fc" />
+          <Zap size={20} color="#60a5fa" />
           <Text style={styles.sectionTitle}>Tarot Energies</Text>
         </View>
         <View style={styles.keywordsList}>
@@ -253,7 +252,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
       {/* I Ching Keywords */}
       <View style={styles.keywordsSection}>
         <View style={styles.sectionHeaderContainer}>
-          <Star size={20} color="#60a5fa" />
+          <Star size={20} color="#3b82f6" />
           <Text style={styles.sectionTitle}>I Ching Wisdom</Text>
         </View>
         <View style={styles.keywordsList}>
@@ -267,7 +266,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
       <Pressable style={styles.continueButton} onPress={handleShowReflection}>
         <LinearGradient
-          colors={['#8b5cf6', '#6366f1']}
+          colors={['#3b82f6', '#1e40af']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.buttonGradient}
@@ -323,23 +322,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
-  cardTouchArea: {
+  cardStack: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: screenWidth * 0.7,
+    height: screenHeight * 0.5,
   },
   cardContainer: {
     width: screenWidth * 0.7,
     height: screenHeight * 0.5,
     borderRadius: 20,
     elevation: 10,
-    shadowColor: '#8b5cf6',
+    shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.5,
     shadowRadius: 25,
     position: 'absolute',
-  },
-  cardFront: {
-    backfaceVisibility: 'hidden',
   },
   mysticalBorder: {
     flex: 1,
@@ -352,10 +350,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#0a0a0a',
     overflow: 'hidden',
     position: 'relative',
-  },
-  cardBackImage: {
-    width: '100%',
-    height: '100%',
   },
   cardFrontImage: {
     width: '100%',
@@ -377,16 +371,16 @@ const styles = StyleSheet.create({
   },
   ichingContainer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.3)',
+    borderColor: 'rgba(59, 130, 246, 0.3)',
   },
   ichingTitle: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#a78bfa',
+    color: '#60a5fa',
     marginBottom: 8,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -401,21 +395,21 @@ const styles = StyleSheet.create({
   ichingEssence: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#c084fc',
+    color: '#60a5fa',
     textAlign: 'center',
     fontStyle: 'italic',
   },
   nextButton: {
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
     marginTop: 40,
     borderWidth: 1,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   nextButtonText: {
-    color: '#c084fc',
+    color: '#60a5fa',
     fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
@@ -462,12 +456,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   tarotKeyword: {
-    backgroundColor: 'rgba(192, 132, 252, 0.15)',
-    borderColor: 'rgba(192, 132, 252, 0.4)',
-  },
-  ichingKeyword: {
     backgroundColor: 'rgba(96, 165, 250, 0.15)',
     borderColor: 'rgba(96, 165, 250, 0.4)',
+  },
+  ichingKeyword: {
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   keywordText: {
     color: '#F9FAFB',
@@ -477,7 +471,7 @@ const styles = StyleSheet.create({
   continueButton: {
     marginTop: 40,
     borderRadius: 25,
-    shadowColor: '#8b5cf6',
+    shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 20,
@@ -499,7 +493,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.8,
     height: screenHeight * 0.6,
     borderRadius: 30,
-    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
     zIndex: -1,
   },
   glowEffect2: {
@@ -507,7 +501,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.85,
     height: screenHeight * 0.65,
     borderRadius: 35,
-    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
     zIndex: -2,
   },
   glowEffect3: {
@@ -515,7 +509,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.9,
     height: screenHeight * 0.7,
     borderRadius: 40,
-    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    backgroundColor: 'rgba(59, 130, 246, 0.1)',
     zIndex: -3,
   },
   borderRing: {
@@ -524,7 +518,7 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.55,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderColor: 'rgba(59, 130, 246, 0.4)',
     zIndex: -1,
   },
 });

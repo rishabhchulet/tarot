@@ -26,17 +26,23 @@ export default function IndexScreen() {
         try {
           if (session && user) {
             // User is authenticated and profile exists.
-            // Onboarding is complete if they have set a name AND an archetype.
-            const hasCompletedOnboarding = user.name && user.name !== 'User' && user.archetype;
+            // Onboarding is complete if they have set a name AND birth data.
+            const hasCompletedOnboarding = 
+              user.name && 
+              user.name !== 'User' && 
+              user.archetype &&
+              user.birthDate &&
+              user.birthLocation;
             
             console.log('🎯 Authenticated user routing:', { 
               userName: user.name,
               archetype: user.archetype,
+              hasBirthData: !!(user.birthDate && user.birthLocation),
               hasCompletedOnboarding: hasCompletedOnboarding
             });
             
             if (!hasCompletedOnboarding) {
-              console.log('📚 User needs onboarding - redirecting to welcome...');
+              console.log('📚 User needs to complete onboarding - redirecting to welcome...');
               router.replace('/onboarding/welcome');
             } else {
               console.log('✅ User has completed onboarding - going to main app...');

@@ -154,6 +154,43 @@ export const getAIPersonalizedGuidance = async (data: AIPersonalizedGuidanceRequ
   }
 };
 
+export interface CompatibilityReportRequest {
+  personA: object;
+  personB: object;
+  reportType: 'Relationship' | 'Marriage' | 'Friendship';
+}
+
+export const getAICompatibilityReport = async (data: CompatibilityReportRequest) => {
+  try {
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/ai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        type: 'compatibility-report',
+        data,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error('Compatibility API Error:', errorBody);
+      throw new Error('Failed to get AI compatibility report');
+    }
+
+    const result = await response.json();
+    return { report: result, error: null };
+  } catch (error: any) {
+    const enhancedError = handleNetworkError(error, 'compatibility report');
+    return { 
+      report: null, 
+      error: enhancedError
+    };
+  }
+}
+
 // Helper function to determine time of day
 export const getTimeOfDay = (): 'morning' | 'afternoon' | 'evening' => {
   const hour = new Date().getHours();

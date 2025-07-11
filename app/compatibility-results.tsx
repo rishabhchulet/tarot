@@ -1,17 +1,102 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, AlertCircle } from 'lucide-react-native';
+import { getAICompatibilityReport, CompatibilityReportRequest } from '@/utils/ai';
+import { ScoreGauge } from '@/components/ScoreGauge';
+import { StatsList, Stat } from '@/components/StatsList';
+import { BirthProfile } from '@/components/BirthProfileInput';
+
+interface ReportData {
+  score: number;
+  title: string;
+  summary: string;
+  stats: Stat[];
+}
 
 export default function CompatibilityResultsScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
+  
+  const [report, setReport] = useState<ReportData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Note: For now, we're just displaying the raw data.
-  // In the future, this data would be sent to an AI for analysis.
-  const { personA, personB, reportType } = params;
+  useEffect(() => {
+    const fetchReport = async () => {
+      try {
+        const personA = JSON.parse(params.personA as string) as BirthProfile;
+        const personB = JSON.parse(params.personB as string) as BirthProfile;
+        const reportType = params.reportType as CompatibilityReportRequest['reportType'];
+
+        const { report: apiReport, error: apiError } = await getAICompatibilityReport({
+          personA,
+          personB,
+          reportType,
+        });
+
+        if (apiError) {
+          throw new Error(apiError);
+        }
+        
+        // Basic validation of the report structure
+        if (apiReport && typeof apiReport.score === 'number' && apiReport.stats) {
+            setReport(apiReport);
+        } else {
+            throw new Error("Received an invalid report format from the server.");
+        }
+
+      } catch (e: any) {
+        setError(e.message || 'An unknown error occurred while generating the report.');
+        console.error('Error fetching compatibility report:', e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReport();
+  }, [params]);
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#c7d2fe" />
+          <Text style={styles.loadingText}>Consulting the stars for your connection...</Text>
+        </View>
+      );
+    }
+
+    if (error) {
+      return (
+        <View style={styles.centered}>
+          <AlertCircle size={48} color="#fda4af" />
+          <Text style={styles.errorTitle}>Unable to Generate Report</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable onPress={() => router.back()} style={styles.retryButton}>
+              <Text style={styles.retryButtonText}>Go Back & Try Again</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
+    if (report) {
+      return (
+        <>
+          <Text style={styles.reportTitle}>{report.title}</Text>
+          <ScoreGauge score={report.score} />
+          <View style={styles.summaryContainer}>
+            <Text style={styles.summaryText}>{report.summary}</Text>
+          </View>
+          <StatsList stats={report.stats} />
+        </>
+      );
+    }
+    
+    return null;
+  };
 
   return (
     <SafeAreaView style={[styles.safeArea, { paddingTop: insets.top }]}>
@@ -21,31 +106,15 @@ export default function CompatibilityResultsScreen() {
       />
 
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} style={styles.backButton} disabled={loading}>
           <ChevronLeft size={28} color="#f8fafc" />
         </Pressable>
-        <Text style={styles.title}>Compatibility Results</Text>
+        <Text style={styles.title}>Compatibility Report</Text>
         <View style={{ width: 40 }} /> 
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Report Type</Text>
-          <Text style={styles.cardText}>{reportType}</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Person A's Data</Text>
-          <Text style={styles.cardText}>{personA}</Text>
-        </View>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Person B's Data</Text>
-          <Text style={styles.cardText}>{personB}</Text>
-        </View>
-        <View style={styles.placeholder}>
-            <Text style={styles.placeholderText}>
-                In the future, an AI-powered analysis of the compatibility between these two profiles will be displayed here.
-            </Text>
-        </View>
+        {renderContent()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -69,37 +138,64 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
   },
   scrollContent: {
+    flexGrow: 1,
     padding: 20,
   },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  cardTitle: {
+  loadingText: {
+    marginTop: 16,
+    color: '#c7d2fe',
+    fontFamily: 'Inter-Medium',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  errorTitle: {
+      fontSize: 20,
+      fontFamily: 'Inter-Bold',
+      color: '#fecaca',
+      textAlign: 'center',
+      marginTop: 16,
+      marginBottom: 8,
+  },
+  errorText: {
+    color: '#e5e7eb',
+    fontFamily: 'Inter-Regular',
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  retryButton: {
+      backgroundColor: '#374151',
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 999,
+  },
+  retryButtonText: {
+      color: '#f9fafb',
+      fontFamily: 'Inter-SemiBold',
+      fontSize: 16,
+  },
+  reportTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 28,
     color: '#e0e7ff',
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 18,
+    textAlign: 'center',
     marginBottom: 8,
   },
-  cardText: {
-    color: '#c7d2fe',
+  summaryContainer: {
+    marginVertical: 24,
+  },
+  summaryText: {
+    color: '#d1d5db',
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  placeholder: {
-      marginTop: 16,
-      padding: 16,
-      backgroundColor: 'rgba(0,0,0,0.2)',
-      borderRadius: 16,
-  },
-  placeholderText: {
-      color: '#94a3b8',
-      fontFamily: 'Inter-Regular',
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: 'center',
+    fontSize: 16,
+    lineHeight: 24,
+    textAlign: 'center',
   }
 }); 

@@ -91,6 +91,8 @@ export async function POST(request: Request) {
         return await handlePersonalizedGuidance(data, openai);
       case 'north-node-insight':
         return await handleNorthNodeInsight(data, openai);
+      case 'compatibility-report':
+        return await handleCompatibilityReport(data, openai);
       default:
         return new Response('Invalid request type', { status: 400 });
     }
@@ -255,6 +257,69 @@ Format as a JSON array of exactly 3 strings. Make them personal, life-focused, a
     }
   } catch (error) {
     console.error('OpenAI API Error:', error);
+    throw error;
+  }
+}
+
+async function handleCompatibilityReport(data: {
+  personA: object;
+  personB: object;
+  reportType: string;
+}, openai: OpenAI) {
+  const { personA, personB, reportType } = data;
+
+  const prompt = `
+You are a highly skilled relationship astrologer with a warm, modern, and insightful voice. Your task is to analyze the compatibility between two individuals based on their birth information for a specific type of relationship.
+
+**Person A:**
+${JSON.stringify(personA, null, 2)}
+
+**Person B:**
+${JSON.stringify(personB, null, 2)}
+
+**Report Type:** ${reportType}
+
+**Your Task:**
+Provide a compatibility analysis in a structured JSON format. The response must be a valid JSON object with the following fields:
+- "score": A number between 0 and 100 representing the overall compatibility score.
+- "title": A short, beautiful, and catchy title for the compatibility reading (e.g., "A Dance of Fire and Water").
+- "summary": A concise, encouraging, and beautifully written paragraph (3-4 sentences) summarizing the core dynamic of the relationship.
+- "stats": An array of 3-4 objects, where each object represents a key aspect of the relationship (e.g., Communication, Emotional Connection, Long-term Potential). Each object must have the following fields:
+  - "label": The name of the aspect (e.g., "Communication Style").
+  - "score": A number between 0 and 100 for that specific aspect.
+  - "description": A 1-2 sentence explanation of the dynamic for that aspect.
+
+**Important Instructions:**
+- Do NOT include any introductory or concluding text outside of the main JSON object.
+- Ensure the final output is a single, valid JSON object and nothing else.
+- The tone should be positive and empowering, even when discussing challenges. Focus on potential for growth.
+`;
+
+  try {
+    const completion = await retryOperation(async () => {
+      return await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a relationship astrologer who provides insightful compatibility analyses. You always respond with a valid JSON object matching the specified format.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+      });
+    });
+
+    const report = JSON.parse(completion.choices[0]?.message?.content || '{}');
+
+    return Response.json(report);
+  } catch (error) {
+    console.error('OpenAI Compatibility Error:', error);
     throw error;
   }
 }

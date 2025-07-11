@@ -38,8 +38,9 @@ const iChingData: IChingHexagramData[] = iChingDataJson;
 
 // Data access functions
 export const getTarotCardByName = (name: string): TarotCardData | undefined => {
+  const normalizedName = name.toLowerCase().trim();
   return tarotData.find(card => 
-    card.name.toLowerCase().trim() === name.toLowerCase().trim()
+    card.name.toLowerCase().trim().includes(normalizedName)
   );
 };
 
@@ -50,30 +51,16 @@ export const getHexagramByNumber = (number: number): IChingHexagramData | undefi
 };
 
 export const getHexagramByName = (name: string): IChingHexagramData | undefined => {
-  // First try exact match
-  let hexagram = iChingData.find(hex => 
-    hex.name.toLowerCase().trim() === name.toLowerCase().trim()
-  );
+  const normalizedName = name.toLowerCase().trim();
+  // First try exact match for speed
+  let hexagram = iChingData.find(hex => hex.name.toLowerCase().trim() === normalizedName);
   
-  // If not found, try to match by the hexagram number/title portion
+  // If no exact match, try a more flexible search
   if (!hexagram) {
     hexagram = iChingData.find(hex => {
-      const hexNumber = hex.number.toString().toLowerCase();
-      const searchName = name.toLowerCase().trim();
-      
-      // Try to match by number pattern like "24 – Return"
-      if (hexNumber.includes(searchName)) {
-        return true;
-      }
-      
-      // Try to match the main title (e.g., "Return" in "24 – Return")
-      const titleMatch = hexNumber.split('–')[1]?.trim();
-      if (titleMatch && titleMatch === searchName) {
-        return true;
-      }
-      
-      // Try partial match in the descriptive name
-      return hex.name.toLowerCase().includes(searchName);
+      const hexName = hex.name.toLowerCase().trim();
+      // e.g., "Return" should match "24 – Return"
+      return hexName.includes(normalizedName);
     });
   }
   

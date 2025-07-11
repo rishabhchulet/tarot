@@ -209,19 +209,6 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
     >
-      {/* Compact Spiritual Messages Header */}
-      <View style={styles.messagesHeader}>
-        <View style={styles.messageCard}>
-          <Text style={styles.messageLabel}>Tarot</Text>
-          <Text style={[styles.messageName, { color: '#F9FAFB' }]}>{card.name}</Text>
-        </View>
-        
-        <View style={styles.messageCard}>
-          <Text style={styles.messageLabel}>I Ching</Text>
-          <Text style={[styles.messageName, { color: '#F9FAFB' }]}>{hexagram.name}</Text>
-        </View>
-      </View>
-
       {/* Enhanced Dynamic Questions - Now properly contained */}
       <DynamicReflectionQuestions
         card={card}

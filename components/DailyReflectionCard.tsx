@@ -1,207 +1,156 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useFocusEffect } from 'expo-router';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing, withRepeat, withSequence } from 'react-native-reanimated';
-import { Sparkles, ArrowRight, MessageCircle, BookOpen } from 'lucide-react-native';
-import { getTodaysEntry } from '@/utils/database';
+import { router } from 'expo-router';
+import { ArrowRight, Sparkles } from 'lucide-react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withSequence,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
+import { hasDrawnCardToday } from '@/utils/database';
 
 export function DailyReflectionCard() {
-  const [todaysEntry, setTodaysEntry] = useState<any>(null);
+  const [hasDrawn, setHasDrawn] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [hasDrawnToday, setHasDrawnToday] = useState(false);
-  
-  const scale = useSharedValue(1);
 
-  React.useEffect(() => {
-    scale.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
-  }, []);
-
-  const loadTodaysEntry = useCallback(async () => {
-    setLoading(true);
-    try {
-      const entry = await getTodaysEntry();
-      setTodaysEntry(entry);
-      setHasDrawnToday(!!entry);
-    } catch (error) {
-      console.error('❌ Error loading today\'s entry:', error);
-      setHasDrawnToday(false);
-    } finally {
+  useEffect(() => {
+    const checkStatus = async () => {
+      setLoading(true);
+      const drawn = await hasDrawnCardToday();
+      setHasDrawn(drawn);
       setLoading(false);
-    }
+    };
+    checkStatus();
   }, []);
 
-  // Reload when the screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      loadTodaysEntry();
-    }, [loadTodaysEntry])
-  );
+  const scale = useSharedValue(1);
+  const glowOpacity = useSharedValue(0.7);
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }],
-    };
-  });
+  useEffect(() => {
+    if (!hasDrawn && !loading) {
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
+        ), -1, true
+      );
+      glowOpacity.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+          withTiming(0.7, { duration: 2500, easing: Easing.inOut(Easing.ease) })
+        ), -1, true
+      );
+    }
+  }, [hasDrawn, loading]);
 
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
+
+  if (loading) {
+    return <View style={[styles.container, styles.loadingState]} />;
+  }
+  
   const handlePress = () => {
-    if (hasDrawnToday) {
-      // User has drawn today, go to their daily question
+    if (hasDrawn) {
       router.push('/daily-question');
     } else {
-      // User hasn't drawn today, start the draw flow
-      router.push('/draw-prompt');
+      router.push('/draw');
     }
   };
 
-  if (loading) {
-    return (
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#FFFFFF" size="small" />
-          <Text style={styles.loadingText}>Checking your reading...</Text>
-        </View>
-      </Animated.View>
-    );
-  }
-
-  if (hasDrawnToday && todaysEntry?.daily_question) {
-    // Show the daily question for returning users
-    return (
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <Pressable onPress={handlePress}>
-          <LinearGradient
-            colors={['#16a34a', '#15803d']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradient}
-          >
-            <View style={styles.iconContainer}>
-              <MessageCircle size={28} color="#FFFFFF" />
-            </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.title}>Your Reflection for Today</Text>
-              <Text style={styles.subtitle} numberOfLines={2}>
-                "{todaysEntry.daily_question}"
-              </Text>
-            </View>
-            <View style={styles.arrowContainer}>
-              <ArrowRight size={24} color="#FFFFFF" />
-            </View>
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
-    );
-  }
-
-  if (hasDrawnToday && !todaysEntry?.daily_question) {
-    // User has drawn today but no daily question saved yet
-    return (
-      <Animated.View style={[styles.container, animatedStyle]}>
-        <Pressable onPress={handlePress}>
-          <LinearGradient
-            colors={['#f59e0b', '#d97706']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gradient}
-          >
-            <View style={styles.iconContainer}>
-              <BookOpen size={28} color="#FFFFFF" />
-            </View>
-            <View style={styles.textContainer}>
-              <Text style={styles.title}>Reading Complete</Text>
-              <Text style={styles.subtitle}>View your reflection for today</Text>
-            </View>
-            <View style={styles.arrowContainer}>
-              <ArrowRight size={24} color="#FFFFFF" />
-            </View>
-          </LinearGradient>
-        </Pressable>
-      </Animated.View>
-    );
-  }
-
-  // Default: User hasn't drawn today, show the draw prompt
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      <Pressable onPress={handlePress}>
+    <Pressable onPress={handlePress}>
+      <Animated.View style={[styles.container, animatedStyle]}>
         <LinearGradient
-          colors={['#3b82f6', '#8b5cf6']}
+          colors={hasDrawn ? ['#374151', '#1f2937'] : ['#4f46e5', '#818cf8']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
         >
+          {!hasDrawn && (
+            <Animated.View style={[styles.glow, animatedGlowStyle]} />
+          )}
           <View style={styles.iconContainer}>
-            <Sparkles size={28} color="#FFFFFF" />
+            <Sparkles size={28} color="#f9fafb" />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>Your Daily Reading is Ready</Text>
-            <Text style={styles.subtitle}>Tap here to draw your card.</Text>
+            <Text style={styles.title}>
+              {hasDrawn ? "Review Today's Reading" : 'Your Daily Reading is Ready'}
+            </Text>
+            <Text style={styles.subtitle}>
+              {hasDrawn ? 'Revisit your reflection for today' : 'Tap here to draw your card'}
+            </Text>
           </View>
           <View style={styles.arrowContainer}>
-            <ArrowRight size={24} color="#FFFFFF" />
+            <ArrowRight size={24} color="#e5e7eb" />
           </View>
         </LinearGradient>
-      </Pressable>
-    </Animated.View>
+      </Animated.View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 24,
-    borderRadius: 20,
-    shadowColor: '#8b5cf6',
+    borderRadius: 24,
+    shadowColor: '#818cf8',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.4,
     shadowRadius: 20,
     elevation: 15,
   },
+  loadingState: {
+    height: 100,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 24,
+  },
   gradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 20,
-    borderRadius: 20,
+    padding: 24,
+    borderRadius: 24,
+    overflow: 'hidden',
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
-    borderRadius: 20,
-    backgroundColor: 'rgba(123, 121, 136, 0.3)',
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 16,
-    fontFamily: 'Inter-Medium',
-    color: '#FFFFFF',
+  glow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#a78bfa',
+    borderRadius: 24,
   },
   iconContainer: {
-    marginRight: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    padding: 12,
-    borderRadius: 999,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 20,
   },
   textContainer: {
     flex: 1,
   },
   title: {
-    fontSize: 18,
     fontFamily: 'Inter-Bold',
-    color: '#FFFFFF',
+    fontSize: 18,
+    color: '#f9fafb',
+    marginBottom: 2,
   },
   subtitle: {
-    fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginTop: 2,
+    fontSize: 14,
+    color: '#e5e7eb',
   },
   arrowContainer: {
     marginLeft: 16,

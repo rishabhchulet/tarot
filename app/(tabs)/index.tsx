@@ -1,15 +1,15 @@
 import React from 'react';
 import { View, StyleSheet, ScrollView, Text } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
 import { GeneratingPlacements } from '@/components/GeneratingPlacements';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { DailyReflectionCard } from '@/components/DailyReflectionCard';
 import { NavCard } from '@/components/NavCard';
-import { BookOpen, Users, Star } from 'lucide-react-native';
+import { Users, Star } from 'lucide-react-native';
 import { FreeReadingCard } from '@/components/FreeReadingCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelestialInfo } from '@/components/CelestialInfo';
+import { StarfieldBackground } from '@/components/StarfieldBackground';
 
 export default function HomeScreen() {
   const { user, placements } = useAuth();
@@ -20,52 +20,41 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0a0a0a' }}>
-      <LinearGradient
-        colors={['#0a0a0a', '#171717', '#0a0a0a']}
-        style={StyleSheet.absoluteFill}
-      />
+    <View style={styles.container}>
+      <StarfieldBackground />
       <ScrollView 
-        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 20 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}
         showsVerticalScrollIndicator={false}
       >
         <ProfileHeader />
 
-        {/* Your Reading Section */}
         <View style={styles.section}>
-           <Text style={styles.sectionTitle}>Your Reading</Text>
+           <Text style={styles.sectionTitle}>YOUR DAILY READING</Text>
            <DailyReflectionCard />
         </View>
 
-        {/* Navigation Grid */}
         <View style={styles.grid}>
-          <View style={styles.gridItem}>
-            <NavCard 
-              title="My Chart"
-              subtitle="Explore your astrology"
-              href="/astrology-chart"
-              icon={<Star size={24} color="#fde047" />}
-            />
-          </View>
-          <View style={styles.gridItem}>
-            <NavCard 
-              title="Compatibility"
-              subtitle="See your connections"
-              href="/compatibility"
-              icon={<Users size={24} color="#6366f1" />}
-            />
-          </View>
+          <NavCard 
+            title="My Chart"
+            subtitle="Explore your astrology"
+            href="/astrology-chart"
+            icon={<Star size={24} color="#fde047" />}
+          />
+          <NavCard 
+            title="Compatibility"
+            subtitle="See your connections"
+            href="/compatibility"
+            icon={<Users size={24} color="#a78bfa" />}
+          />
         </View>
 
-        {/* Freeform Reading */}
         <View style={styles.section}>
-           <Text style={styles.sectionTitle}>Freeform Reading</Text>
+           <Text style={styles.sectionTitle}>FREEFORM READING</Text>
            <FreeReadingCard />
         </View>
 
-        {/* Today's Moon */}
         <View style={styles.section}>
-          <CelestialInfo />
+           <CelestialInfo />
         </View>
 
       </ScrollView>
@@ -74,29 +63,27 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0a0a0a',
+  },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 40,
+    paddingHorizontal: 20,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionTitle: {
-    color: '#a1a1aa',
-    fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 1.1,
+    fontFamily: 'Inter-Bold',
+    fontSize: 12,
+    color: '#9ca3af',
+    letterSpacing: 1.5,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   grid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginHorizontal: -4, // Counteract item padding
-    marginBottom: 8, // Adjust as needed
-  },
-  gridItem: {
-    flex: 1,
-    paddingHorizontal: 4, // Gutter between cards
+    gap: 16,
+    marginBottom: 32,
   },
 });

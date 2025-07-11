@@ -216,3 +216,23 @@ export const extractRecentThemes = (entries: any[]): string[] => {
     })
     .filter(theme => theme.length > 0);
 };
+
+export const getAIInsight = async (prompt: string): Promise<string> => {
+  const baseUrl = getApiBaseUrl();
+  const response = await fetch(`${baseUrl}/ai`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      prompt: prompt,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch AI insight');
+  }
+
+  const data = await response.json();
+  return data.insight;
+};

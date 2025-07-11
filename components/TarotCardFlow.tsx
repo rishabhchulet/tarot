@@ -80,9 +80,19 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   // Only use Major Arcana cards (0-21) that have complete structured data
   const [selectedCard] = useState(() => {
     const majorArcanaCards = TAROT_CARDS.filter(card => card.suit === 'Major Arcana');
+    console.log(`🔍 Total cards available: ${TAROT_CARDS.length}`);
+    console.log(`🎯 Major Arcana cards filtered: ${majorArcanaCards.length}`);
+    console.log(`📋 Major Arcana cards: ${majorArcanaCards.map(c => c.name).join(', ')}`);
+    
+    if (majorArcanaCards.length === 0) {
+      console.error('❌ No Major Arcana cards found!');
+      return TAROT_CARDS[0]; // Fallback
+    }
+    
     const randomIndex = Math.floor(Math.random() * majorArcanaCards.length);
-    console.log(`🎴 Selected Major Arcana card: ${majorArcanaCards[randomIndex].name}`);
-    return majorArcanaCards[randomIndex];
+    const selectedCard = majorArcanaCards[randomIndex];
+    console.log(`🎴 Selected Major Arcana card: ${selectedCard.name} (${selectedCard.suit})`);
+    return selectedCard;
   });
   
   const [selectedHexagram] = useState(() => {
@@ -193,11 +203,18 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
           >
             <View style={styles.innerBorder}>
               <View style={styles.cardContent}>
-                <Text style={styles.cardName}>{selectedCard.name}</Text>
-                <View style={styles.ichingContainer}>
-                  <Text style={styles.ichingTitle}>I Ching</Text>
-                  <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
-                  <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+                <Image
+                  source={{ uri: selectedCard.imageUrl }}
+                  style={styles.cardBackImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.cardOverlay}>
+                  <Text style={styles.cardName}>{selectedCard.name}</Text>
+                  <View style={styles.keywordsPreview}>
+                    {selectedCard.keywords.slice(0, 3).map((keyword, index) => (
+                      <Text key={index} style={styles.keywordPreview}>{keyword}</Text>
+                    ))}
+                  </View>
                 </View>
               </View>
             </View>
@@ -361,16 +378,50 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'relative',
+  },
+  cardBackImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 17,
+  },
+  cardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderBottomLeftRadius: 17,
+    borderBottomRightRadius: 17,
     padding: 20,
+    alignItems: 'center',
   },
   cardName: {
     fontSize: 24,
-    fontFamily: 'Inter-Bold',
+    fontFamily: 'CormorantGaramond-Bold',
     color: '#F9FAFB',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
+    textShadowColor: 'rgba(59, 130, 246, 0.8)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
+  },
+  keywordsPreview: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  keywordPreview: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#60a5fa',
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.4)',
   },
   ichingContainer: {
     alignItems: 'center',

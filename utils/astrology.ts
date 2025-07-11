@@ -1,16 +1,4 @@
-import {
-  createTimeOfInterest,
-  createSun,
-  createMoon,
-  createMercury,
-  createVenus,
-  createMars,
-  createJupiter,
-  createSaturn,
-  createUranus,
-  createNeptune,
-  createPluto,
-} from 'astronomy-bundle';
+import { Horoscope, Origin } from 'circular-natal-horoscope-js';
 
 // Helper function to get element color
 export const getElementColor = (element: string): string => {
@@ -47,53 +35,44 @@ export interface PlanetPosition {
   longitude: number;
 }
 
-export async function getPlanetaryPositionsNew(
+export const getPlanetaryPositions = (
   year: number,
   month: number,
   day: number,
   hour: number,
   minute: number,
-  second: number
-): Promise<PlanetPosition[]> {
-  const toi = createTimeOfInterest.fromTime(year, month, day, hour, minute, second);
+  latitude: number,
+  longitude: number
+): PlanetPosition[] => {
+  const origin = new Origin({
+    year,
+    month: month - 1, // circular-natal-horoscope-js uses 0-indexed months
+    date: day,
+    hour,
+    minute,
+    latitude,
+    longitude,
+  });
 
-  const sun = createSun(toi);
-  const moon = createMoon(toi);
-  const mercury = createMercury(toi);
-  const venus = createVenus(toi);
-  const mars = createMars(toi);
-  const jupiter = createJupiter(toi);
-  const saturn = createSaturn(toi);
-  const uranus = createUranus(toi);
-  const neptune = createNeptune(toi);
-  const pluto = createPluto(toi);
-
-  const celestialBodies = {
-    Sun: sun,
-    Moon: moon,
-    Mercury: mercury,
-    Venus: venus,
-    Mars: mars,
-    Jupiter: jupiter,
-    Saturn: saturn,
-    Uranus: uranus,
-    Neptune: neptune,
-    Pluto: pluto,
-  };
+  const horoscope = new Horoscope({
+    origin,
+    houseSystem: 'placidus', // or any other system
+    zodiac: 'tropical',
+  });
 
   const positions: PlanetPosition[] = [];
+  const celestialBodies = horoscope.CelestialBodies.all;
 
-  for (const [name, body] of Object.entries(celestialBodies)) {
-    try {
-      const coords = await body.getGeocentricEclipticSphericalDateCoordinates();
-      positions.push({ name, longitude: coords.lon });
-    } catch (e) {
-      console.error(`Could not calculate position for ${name}`, e);
-      // It's possible for calculations to fail for certain dates/planets.
-      // We'll push a placeholder and continue.
-      positions.push({ name, longitude: 0 });
+  for (const body of celestialBodies) {
+    // We only need the main planets for our chart
+    const planetKeys = ['sun', 'moon', 'mercury', 'venus', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune', 'pluto'];
+    if (planetKeys.includes(body.key)) {
+       positions.push({
+        name: body.label,
+        longitude: body.ChartPosition.Ecliptic.DecimalDegrees,
+      });
     }
   }
 
   return positions;
-}
+};

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { ArrowLeft, BookOpen, Repeat, Chrome as Home } from 'lucide-react-native';
+import { ArrowLeft, BookOpen, Repeat, Home } from 'lucide-react-native';
 import { getTodaysEntry } from '@/utils/database';
-import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence, interpolate, Extrapolate } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 
 export default function DailyQuestionScreen() {
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
@@ -13,6 +14,8 @@ export default function DailyQuestionScreen() {
   const insets = useSafeAreaInsets();
   
   const glow = useSharedValue(0);
+  const cardScale = useSharedValue(0.95);
+  const cardOpacity = useSharedValue(0);
 
   const loadTodaysEntry = useCallback(async () => {
     setLoading(true);
@@ -34,23 +37,33 @@ export default function DailyQuestionScreen() {
 
   useEffect(() => {
     glow.value = withRepeat(
-        withSequence(
-            withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-            withTiming(0.5, { duration: 3000, easing: Easing.inOut(Easing.ease) })
-        ), -1, true
-    )
-  }, []);
+      withSequence(
+        withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.7, { duration: 4000, easing: Easing.inOut(Easing.ease) })
+      ), -1, true
+    );
+    if (!loading && todaysEntry) {
+        cardScale.value = withTiming(1, { duration: 700, easing: Easing.out(Easing.exp) });
+        cardOpacity.value = withTiming(1, { duration: 600 });
+    }
+  }, [loading, todaysEntry]);
 
   const animatedGlowStyle = useAnimatedStyle(() => ({
     opacity: glow.value,
+    transform: [{ scale: glow.value }]
+  }));
+
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [{ scale: cardScale.value }]
   }));
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+        <LinearGradient colors={['#0C1427', '#1A2A4D', '#0C1427']} style={StyleSheet.absoluteFill} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#A78BFA" size="large" />
+          <ActivityIndicator color="#38BDF8" size="large" />
           <Text style={styles.loadingText}>Loading your daily insight...</Text>
         </View>
       </View>
@@ -60,17 +73,17 @@ export default function DailyQuestionScreen() {
   if (!todaysEntry) {
     return (
         <View style={styles.container}>
-            <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+            <LinearGradient colors={['#0C1427', '#1A2A4D', '#0C1427']} style={StyleSheet.absoluteFill} />
             <View style={[styles.header, { paddingTop: insets.top }]}>
               <Pressable style={styles.backButton} onPress={() => router.back()}>
-                <ArrowLeft size={24} color="#F3F4F6" />
+                <ArrowLeft size={24} color="#E0F2FE" />
               </Pressable>
             </View>
             <View style={styles.emptyContainer}>
-                <Repeat size={48} color="#6B7280" />
+                <Repeat size={48} color="#94A3B8" />
                 <Text style={styles.emptyTitle}>No Reading Found</Text>
                 <Text style={styles.emptyDescription}>
-                    It looks like you haven't done a reading today.
+                    It looks like you haven't done a reading for today.
                 </Text>
                 <Pressable style={styles.primaryButton} onPress={() => router.replace('/(tabs)')}>
                     <Text style={styles.primaryButtonText}>Draw Today's Card</Text>
@@ -82,37 +95,44 @@ export default function DailyQuestionScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#0a0a0a', '#171717', '#0a0a0a']} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={['#020817', '#07244A', '#0B1120']} style={StyleSheet.absoluteFill} />
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <ArrowLeft size={24} color="#F3F4F6" />
-        </Pressable>
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <Text style={styles.dateText}>{new Date(todaysEntry.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</Text>
-        <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
-        
-        <View style={styles.questionContainer}>
-            <Text style={styles.questionLabel}>Your question for today</Text>
-            <Text style={styles.questionText}>"{todaysEntry.daily_question}"</Text>
+      
+      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
+        <View style={[styles.header, { paddingTop: insets.top, paddingBottom: 0 }]}>
+            <Pressable style={styles.backButton} onPress={() => router.back()}>
+                <ArrowLeft size={24} color="#E0F2FE" />
+            </Pressable>
         </View>
 
-        <View style={styles.guidanceContainer}>
-          <Text style={styles.guidanceText}>
-            Let this question gently guide your awareness. Notice what arises when you pause and reflect on it during quiet moments.
-          </Text>
+        <View style={styles.contentContainer}>
+            <Text style={styles.dateText}>{new Date(todaysEntry.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</Text>
+            <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
+            
+            <Animated.View style={animatedCardStyle}>
+              <BlurView intensity={25} tint="dark" style={styles.questionContainer}>
+                  <View style={styles.questionInnerContainer}>
+                      <Text style={styles.questionLabel}>Your question for today</Text>
+                      <Text style={styles.questionText}>"{todaysEntry.daily_question}"</Text>
+                  </View>
+              </BlurView>
+            </Animated.View>
+
+            <View style={styles.guidanceContainer}>
+              <Text style={styles.guidanceText}>
+                Let this question gently guide your awareness. Notice what arises when you pause and reflect on it during quiet moments.
+              </Text>
+            </View>
         </View>
 
         <View style={styles.actions}>
             <Pressable style={styles.actionButton} onPress={() => router.push('/(tabs)/journal')}>
-                <BookOpen size={20} color="#F9FAFB" />
+                <BookOpen size={20} color="#E0F2FE" />
                 <Text style={styles.actionButtonText}>Go to Journal</Text>
             </Pressable>
-            <Pressable style={[styles.actionButton, styles.homeButton]} onPress={() => router.replace('/(tabs)')}>
+            <Pressable style={[styles.actionButton, styles.primaryButton]} onPress={() => router.replace('/(tabs)')}>
                 <Home size={20} color="#F9FAFB" />
-                <Text style={styles.actionButtonText}>Done for Today</Text>
+                <Text style={styles.primaryButtonText}>Done for Today</Text>
             </Pressable>
         </View>
       </ScrollView>
@@ -123,17 +143,17 @@ export default function DailyQuestionScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#0a0a0a',
+        backgroundColor: '#020817',
     },
     glow: {
         position: 'absolute',
-        width: 600,
-        height: 600,
-        borderRadius: 300,
-        backgroundColor: 'rgba(167, 139, 250, 0.15)',
-        top: '10%',
+        width: 800,
+        height: 800,
+        borderRadius: 400,
+        backgroundColor: 'rgba(56, 189, 248, 0.2)',
+        top: '5%',
         left: '50%',
-        transform: [{ translateX: -300 }],
+        transform: [{ translateX: -400 }],
     },
     loadingContainer: {
         flex: 1,
@@ -143,11 +163,15 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         fontFamily: 'Inter-Medium',
-        color: '#A1A1AA',
+        color: '#94A3B8',
         fontSize: 16,
     },
     header: {
-        flexDirection: 'row',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
         paddingHorizontal: 16,
         paddingBottom: 8,
     },
@@ -164,66 +188,68 @@ const styles = StyleSheet.create({
     emptyTitle: {
         fontFamily: 'Inter-Bold',
         fontSize: 24,
-        color: '#E4E4E7',
+        color: '#F0F9FF',
     },
     emptyDescription: {
         fontFamily: 'Inter-Regular',
         fontSize: 16,
-        color: '#A1A1AA',
+        color: '#CBD5E1',
         textAlign: 'center',
         maxWidth: 280,
     },
-    primaryButton: {
-        marginTop: 24,
-        backgroundColor: '#8B5CF6',
-        paddingVertical: 16,
-        paddingHorizontal: 32,
-        borderRadius: 99,
-    },
-    primaryButtonText: {
-        fontFamily: 'Inter-SemiBold',
-        color: '#F9FAFB',
-        fontSize: 16,
-    },
-    scrollView: {
+    contentContainer: {
         flex: 1,
+        justifyContent: 'center',
         paddingHorizontal: 24,
+        paddingBottom: 20
     },
     dateText: {
         fontFamily: 'Inter-Regular',
-        color: '#A1A1AA',
+        color: '#94A3B8',
         textAlign: 'center',
         fontSize: 16,
         marginBottom: 8,
     },
     cardName: {
-        fontFamily: 'Inter-Bold',
-        color: '#F9FAFB',
+        fontFamily: 'Inter-Black',
+        color: '#F0F9FF',
         textAlign: 'center',
-        fontSize: 32,
+        fontSize: 48,
+        letterSpacing: -1,
         marginBottom: 32,
+        textShadowColor: 'rgba(56, 189, 248, 0.5)',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 15,
     },
     questionContainer: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderRadius: 20,
-        padding: 24,
-        alignItems: 'center',
+        borderRadius: 24,
+        overflow: 'hidden',
         borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(56, 189, 248, 0.2)',
+        backgroundColor: 'rgba(14, 27, 56, 0.5)',
+        ...Platform.select({
+            android: {
+                backgroundColor: 'rgba(14, 27, 56, 0.85)',
+            }
+        })
+    },
+    questionInnerContainer: {
+        padding: 28,
+        alignItems: 'center',
     },
     questionLabel: {
         fontFamily: 'Inter-Medium',
-        color: '#A1A1AA',
+        color: '#7DD3FC',
         fontSize: 14,
         marginBottom: 16,
         textTransform: 'uppercase',
-        letterSpacing: 1,
+        letterSpacing: 1.5,
     },
     questionText: {
         fontFamily: 'Inter-Bold',
-        color: '#F9FAFB',
-        fontSize: 22,
-        lineHeight: 32,
+        color: '#F0F9FF',
+        fontSize: 24,
+        lineHeight: 36,
         textAlign: 'center',
     },
     guidanceContainer: {
@@ -232,7 +258,7 @@ const styles = StyleSheet.create({
     },
     guidanceText: {
         fontFamily: 'Inter-Regular',
-        color: '#A1A1AA',
+        color: '#CBD5E1',
         fontSize: 16,
         lineHeight: 24,
         textAlign: 'center',
@@ -241,24 +267,35 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         gap: 16,
-        marginTop: 24,
-        paddingBottom: 40,
+        paddingHorizontal: 24,
+        paddingBottom: 48,
     },
     actionButton: {
+        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
+        justifyContent: 'center',
+        paddingVertical: 18,
         borderRadius: 99,
-        gap: 8,
-    },
-    homeButton: {
-        backgroundColor: '#8B5CF6',
+        borderWidth: 1,
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        backgroundColor: 'rgba(56, 189, 248, 0.1)',
     },
     actionButtonText: {
         fontFamily: 'Inter-SemiBold',
-        color: '#F9FAFB',
-        fontSize: 14,
+        color: '#E0F2FE',
+        fontSize: 16,
+        marginLeft: 8,
+    },
+    primaryButton: {
+      backgroundColor: '#0EA5E9',
+      borderColor: '#38BDF8',
+      borderWidth: 1,
+    },
+    primaryButtonText: {
+        fontFamily: 'Inter-SemiBold',
+        color: '#F0F9FF',
+        fontSize: 16,
+        marginLeft: 8,
     },
 });

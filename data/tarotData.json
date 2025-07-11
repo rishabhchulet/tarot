@@ -1,0 +1,222 @@
+[
+  {
+    "cardNumber": "",
+    "name": "0. The Fool",
+    "languageModelSummary": "The Fool marks the beginning of the soul’s journey. It represents innocence, freedom, and the wide-open possibility of new experience—before the mind has defined limits.",
+    "exampleOutput": "You’re at a true beginning. Step with awareness, not fear—the unknown is part of the path.",
+    "spectrumInsight": "This card ranges from open-hearted trust and adventure to naïveté or impulsive choices. It asks: are you allowing life to surprise you—or jumping without listening?",
+    "empowered": "You’re entering a fresh chapter with your full presence.",
+    "neutral": "The energy of something new is here—but are you listening before you leap?",
+    "distorted": "Be cautious of chasing novelty just to avoid being still."
+  },
+  {
+    "cardNumber": 1,
+    "name": "1. The Magician",
+    "languageModelSummary": "The Magician is the moment of conscious creation—the first time the soul recognizes its tools and creative capacity. It is not mastery yet, but awakening.",
+    "exampleOutput": "You have the tools. Now’s the time to direct your focus and make something real.",
+    "spectrumInsight": "This card ranges from empowered intention and clarity to manipulation or performance. It asks: are you creating from alignment—or trying to control the outcome?",
+    "empowered": "You’re tapped in and aligned. Let your vision shape the world around you.",
+    "neutral": "You’re aware of your power—but have you asked what it’s in service to?",
+    "distorted": "Beware of using surface tools to cover inner disconnection. Authenticity is key."
+  },
+  {
+    "cardNumber": 2,
+    "name": "2. The High Priestess",
+    "languageModelSummary": "The High Priestess is the gatekeeper of intuitive knowing. She holds inner truth, deep stillness, and the mysteries beyond language.",
+    "exampleOutput": "What you’re seeking is already within. Let silence guide you to it.",
+    "spectrumInsight": "This card ranges from clear intuitive connection to self-repression or secrecy. It asks: are you listening to your inner voice—or avoiding it?",
+    "empowered": "You’re deeply tuned in. Trust the wisdom arising from within.",
+    "neutral": "A pause is needed to access clarity—go inward before deciding.",
+    "distorted": "Are you hiding truth from yourself or others? Silence can either protect or obscure."
+  },
+  {
+    "cardNumber": 3,
+    "name": "3. The Empress",
+    "languageModelSummary": "The Empress represents creative life-force, the mother archetype, and the abundance of the natural world. She invites connection with inner nourishment and generativity.",
+    "exampleOutput": "You are in a cycle of growth and fertility. Nurture what you want to see flourish.",
+    "spectrumInsight": "This card spans from fertile creation and loving care to codependence or self-neglect. It asks: are you giving from overflow—or depletion?",
+    "empowered": "You’re rooted and radiant. Let life move through you into form.",
+    "neutral": "You may be nurturing something—but is it what you actually want to grow?",
+    "distorted": "Be honest—are you giving in hopes of being needed?"
+  },
+  {
+    "cardNumber": 4,
+    "name": "4. The Emperor",
+    "languageModelSummary": "The Emperor represents structure, leadership, and protection. He anchors the masculine principle through grounded action, clarity, and boundary.",
+    "exampleOutput": "You’re being asked to lead or stabilize. What are you building—and does it support true growth?",
+    "spectrumInsight": "This card ranges from clear, grounded power to rigidity or control. It asks: is your structure supporting life—or stifling it?",
+    "empowered": "You’re anchoring something solid with integrity and purpose.",
+    "neutral": "It’s time to review the systems around you—are they still serving?",
+    "distorted": "Beware of gripping control where flexibility is needed."
+  },
+  {
+    "cardNumber": 5,
+    "name": "5. The Hierophant",
+    "languageModelSummary": "The Hierophant is the keeper of wisdom traditions and spiritual teaching. It invites you to question inherited beliefs and reconnect to your inner authority.",
+    "exampleOutput": "It’s time to reexamine the roots of your beliefs. Are they yours—or someone else’s?",
+    "spectrumInsight": "This card spans from true spiritual connection and mentorship to blind tradition, over-reliance on dogma, or bypassing. It asks: are you aligned with what you say you believe?",
+    "empowered": "You’re integrating teachings that reinforce your own truth.",
+    "neutral": "You may be exploring ideas—make sure they resonate with lived experience.",
+    "distorted": "Let go of systems that no longer reflect who you’ve become."
+  },
+  {
+    "cardNumber": 6,
+    "name": "6. The Lovers",
+    "languageModelSummary": "The Lovers reflect the inner alchemical union of polarities—masculine and feminine, light and shadow. It’s not about finding another, but coming home to wholeness.",
+    "exampleOutput": "Wholeness comes from within. What part of you is ready to rejoin the rest?",
+    "spectrumInsight": "This card ranges from inner integration and embodied choice to fragmentation or power-loss through false merging. It asks: what union is really being asked for here?",
+    "empowered": "You are uniting pieces of self that once felt separate.",
+    "neutral": "There’s a fork in the road—choose what aligns with your wholeness.",
+    "distorted": "Be careful not to lose yourself in the image of connection."
+  },
+  {
+    "cardNumber": 7,
+    "name": "7. The Chariot",
+    "languageModelSummary": "The Chariot is about focused direction and inner will. It teaches us to move from aligned intent—not from force or avoidance.",
+    "exampleOutput": "Take the reins—but only once you’ve clarified where you truly want to go.",
+    "spectrumInsight": "This card ranges from purposeful motion to blind ambition. It asks: are you steering from centered will—or proving something?",
+    "empowered": "You’ve aligned your energies. Now move with clarity.",
+    "neutral": "Your drive is building—just make sure it’s going where your soul wants.",
+    "distorted": "Momentum without presence leads to burnout. Slow down."
+  },
+  {
+    "cardNumber": 8,
+    "name": "8. Strength",
+    "languageModelSummary": "Strength is the calm, powerful force of the integrated self. It represents courage, emotional regulation, and the empowered feminine principle.",
+    "exampleOutput": "Your strength doesn’t need to be loud. It’s already here—in your quiet presence.",
+    "spectrumInsight": "This card spans from gentle power and emotional maturity to self-repression or spiritual bypassing. It asks: are you meeting yourself with compassion—or pressure?",
+    "empowered": "Your inner strength comes from grace, not struggle.",
+    "neutral": "You’re navigating intensity—lead from your heart, not your habits.",
+    "distorted": "Don’t hold back emotion just to seem in control. Expression is strength too."
+  },
+  {
+    "cardNumber": 9,
+    "name": "9. The Hermit",
+    "languageModelSummary": "The Hermit invites deep introspection. It is a turning inward to reconnect with your own light when external guidance has run its course.",
+    "exampleOutput": "Step back. What you’re seeking requires solitude and space.",
+    "spectrumInsight": "This card spans from sacred withdrawal to avoidance. It asks: are you retreating for clarity—or hiding?",
+    "empowered": "Your inner guidance is loudest when the world goes quiet.",
+    "neutral": "This is a reflection phase. Take time to listen.",
+    "distorted": "Make sure your solitude isn’t fueled by fear of connection."
+  },
+  {
+    "cardNumber": 10,
+    "name": "10. Wheel of Fortune",
+    "languageModelSummary": "The Wheel of Fortune reminds us that life is always in motion. Whatever you’re experiencing now—it will change. The question is: how will you respond?",
+    "exampleOutput": "What’s up will shift. What’s down will rise. Everything changes—keep your center.",
+    "spectrumInsight": "This card ranges from rhythmic adaptability to resistance and clinging. It asks: can you meet life’s motion without trying to control it?",
+    "empowered": "You see the cycle clearly. You’re riding change, not resisting it.",
+    "neutral": "You’re mid-shift—observe instead of overreacting.",
+    "distorted": "Be mindful of attachment. The wheel turns whether you like it or not."
+  },
+  {
+    "cardNumber": 11,
+    "name": "11. Justice",
+    "languageModelSummary": "Justice is the law of energetic return—what you put out echoes back. This card invites radical honesty and karmic balance.",
+    "exampleOutput": "Even small choices shape your future. What you do now matters more than you think.",
+    "spectrumInsight": "This card ranges from clear-eyed alignment to rigidity, blame, or fear-based self-monitoring. It asks: are you acting in truth—or just appearing balanced?",
+    "empowered": "You’re moving from integrity. Keep your actions clean and steady.",
+    "neutral": "Something’s coming into balance—what’s your role in it?",
+    "distorted": "Are you being overly harsh with yourself or others? Justice without compassion becomes judgment."
+  },
+  {
+    "cardNumber": 12,
+    "name": "12. The Hanged Man",
+    "languageModelSummary": "The Hanged Man is a pause chosen by the soul. It invites a new perspective—one that only comes when you stop trying to force clarity.",
+    "exampleOutput": "This is a reset—not a punishment. What’s changing in the way you see?",
+    "spectrumInsight": "This card ranges from empowered surrender and insight to passivity or martyrdom. It asks: what truth reveals itself when you stop pushing?",
+    "empowered": "You’ve chosen to pause to truly see. Let that be enough.",
+    "neutral": "Don’t rush the insight—stay suspended a moment longer.",
+    "distorted": "Watch for stagnation disguised as surrender. Let stillness serve clarity."
+  },
+  {
+    "cardNumber": 13,
+    "name": "13. Death",
+    "languageModelSummary": "Death brings honest endings. It clears away what no longer belongs—not to punish, but to prepare.",
+    "exampleOutput": "Something is complete. Let go fully so you can receive what’s next.",
+    "spectrumInsight": "This card ranges from empowered release to fear of change. It asks: what are you clinging to that’s already gone?",
+    "empowered": "You’re shedding an old skin. Trust the transformation.",
+    "neutral": "You’re mid-process. Don’t rush the release.",
+    "distorted": "Stagnation comes from resisting the inevitable. Let go."
+  },
+  {
+    "cardNumber": 14,
+    "name": "14. Temperance",
+    "languageModelSummary": "Temperance is integration. It reflects the ability to hold extremes, blend them, and create inner harmony over time—not through force, but presence.",
+    "exampleOutput": "Let the process unfold. This is about balance—held, not forced.",
+    "spectrumInsight": "This card ranges from true equilibrium to overcorrection or impatience. It asks: can you hold both sides long enough for wholeness to emerge?",
+    "empowered": "You’re weaving opposites into something new. Stay patient.",
+    "neutral": "It’s not time to decide yet—something is still mixing.",
+    "distorted": "Forcing balance creates distortion. Let harmony happen in its time."
+  },
+  {
+    "cardNumber": 15,
+    "name": "15. The Devil",
+    "languageModelSummary": "The Devil reflects where we are attached—through vice, desire, compulsion, or inner conflict. It doesn’t trap us; it shows us the places where we trap ourselves.",
+    "exampleOutput": "This card is showing you the pattern you think you can’t break. But the chains aren’t locked—you have the choice to step free.",
+    "spectrumInsight": "This card spans from awareness of addiction or fixation to self-deception or unconscious loops. It asks: where are you giving your power away to something that feeds on your fear or habit?",
+    "empowered": "You see the pattern clearly now—and that’s the first step to shifting it.",
+    "neutral": "Something has a hold on you. Pause and ask: is this coming from truth, or compulsion?",
+    "distorted": "You may be keeping yourself trapped out of familiarity. No one else is holding the key."
+  },
+  {
+    "cardNumber": 16,
+    "name": "16. The Tower",
+    "languageModelSummary": "The Tower represents sudden upheaval, truth-shock, and ego dissolution. It clears away false structures—often dramatically—but always for the sake of deeper awareness.",
+    "exampleOutput": "Something is falling apart because it was never truly stable. What looks like chaos may be your next level waking up.",
+    "spectrumInsight": "This card ranges from radical clarity and sudden insight to destabilization or crisis. It asks: how will you meet the shift—by fearing it, or by allowing it to free you?",
+    "empowered": "This is a wake-up call from life itself. Everything unnecessary is being stripped away.",
+    "neutral": "What’s falling may have served once—but its time is up. Let the dust clear.",
+    "distorted": "If you resist what’s collapsing, it will only feel more chaotic. Release your grip."
+  },
+  {
+    "cardNumber": 17,
+    "name": "17. The Star",
+    "languageModelSummary": "The Star brings renewal, healing, and quiet reconnection after upheaval. It invites breath, rest, and reattunement to the self and the sacred.",
+    "exampleOutput": "You’re being offered space to soften and reconnect. Let yourself receive what nourishes you now.",
+    "spectrumInsight": "This card ranges from grounded spiritual replenishment to escapist fantasy. It asks: can you trust your connection to the larger rhythm without losing your footing?",
+    "empowered": "This is the exhale after the storm. Let the healing settle in.",
+    "neutral": "You’re in a phase of integration. Stay open to small moments of renewal.",
+    "distorted": "Be careful not to idealize or drift into illusion. Healing doesn’t mean escape."
+  },
+  {
+    "cardNumber": 18,
+    "name": "18. The Moon",
+    "languageModelSummary": "The Moon reveals the hidden terrain of the psyche. It brings up the subconscious, the dreams, the fears—and asks you to feel, not fix.",
+    "exampleOutput": "You’re in a liminal space. Don’t force clarity—just be with what’s surfacing.",
+    "spectrumInsight": "This card spans from intuitive depth to projection or confusion. It asks: can you meet your inner landscape without needing to categorize it?",
+    "empowered": "You’re navigating deep waters. Trust your felt sense over logic.",
+    "neutral": "It’s unclear for a reason—something’s still forming beneath the surface.",
+    "distorted": "Trying to force clarity too soon may blind you. Let the mist teach you."
+  },
+  {
+    "cardNumber": 19,
+    "name": "19. The Sun",
+    "languageModelSummary": "The Sun is vitality, joy, and permission to be fully expressed. It reflects the essence of the soul made visible—childlike, radiant, and unguarded.",
+    "exampleOutput": "Let yourself be bright, open, and real. Your joy isn’t a distraction—it’s your fuel.",
+    "spectrumInsight": "This card spans from authentic radiance to performative positivity. It asks: is your joy rooted in truth—or masking discomfort?",
+    "empowered": "You’re in alignment with your life force. Let it move freely.",
+    "neutral": "Something is lighting up—enjoy it without needing it to be everything.",
+    "distorted": "Don’t force joy to avoid discomfort. Wholeness includes shadow too."
+  },
+  {
+    "cardNumber": 20,
+    "name": "20. Judgment",
+    "languageModelSummary": "Judgment is the moment of awakening—a soul-level realization that calls you into full embodiment. It’s not about shame—it’s about rising into who you really are.",
+    "exampleOutput": "This is a call to rise, not to shrink. You already know the truth—now live it.",
+    "spectrumInsight": "This card ranges from deep integration and self-honesty to guilt, self-judgment, or delay. It asks: what are you ready to let go of—and who are you becoming?",
+    "empowered": "You’re ready to step into who you came here to be. Let old versions fall away.",
+    "neutral": "You’re sensing a shift—pause and reflect honestly. What’s calling you forward?",
+    "distorted": "Be mindful not to stay in endless evaluation. At some point, you have to rise."
+  },
+  {
+    "cardNumber": 21,
+    "name": "21. The World",
+    "languageModelSummary": "The World is completion and integration. It marks the close of a major cycle—a wholeness that is both an arrival and a return to the beginning.",
+    "exampleOutput": "You’ve arrived at the end of this chapter. Let yourself celebrate it—and watch what’s opening next.",
+    "spectrumInsight": "This card spans from total integration and success to stasis or fear of beginning again. It asks: are you willing to celebrate—and keep moving?",
+    "empowered": "You’ve completed something meaningful. Let yourself feel the fullness of that.",
+    "neutral": "This is a pause for recognition—breathe it in before moving forward.",
+    "distorted": "Don’t cling to the high of completion. Every cycle births the next."
+  }
+]

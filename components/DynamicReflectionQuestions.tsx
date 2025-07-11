@@ -1,10 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator } from 'react-native';
-import { Platform } from 'react-native';
-import { MessageCircle, Lightbulb } from 'lucide-react-native';
-import { getAIReflectionPrompts, extractRecentThemes } from '@/utils/ai';
-import { getJournalEntries } from '@/utils/database';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
+import { MessageCircle } from 'lucide-react-native';
+import { StructuredReflection } from '@/components/StructuredReflection';
 
 interface DynamicReflectionQuestionsProps {
   card: {
@@ -19,7 +16,7 @@ interface DynamicReflectionQuestionsProps {
   reflection2: string;
   setReflection2: (text: string) => void;
   onQuestionSelect: (question: string, questionIndex: number) => void;
-  onDailyQuestionReceived?: (question: string) => void; // NEW: Callback for daily question
+  onDailyQuestionReceived?: (question: string) => void;
 }
 
 export function DynamicReflectionQuestions({ 
@@ -32,142 +29,15 @@ export function DynamicReflectionQuestions({
   onQuestionSelect,
   onDailyQuestionReceived
 }: DynamicReflectionQuestionsProps) {
-  const { user } = useAuth();
-  const [questions, setQuestions] = useState<string[]>([]);
-  const [shadowQuestion, setShadowQuestion] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  // NEW: Use ref to track if daily question has been sent to prevent loops
   const dailyQuestionSentRef = useRef(false);
 
-  useEffect(() => {
-    console.log('🎯 DynamicReflectionQuestions mounted, generating questions...');
-    generateQuestions();
-  }, [card.name, hexagram.name]);
-
-  // FIXED: Only send daily question once when it's first set
-  useEffect(() => {
-    if (shadowQuestion && onDailyQuestionReceived && !dailyQuestionSentRef.current) {
-      console.log('📤 Sending daily question to parent (first time):', shadowQuestion);
-      onDailyQuestionReceived(shadowQuestion);
-      dailyQuestionSentRef.current = true; // Mark as sent to prevent loops
-    }
-  }, [shadowQuestion, onDailyQuestionReceived]);
-
-  const createPersonalizedFallbackQuestions = () => {
-    const primaryKeyword = card.keywords[0] || 'wisdom';
-    const secondaryKeyword = card.keywords[1] || 'growth';
-    const focusArea = user?.focusArea || 'life';
-    
-    // Create more personal, life-focused questions following the pattern
-    const fallbackQuestions = [
-      `Where in your ${focusArea} are you being called to choose what sets your heart alight, even if it's uncertain?`,
-      `Can you let ${primaryKeyword.toLowerCase()} be a guide—not to possession, but to illumination in your daily choices?`
-    ];
-    
-    // Create a shadow/daily reflection question
-    const fallbackShadowQuestion = `What am I truly devoted to—and does it reflect my authentic truth?`;
-    
-    console.log('🔄 Created personalized fallback questions:', fallbackQuestions);
-    console.log('🌙 Created shadow question:', fallbackShadowQuestion);
-    
-    return { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion };
-  };
-
-  // Check if we should skip AI requests (mobile development environment)
-  const shouldSkipAI = () => {
-    // Skip AI on mobile in development to avoid network errors
-    if (Platform.OS !== 'web' && __DEV__) {
-      console.log('📱 Mobile development detected - skipping AI requests');
-      return true;
-    }
-    return false;
-  };
-
-  const generateQuestions = async () => {
-    console.log('🤔 Generating personal reflection questions...');
-    setLoading(true);
-    setError(null);
-    
-    // Reset the daily question sent flag when generating new questions
-    dailyQuestionSentRef.current = false;
-
-    // Check if we should skip AI requests for mobile
-    if (shouldSkipAI()) {
-      console.log('📱 Using fallback questions for mobile development');
-      const { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion } = createPersonalizedFallbackQuestions();
-      setQuestions(fallbackQuestions);
-      setShadowQuestion(fallbackShadowQuestion);
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // Get recent journal entries for context
-      console.log('📚 Fetching recent journal entries...');
-      const recentEntries = await getJournalEntries();
-      const recentThemes = extractRecentThemes(recentEntries);
-      console.log('📝 Recent themes extracted:', recentThemes);
-
-      console.log('🤖 Calling AI for personal reflection prompts...');
-      const { questions: aiQuestions, error: aiError } = await getAIReflectionPrompts({
-        cardName: card.name,
-        cardKeywords: card.keywords,
-        hexagramName: hexagram.name,
-        focusArea: user?.focusArea,
-        previousEntries: recentThemes,
-      });
-
-      console.log('📋 AI response:', { aiQuestions, aiError });
-
-      if (aiError || !aiQuestions || !Array.isArray(aiQuestions) || aiQuestions.length < 3) {
-        console.warn('⚠️ AI questions insufficient, using personalized fallback. Received:', aiQuestions);
-        setError(null); // Don't show error to user
-        const { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion } = createPersonalizedFallbackQuestions();
-        setQuestions(fallbackQuestions);
-        setShadowQuestion(fallbackShadowQuestion);
-      } else {
-        console.log('✅ AI questions generated successfully:', aiQuestions);
-        // Take first 2 questions for main reflection, 3rd for shadow question
-        setQuestions(aiQuestions.slice(0, 2));
-        setShadowQuestion(aiQuestions[2] || createPersonalizedFallbackQuestions().shadowQuestion);
-        setError(null);
-      }
-    } catch (err: any) {
-      console.error('❌ Error generating questions:', err);
-      setError(null); // Don't show error to user
-      const { questions: fallbackQuestions, shadowQuestion: fallbackShadowQuestion } = createPersonalizedFallbackQuestions();
-      setQuestions(fallbackQuestions);
-      setShadowQuestion(fallbackShadowQuestion);
-    } finally {
-      setLoading(false);
-      console.log('🏁 Question generation complete');
+  const handleReflectionGenerated = (reflectionPrompt: string) => {
+    if (onDailyQuestionReceived && !dailyQuestionSentRef.current) {
+      console.log('📤 Sending daily question to parent:', reflectionPrompt);
+      onDailyQuestionReceived(reflectionPrompt);
+      dailyQuestionSentRef.current = true;
     }
   };
-
-  const handleQuestionPress = (questionIndex: number) => {
-    const question = questions[questionIndex];
-    if (question) {
-      console.log(`📝 Question ${questionIndex + 1} selected:`, question);
-      onQuestionSelect(question, questionIndex);
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <MessageCircle size={16} color="#3B82F6" />
-          <Text style={styles.title}>Your Reflection Today</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#3B82F6" />
-          <Text style={styles.loadingText}>Crafting your personal questions...</Text>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -186,41 +56,28 @@ export function DynamicReflectionQuestions({
         </Text>
       </View>
 
-      {/* Together, this pairing asks: */}
-      <View style={styles.pairingContainer}>
-        <Text style={styles.pairingTitle}>Together, this pairing asks:</Text>
-        
-        {/* Question 1 */}
-        <Pressable
-          style={styles.questionButton}
-          onPress={() => handleQuestionPress(0)}
-        >
-          <Text style={styles.questionText}>
-            {questions[0] || 'Where in your life are you being called to choose what sets your heart alight, even if it\'s uncertain?'}
-          </Text>
-        </Pressable>
-        
+      {/* New Structured Reflection Component */}
+      <StructuredReflection
+        cardName={card.name}
+        hexagramName={hexagram.name}
+        onReflectionGenerated={handleReflectionGenerated}
+      />
+
+      {/* Reflection Input Areas */}
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Your First Thoughts</Text>
         <TextInput
           style={styles.textInput}
           value={reflection1}
           onChangeText={setReflection1}
-          placeholder="Share your thoughts and feelings..."
+          placeholder="Share your initial thoughts and feelings..."
           placeholderTextColor="#6B7280"
           multiline
           numberOfLines={3}
           textAlignVertical="top"
         />
 
-        {/* Question 2 */}
-        <Pressable
-          style={styles.questionButton}
-          onPress={() => handleQuestionPress(1)}
-        >
-          <Text style={styles.questionText}>
-            {questions[1] || 'Can you let desire be a guide—not to possession, but to illumination?'}
-          </Text>
-        </Pressable>
-        
+        <Text style={styles.inputLabel}>Deeper Reflection</Text>
         <TextInput
           style={styles.textInput}
           value={reflection2}
@@ -232,14 +89,6 @@ export function DynamicReflectionQuestions({
           textAlignVertical="top"
         />
       </View>
-
-      {/* Return to this question throughout the day */}
-      <View style={styles.shadowContainer}>
-        <Text style={[styles.shadowTitle, { color: '#1e3a8a' }]}>Return to this question throughout the day:</Text>
-        <Text style={[styles.shadowQuestion, { color: '#F9FAFB' }]}>
-          "{shadowQuestion || 'What am I truly devoted to—and does it reflect my truth?'}"
-        </Text>
-      </View>
     </View>
   );
 }
@@ -248,102 +97,56 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.3)',
+    marginVertical: 16,
+    overflow: 'hidden',
   },
   header: {
-    alignItems: 'center',
-    marginBottom: 16,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
   },
   title: {
     fontSize: 18,
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
   },
-  loadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    justifyContent: 'center',
-  },
-  loadingText: {
-    fontSize: 12,
-    fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
-    fontStyle: 'italic',
-  },
-  
-  // Description section
   descriptionContainer: {
-    marginBottom: 16,
+    padding: 20,
+    paddingBottom: 0,
   },
   descriptionText: {
     fontSize: 14,
     fontFamily: 'Inter-Regular',
-    color: '#9CA3AF',
+    color: '#A1A1AA',
     lineHeight: 20,
-    marginBottom: 8,
-  },
-  cardName: {
-    fontFamily: 'CormorantGaramond-SemiBold',
-  },
-  hexagramName: {
-    fontFamily: 'CormorantGaramond-SemiBold',
-  },
-  
-  // Pairing section
-  pairingContainer: {
-    marginBottom: 16,
-  },
-  pairingTitle: {
-    fontSize: 15,
-    fontFamily: 'CormorantGaramond-SemiBold',
-    color: '#F9FAFB',
     marginBottom: 12,
   },
-  questionButton: {
-    marginBottom: 8,
-    paddingVertical: 4,
+  cardName: {
+    fontFamily: 'Inter-SemiBold',
   },
-  questionText: {
-    fontSize: 14,
+  hexagramName: {
+    fontFamily: 'Inter-SemiBold',
+  },
+  inputContainer: {
+    padding: 20,
+  },
+  inputLabel: {
+    color: '#E0E7FF',
     fontFamily: 'Inter-Medium',
-    color: '#F9FAFB',
-    lineHeight: 20,
+    fontSize: 14,
+    marginBottom: 8,
+    marginTop: 16,
   },
   textInput: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 8,
     padding: 12,
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
     color: '#F9FAFB',
+    fontFamily: 'Inter-Regular',
+    fontSize: 16,
+    minHeight: 80,
     borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
-    minHeight: 70,
-    marginBottom: 16,
-  },
-  
-  // Shadow question section
-  shadowContainer: {
-    backgroundColor: 'rgba(30, 58, 138, 0.15)',
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.3)',
-  },
-  shadowTitle: {
-    fontSize: 13,
-    fontFamily: 'Inter-Medium',
-    marginBottom: 6,
-  },
-  shadowQuestion: {
-    fontSize: 14,
-    fontFamily: 'CormorantGaramond-SemiBold',
-    fontStyle: 'italic',
-    lineHeight: 20,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
 });

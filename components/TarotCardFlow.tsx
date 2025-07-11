@@ -14,6 +14,7 @@ import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
 import { router } from 'expo-router';
+import { Star, Zap } from 'lucide-react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -198,30 +199,66 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
             </View>
           </LinearGradient>
         </Animated.View>
+
+        <Animated.View style={[styles.cardContainer, backAnimatedStyle]}>
+          <LinearGradient
+            colors={['#F59E0B', '#8B5CF6', '#3B82F6', '#F59E0B']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.mysticalBorder}
+          >
+            <View style={styles.innerBorder}>
+              <View style={styles.cardContent}>
+                <Text style={styles.cardName}>{selectedCard.name}</Text>
+                <View style={styles.ichingContainer}>
+                  <Text style={styles.ichingTitle}>I Ching</Text>
+                  <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
+                  <Text style={styles.ichingEssence}>{getIChingEssence(selectedHexagram)}</Text>
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </Pressable>
+
+      <Pressable style={styles.nextButton} onPress={handleShowKeywords}>
+        <Text style={styles.nextButtonText}>Explore Themes</Text>
       </Pressable>
     </View>
   );
 
   const renderKeywordsOnly = () => (
     <View style={styles.stepContainer}>
-      <Text style={styles.stepTitle}>Key Themes</Text>
+      <View style={styles.keywordsHeader}>
+        <Star size={24} color="#fde047" />
+        <Text style={styles.stepTitle}>Key Themes</Text>
+        <Star size={24} color="#fde047" />
+      </View>
       
-      <View style={styles.keywordsContainer}>
-        <Text style={styles.sectionTitle}>Tarot Keywords</Text>
+      {/* Tarot Keywords */}
+      <View style={styles.keywordsSection}>
+        <View style={styles.sectionHeaderContainer}>
+          <Zap size={20} color="#c084fc" />
+          <Text style={styles.sectionTitle}>Tarot Energies</Text>
+        </View>
         <View style={styles.keywordsList}>
           {selectedCard.keywords.map((keyword, index) => (
-            <View key={index} style={styles.keywordItem}>
+            <View key={index} style={[styles.keywordItem, styles.tarotKeyword]}>
               <Text style={styles.keywordText}>{keyword}</Text>
             </View>
           ))}
         </View>
       </View>
 
-      <View style={styles.keywordsContainer}>
-        <Text style={styles.sectionTitle}>I Ching Keywords</Text>
+      {/* I Ching Keywords */}
+      <View style={styles.keywordsSection}>
+        <View style={styles.sectionHeaderContainer}>
+          <Star size={20} color="#60a5fa" />
+          <Text style={styles.sectionTitle}>I Ching Wisdom</Text>
+        </View>
         <View style={styles.keywordsList}>
           {getIChingKeywords(selectedHexagram).map((keyword, index) => (
-            <View key={index} style={styles.keywordItem}>
+            <View key={index} style={[styles.keywordItem, styles.ichingKeyword]}>
               <Text style={styles.keywordText}>{keyword}</Text>
             </View>
           ))}
@@ -229,7 +266,14 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
       </View>
 
       <Pressable style={styles.continueButton} onPress={handleShowReflection}>
-        <Text style={styles.continueButtonText}>Begin Reflection</Text>
+        <LinearGradient
+          colors={['#8b5cf6', '#6366f1']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.buttonGradient}
+        >
+          <Text style={styles.continueButtonText}>Begin Reflection</Text>
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -260,7 +304,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0a0a0a', '#0f0f0f', '#1a1a1a', '#0f1419']}
+        colors={['#0a0a0a', '#171717', '#0a0a0a']}
         style={styles.container}>
         {renderCurrentStep()}
       </LinearGradient>
@@ -288,10 +332,11 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.5,
     borderRadius: 20,
     elevation: 10,
-    shadowColor: '#000',
+    shadowColor: '#8b5cf6',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
+    shadowOpacity: 0.5,
+    shadowRadius: 25,
+    position: 'absolute',
   },
   cardFront: {
     backfaceVisibility: 'hidden',
@@ -304,7 +349,7 @@ const styles = StyleSheet.create({
   innerBorder: {
     flex: 1,
     borderRadius: 17,
-    backgroundColor: '#1A1A2E',
+    backgroundColor: '#0a0a0a',
     overflow: 'hidden',
     position: 'relative',
   },
@@ -314,39 +359,147 @@ const styles = StyleSheet.create({
   },
   cardFrontImage: {
     width: '100%',
-    height: '70%',
-  },
-  lightEffect1: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    height: '100%',
     borderRadius: 17,
   },
-  tapHintOverlay: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
+  cardContent: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
-  tapHint: {
-    color: '#FFD700',
-    fontSize: 16,
-    fontWeight: '600',
+  cardName: {
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
     textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.8)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    marginBottom: 20,
+  },
+  ichingContainer: {
+    alignItems: 'center',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  ichingTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#a78bfa',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  ichingName: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  ichingEssence: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#c084fc',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  nextButton: {
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+    marginTop: 40,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.4)',
+  },
+  nextButtonText: {
+    color: '#c084fc',
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    textAlign: 'center',
+  },
+  keywordsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 40,
+    gap: 12,
+  },
+  stepTitle: {
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
+    textAlign: 'center',
+  },
+  keywordsSection: {
+    width: '100%',
+    marginBottom: 32,
+  },
+  sectionHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F9FAFB',
+    textAlign: 'center',
+  },
+  keywordsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  keywordItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  tarotKeyword: {
+    backgroundColor: 'rgba(192, 132, 252, 0.15)',
+    borderColor: 'rgba(192, 132, 252, 0.4)',
+  },
+  ichingKeyword: {
+    backgroundColor: 'rgba(96, 165, 250, 0.15)',
+    borderColor: 'rgba(96, 165, 250, 0.4)',
+  },
+  keywordText: {
+    color: '#F9FAFB',
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+  },
+  continueButton: {
+    marginTop: 40,
+    borderRadius: 25,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 15,
+  },
+  buttonGradient: {
+    paddingHorizontal: 40,
+    paddingVertical: 16,
+    borderRadius: 25,
+  },
+  continueButtonText: {
+    color: '#F9FAFB',
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    textAlign: 'center',
   },
   glowEffect1: {
     position: 'absolute',
     width: screenWidth * 0.8,
     height: screenHeight * 0.6,
     borderRadius: 30,
-    backgroundColor: 'rgba(30, 58, 138, 0.3)',
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
     zIndex: -1,
   },
   glowEffect2: {
@@ -354,7 +507,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.85,
     height: screenHeight * 0.65,
     borderRadius: 35,
-    backgroundColor: 'rgba(30, 64, 175, 0.2)',
+    backgroundColor: 'rgba(139, 92, 246, 0.15)',
     zIndex: -2,
   },
   glowEffect3: {
@@ -362,7 +515,7 @@ const styles = StyleSheet.create({
     width: screenWidth * 0.9,
     height: screenHeight * 0.7,
     borderRadius: 40,
-    backgroundColor: 'rgba(30, 58, 138, 0.1)',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
     zIndex: -3,
   },
   borderRing: {
@@ -371,90 +524,7 @@ const styles = StyleSheet.create({
     height: screenHeight * 0.55,
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: 'rgba(30, 58, 138, 0.6)',
+    borderColor: 'rgba(139, 92, 246, 0.4)',
     zIndex: -1,
-  },
-  cardCenterContainer: {
-    alignItems: 'center',
-    marginBottom: 30,
-  },
-  ichingContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-    paddingHorizontal: 20,
-  },
-  ichingTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1e3a8a',
-    marginBottom: 10,
-  },
-  ichingName: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 5,
-  },
-  ichingEssence: {
-    fontSize: 16,
-    color: '#1e40af',
-    textAlign: 'center',
-    fontStyle: 'italic',
-  },
-  stepTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  keywordsContainer: {
-    width: '100%',
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1e3a8a',
-    textAlign: 'center',
-    marginBottom: 15,
-  },
-  keywordsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10,
-  },
-  keywordItem: {
-    backgroundColor: 'rgba(30, 58, 138, 0.2)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.4)',
-  },
-  keywordText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  continueButton: {
-    backgroundColor: '#374151',
-    paddingHorizontal: 40,
-    paddingVertical: 15,
-    borderRadius: 25,
-    marginTop: 20,
-    shadowColor: '#1e3a8a',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-    textAlign: 'center',
   },
 });

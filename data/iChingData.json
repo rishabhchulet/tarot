@@ -1,0 +1,578 @@
+[
+  {
+    "number": "1 – The Creative",
+    "name": "Heaven over Heaven. Pure Yang. The primal force.",
+    "traditionalSymbols": "Initiating from clarity and aligned will.",
+    "energeticTheme": "Where am I being invited to take initiative without hesitation?",
+    "introspectivePrompt": "What would it look like to begin today with full commitment?",
+    "actionOrientedPrompt": "This is the energy of beginning, but not from impulse—from essence. You’re being asked to move from pure presence, to create not from lack but from overflow. When the channel is clear, creation is not effort—it is truth in motion.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "2 – The Receptive",
+    "name": "Earth over Earth. Pure Yin. The fertile ground.",
+    "traditionalSymbols": "Receiving without resistance.",
+    "energeticTheme": "Where am I trying to lead when I’m meant to listen?",
+    "introspectivePrompt": "How can I soften into a deeper kind of strength today?",
+    "actionOrientedPrompt": "This hexagram is about letting go of control so that life can flow through you. There’s power here, but it’s not force—it’s surrender. True receptivity is not passive; it’s alive, aware, and deeply in tune.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "3 – Difficulty at the Beginning",
+    "name": "Water over Thunder. Sprouting seed. Chaos before order.",
+    "traditionalSymbols": "Trusting emergence through early uncertainty.",
+    "energeticTheme": "What part of me is just now trying to be born?",
+    "introspectivePrompt": "How can I support this beginning without rushing it?",
+    "actionOrientedPrompt": "Beginnings are often messy, and that’s not a mistake—it’s part of the unfolding. Don’t confuse disarray for dysfunction. If you can stay steady through the awkward start, you’re already building something worthwhile.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "4 – Youthful Folly",
+    "name": "Mountain over Water. Unformed wisdom. Student and teacher.",
+    "traditionalSymbols": "Approaching the unknown with humility.",
+    "energeticTheme": "Where am I pretending to know what I haven’t yet learned?",
+    "introspectivePrompt": "What question am I ready to ask without needing to impress?",
+    "actionOrientedPrompt": "There is wisdom in admitting what we don’t yet know. This isn’t about shame—it’s about readiness. Stay curious. Be teachable. Right guidance appears when the student stops performing and starts listening.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "5 – Waiting",
+    "name": "Water over Heaven. Clouds gathering. Preparation.",
+    "traditionalSymbols": "Patience as a form of power.",
+    "energeticTheme": "Where am I mistaking pause for stagnation?",
+    "introspectivePrompt": "How can I prepare the ground without forcing the bloom?",
+    "actionOrientedPrompt": "Waiting is not doing nothing—it’s doing the exact thing the moment calls for. Not all answers come from movement. Sometimes, readiness itself is the offering. Let the moment ripen. Don’t pick the fruit too soon.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "6 – Conflict",
+    "name": "Heaven over Water. Tension. Disagreement reveals truth.",
+    "traditionalSymbols": "Meeting conflict with clarity, not reactivity.",
+    "energeticTheme": "Where is my need to be right blocking understanding?",
+    "introspectivePrompt": "What truth can I hold without making the other wrong?",
+    "actionOrientedPrompt": "Conflict isn’t failure—it’s friction that exposes deeper values. This isn’t about fighting, but clarifying. Let tension reveal, not destroy. The goal is not to win—it’s to see what actually matters.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "7 – The Army",
+    "name": "Earth over Water. Hidden order. Leadership through service.",
+    "traditionalSymbols": "Humble strategy and unified direction.",
+    "energeticTheme": "Where am I leading without clarity of purpose?",
+    "introspectivePrompt": "How can I organize my energy around what truly matters?",
+    "actionOrientedPrompt": "True leadership doesn’t shout—it coordinates. This is the call to align your forces, internally or externally, with calm precision. Purpose fuels action. Without it, motion is noise.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "8 – Holding Together",
+    "name": "Water over Earth. Union. Magnetism through shared truth.",
+    "traditionalSymbols": "Bonding through resonance, not force.",
+    "energeticTheme": "What values do I truly want to build connection around?",
+    "introspectivePrompt": "How can I show up in a way that others naturally want to join?",
+    "actionOrientedPrompt": "This hexagram reminds you that connection isn’t commanded—it’s earned through coherence. When you are true to what matters, others feel it. Community begins with inner alignment.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "9 – The Taming Power of the Small",
+    "name": "Wind over Heaven. Subtle influence. Gentle progress.",
+    "traditionalSymbols": "Patience through precision and presence.",
+    "energeticTheme": "Where am I underestimating the impact of small actions?",
+    "introspectivePrompt": "What micro-adjustment today can shift the entire course?",
+    "actionOrientedPrompt": "Big changes are built on small refinements. This hexagram teaches the strength of subtlety. Influence doesn’t have to be loud—it has to be consistent and clear. Keep tending the thread.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "10 – Treading (Conduct)",
+    "name": "Heaven over Lake. The cautious path. Graceful motion.",
+    "traditionalSymbols": "Integrity while walking near power.",
+    "energeticTheme": "Where am I walking a fine line, and what does grace require there?",
+    "introspectivePrompt": "What would it look like to move with awareness and humility today?",
+    "actionOrientedPrompt": "This is the path between boldness and caution. The terrain may be sensitive—power dynamics, ego, fragile foundations. Walk anyway, but do so consciously. Grace is not weakness; it’s skill.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "11 – Peace",
+    "name": "Heaven joins with Earth. The noble one aligns above and below. Harmony of opposites.",
+    "traditionalSymbols": "Grounding expansion through unity and alignment.",
+    "energeticTheme": "What is asking to come into harmony within me?",
+    "introspectivePrompt": "How can I move today from grounded ease rather than effort?",
+    "actionOrientedPrompt": "This hexagram speaks of a time when Heaven and Earth collaborate—inner clarity and external action walk hand in hand. If you’ve been planting with integrity, this is the stretch of soil where growth moves without resistance. Don’t rush it. Peace isn’t stillness—it’s resonance between what you are and what you do.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "12 – Standstill",
+    "name": "Heaven withdraws from Earth. Stagnation. Noble one does not wallow in low company.",
+    "traditionalSymbols": "Recognizing what no longer resonates and staying inwardly upright.",
+    "energeticTheme": "Where am I pretending things are working when they are not?",
+    "introspectivePrompt": "What needs to be released so energy can move again?",
+    "actionOrientedPrompt": "Standstill doesn’t mean failure—it means life is pausing so you can see what no longer fits. Something may be decaying from within because its season has passed. Rather than force momentum, use this moment to clarify your signal. Not all stillness is emptiness; some is cleansing.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "13 – Fellowship",
+    "name": "Heaven together with Heaven. People gathering in open fields. Shared intention.",
+    "traditionalSymbols": "True connection is built on shared essence, not performance.",
+    "energeticTheme": "Who do I feel most myself around—and why?",
+    "introspectivePrompt": "What invitation could I offer today to deepen connection?",
+    "actionOrientedPrompt": "This is a call to magnetize rather than chase. Fellowship doesn’t mean clinging to others—it means resonating with those who hear your inner note. When intention is clear and transparent, the right ones arrive. Focus on your own broadcast, not the audience.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "14 – Great Possession",
+    "name": "Fire above Heaven. Clarity above power. Abundance with purpose.",
+    "traditionalSymbols": "Right relationship with power and resource.",
+    "energeticTheme": "Do I trust myself to hold and use power well?",
+    "introspectivePrompt": "How can I express generosity without losing clarity?",
+    "actionOrientedPrompt": "To possess something greatly means you’ve become a steward, not a hoarder. This is not about accumulation for ego, but alignment with essence. When you carry the light with grace, others benefit without you burning out.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "15 – Modesty",
+    "name": "Earth within Mountain. Power concealed. Quiet strength.",
+    "traditionalSymbols": "True strength doesn't need to announce itself.",
+    "energeticTheme": "Where am I seeking validation instead of trusting what I know?",
+    "introspectivePrompt": "What does humility look like in motion today?",
+    "actionOrientedPrompt": "Modesty is not self-erasure—it’s self-trust. When you’re rooted deeply, you don’t need to prove anything. Let your actions speak instead of your titles. In this energy, quiet confidence goes further than showmanship.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "16 – Enthusiasm",
+    "name": "Thunder beneath the Earth. Movement building underground. Music and momentum.",
+    "traditionalSymbols": "Igniting aligned momentum from a place of joy.",
+    "energeticTheme": "What excites me that I haven’t allowed myself to feel fully?",
+    "introspectivePrompt": "Where can I let momentum carry me without controlling it?",
+    "actionOrientedPrompt": "This is the drumbeat before the dance. Enthusiasm builds when you align with what genuinely moves you—not what impresses others. Let your joy become rhythmic action, not scattered sparks. Movement follows focus.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "17 – Following",
+    "name": "Lake follows Thunder. Devotion. Adapting without submission.",
+    "traditionalSymbols": "Surrendering to a rhythm greater than your personal will.",
+    "energeticTheme": "Am I resisting a current that is actually leading me somewhere right?",
+    "introspectivePrompt": "What would it feel like to trust the wave and follow where it flows?",
+    "actionOrientedPrompt": "Following doesn’t mean giving up your center—it means tuning in. When life moves with a rhythm you didn’t create, you can either resist or learn the dance. True mastery isn’t always in leading—it’s in knowing what to follow, and when.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "18 – Correction",
+    "name": "Mountain over Wind. Rot in the roots. Cleaning out decay.",
+    "traditionalSymbols": "Clearing inherited patterns and tending to what’s been neglected.",
+    "energeticTheme": "What have I tolerated that is quietly undermining me?",
+    "introspectivePrompt": "What can I clean, repair, or confront today?",
+    "actionOrientedPrompt": "This hexagram is a call to look under the floorboards. What we leave unattended becomes toxic. This isn’t about blame—it’s about reclaiming your right to cleanse what you’ve inherited or allowed. Integrity starts with the roots.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "19 – Approach",
+    "name": "Earth above Lake. Gentle nearness. The noble one draws near.",
+    "traditionalSymbols": "Preparing to receive or initiate from calm readiness.",
+    "energeticTheme": "What is coming toward me that I might not be ready to welcome?",
+    "introspectivePrompt": "How can I meet the future with open eyes and grounded feet?",
+    "actionOrientedPrompt": "Something is approaching—whether an opportunity, a shift, or a person. You don’t need to chase it. But you do need to be ready. Open your gates with discernment, not fear. Life comes nearer when we stop hiding.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "20 – Contemplation",
+    "name": "Wind over Earth. The tower. Observing from above.",
+    "traditionalSymbols": "Expanded self-awareness through stillness.",
+    "energeticTheme": "Where have I been looking without truly seeing?",
+    "introspectivePrompt": "What becomes clear when I stop trying to change things?",
+    "actionOrientedPrompt": "From the tower, you can see the pattern, not just the pieces. This is not a time to intervene, but to witness. When you allow perception to deepen without interference, right action becomes obvious—and often quieter than expected.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "21 – Biting Through",
+    "name": "Thunder and Lightning. Gnawing through an obstacle. Justice through clarity.",
+    "traditionalSymbols": "Piercing illusions to restore integrity and motion.",
+    "energeticTheme": "What truth have I been avoiding chewing on?",
+    "introspectivePrompt": "What courageous action could cut through the tension?",
+    "actionOrientedPrompt": "Sometimes peace comes after confrontation. Biting through doesn’t mean attacking—it means naming what’s been festering and clearing it. When you meet truth with clarity instead of denial, freedom follows. Don’t soften the bite if the root needs to be pulled.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "22 – Grace",
+    "name": "Fire over Mountain. Ornamentation. The outer reflecting the inner.",
+    "traditionalSymbols": "Letting beauty reveal truth without disguising it.",
+    "energeticTheme": "Am I using appearances to reveal—or to avoid—what’s real?",
+    "introspectivePrompt": "What gesture of beauty today feels honest and aligned?",
+    "actionOrientedPrompt": "Grace invites refinement, not distraction. When form matches essence, the beauty is not superficial—it’s a resonance. But beware of embellishing the surface while the root is ignored. Let your presence be your ornament, not your mask.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "23 – Splitting Apart",
+    "name": "Mountain above Earth. Erosion. Decay at the base.",
+    "traditionalSymbols": "Letting false structures fall to reveal the real.",
+    "energeticTheme": "What part of me is crumbling because it’s no longer true?",
+    "introspectivePrompt": "What can I stop propping up and allow to dissolve?",
+    "actionOrientedPrompt": "This is the sound of a false structure giving way. It may feel unsettling—but it’s also clearing. When something falls apart, something else is made visible. Let it. Don’t panic at the crack. Sometimes it’s the only way the light gets in.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "24 – Return",
+    "name": "Thunder within Earth. The turning point. Regeneration.",
+    "traditionalSymbols": "Coming back to center after deviation.",
+    "energeticTheme": "What have I been circling that I’m finally ready to come home to?",
+    "introspectivePrompt": "What’s one small action that honors my return to alignment?",
+    "actionOrientedPrompt": "All spirals bring you back to the beginning—but with new eyes. This is a moment of realignment, not regret. What matters now is not how far you strayed, but that you heard the call and turned toward your true axis.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "25 – Innocence",
+    "name": "Heaven over Thunder. The unconditioned heart. Clear intent.",
+    "traditionalSymbols": "Acting without agenda; allowing life to move through you.",
+    "energeticTheme": "Where have I complicated what wants to be simple?",
+    "introspectivePrompt": "What would it feel like to act from pure presence?",
+    "actionOrientedPrompt": "Innocence is not naivety—it’s clarity without contamination. When you stop maneuvering and allow right action to arise from essence, things align more easily than you expect. Stay awake, but not calculating. The open heart sees cleanly.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "26 – Taming the Power of the Great",
+    "name": "Mountain over Heaven. Containment. Stored force.",
+    "traditionalSymbols": "Holding power with patience and purpose.",
+    "energeticTheme": "Where am I mistaking stillness for stagnation?",
+    "introspectivePrompt": "What strength am I being asked to gather, not spend?",
+    "actionOrientedPrompt": "There is power here, but not for immediate use. This is the tension before the bowstring is loosed—the cultivation season. Channel your strength inward, sharpen your tools, wait for the signal. The storm doesn’t need to roar to have force.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "27 – Nourishment",
+    "name": "Mountain beneath Thunder. What feeds the mouth. Inner cultivation.",
+    "traditionalSymbols": "Tending to the source of what sustains you.",
+    "energeticTheme": "What kind of nourishment have I been feeding my body and mind?",
+    "introspectivePrompt": "What one act of care today will strengthen my root?",
+    "actionOrientedPrompt": "You become what you consume—energetically, mentally, physically. It’s time to check your inputs. Not all food feeds. Sometimes the truest nourishment comes from silence, breath, or saying no. Strengthen what strengthens you.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "28 – Great Exceeding",
+    "name": "Lake over Wind. Too much weight. Crossing the line.",
+    "traditionalSymbols": "Moving through intensity without collapse.",
+    "energeticTheme": "Where am I carrying more than is mine to hold?",
+    "introspectivePrompt": "What structural shift can support this turning point?",
+    "actionOrientedPrompt": "This is a moment of pressure—sometimes welcome, sometimes not. But you are not meant to break. Something big is being asked, and your old supports may no longer hold. Build new ones. The bridge must be strong enough for the life you’re stepping into.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "29 – The Abysmal",
+    "name": "Water over Water. Danger repeated. Deep current.",
+    "traditionalSymbols": "Moving steadily through fear without becoming it.",
+    "energeticTheme": "What fear keeps repeating in my inner world?",
+    "introspectivePrompt": "How can I move through uncertainty without identifying with it?",
+    "actionOrientedPrompt": "This is not a warning—it’s a navigation. You may be passing through something intense or unknown, but this is not your identity. Keep your center. Don’t let the waters define you. Even the deepest river follows its course to light.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "30 – Clarity",
+    "name": "Fire over Fire. Illumination. The radiant one.",
+    "traditionalSymbols": "Living from the truth of what lights you up.",
+    "energeticTheme": "What part of me is burning to be seen?",
+    "introspectivePrompt": "What act of clarity can bring warmth without distortion?",
+    "actionOrientedPrompt": "This is the fire that illuminates, not destroys. When clarity comes, let it warm you—don’t flinch. The things you see now are asking for integration, not avoidance. Your light is needed. Just let it stay true, not performative.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "31 – Influence (Wooing)",
+    "name": "Lake over Mountain. Mutual attraction. Subtle pull.",
+    "traditionalSymbols": "Being moved without force; feeling the soft shift.",
+    "energeticTheme": "What’s drawing me in—and is it from alignment or longing?",
+    "introspectivePrompt": "How can I follow what moves me without needing control?",
+    "actionOrientedPrompt": "This is the kind of movement you feel in the body before the mind catches up. Influence doesn’t mean manipulation—it means resonance. Notice what pulls you, what softens you, what begins to rearrange you quietly. That’s the doorway.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "32 – Duration",
+    "name": "Thunder over Wind. Enduring movement. Commitment to the long path.",
+    "traditionalSymbols": "Sustaining right rhythm through consistency and presence.",
+    "energeticTheme": "What am I devoted to, even when it’s not exciting?",
+    "introspectivePrompt": "What steady rhythm can I return to today?",
+    "actionOrientedPrompt": "This isn’t about intensity—it’s about integrity. Endurance grows not from force, but from alignment over time. If it’s true, it will last. Let the rush fall away and focus on the pulse beneath it. That's where the real life is.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "33 – Retreat",
+    "name": "Heaven over Mountain. Strategic withdrawal. The wise one steps back.",
+    "traditionalSymbols": "Withdrawing in clarity to preserve integrity.",
+    "energeticTheme": "Where is retreat the strongest move I can make?",
+    "introspectivePrompt": "What can I gently step away from to regain perspective?",
+    "actionOrientedPrompt": "There’s strength in stepping back when the terrain ahead doesn’t support clear movement. Retreat isn’t weakness—it’s a recalibration. Pull your energy inward and listen. What you avoid now may turn into a clearer path later.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "34 – The Power of the Great",
+    "name": "Thunder over Heaven. Unleashed force. Strength in motion.",
+    "traditionalSymbols": "Expressing power with timing, not recklessness.",
+    "energeticTheme": "What strength within me is ready to act—but not overreach?",
+    "introspectivePrompt": "Where can I move decisively, rooted in inner truth?",
+    "actionOrientedPrompt": "When power rises, it’s tempting to charge ahead. But the wisest strength moves with intention, not impulse. Channel your momentum toward what matters and let restraint amplify your reach.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "35 – Progress",
+    "name": "Fire over Earth. The dawn. Advancement by clarity.",
+    "traditionalSymbols": "Allowing right visibility and steady growth.",
+    "energeticTheme": "What light is emerging that I’ve been hesitant to claim?",
+    "introspectivePrompt": "How can I support forward movement without rushing?",
+    "actionOrientedPrompt": "Like the sun rising slowly over the horizon, true progress happens in layers. Let what is becoming visible be fully seen. You don’t need to force it. Growth, when clear, carries itself forward.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "36 – Darkening of the Light",
+    "name": "Earth over Fire. Hiding the flame. Navigating danger with care.",
+    "traditionalSymbols": "Protecting your truth in unsupportive environments.",
+    "energeticTheme": "Where do I feel I must dim my light to stay safe?",
+    "introspectivePrompt": "What quiet strength can I preserve without exposure?",
+    "actionOrientedPrompt": "In certain settings, revealing your brilliance may invite misunderstanding. It’s not about shrinking—it’s about wise containment. Your light remains sacred even when guarded. Trust that the right time for expression will return.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "37 – The Family",
+    "name": "Wind over Fire. Domestic structure. Harmonizing roles.",
+    "traditionalSymbols": "Creating harmony through right relationship and shared presence.",
+    "energeticTheme": "What role am I playing out of habit, not alignment?",
+    "introspectivePrompt": "How can I show up today with steadiness and care?",
+    "actionOrientedPrompt": "In the ecosystem of relationships, every role has its rhythm. Whether you lead, support, teach, or learn, presence is what makes the structure real. Stability begins with how you tend to your place within it.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "38 – Opposition",
+    "name": "Fire over Lake. Divergence. Differences create clarity.",
+    "traditionalSymbols": "Holding space for contrast without losing center.",
+    "energeticTheme": "What tension am I resisting that could actually reveal clarity?",
+    "introspectivePrompt": "How can I stand firm without becoming oppositional?",
+    "actionOrientedPrompt": "Friction reveals the boundaries of belief. Rather than trying to eliminate difference, consider what it’s showing you. Sometimes opposition is a mirror, helping you refine what’s truly yours.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "39 – Obstruction",
+    "name": "Water over Mountain. An impasse. Pause before adjustment.",
+    "traditionalSymbols": "Facing difficulty with grace and curiosity.",
+    "energeticTheme": "Where am I forcing when I’m meant to pivot?",
+    "introspectivePrompt": "What alternate path is available when I stop pushing?",
+    "actionOrientedPrompt": "The way forward may be blocked, but that doesn't mean you're stuck. Obstacles invite reorientation. Look again—what you assumed was the path may not be the only way through.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "40 – Liberation",
+    "name": "Thunder over Water. Release after tension. Storm clears the air.",
+    "traditionalSymbols": "Freedom through honest release.",
+    "energeticTheme": "What tension have I been holding that’s ready to break?",
+    "introspectivePrompt": "What can I let go of today, fully and without story?",
+    "actionOrientedPrompt": "Release often arrives like thunder—sudden, loud, undeniable. But what follows is clarity. Let go of the storylines or binds that no longer serve. What remains is lighter, clearer, truer.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "41 – Decrease",
+    "name": "Mountain over Lake. Voluntary reduction. Minimalism of spirit.",
+    "traditionalSymbols": "Simplifying to restore clarity and connection.",
+    "energeticTheme": "Where have I been adding out of fear rather than need?",
+    "introspectivePrompt": "What can I consciously set down to feel more whole?",
+    "actionOrientedPrompt": "Less can often hold more. In removing what clutters, what’s essential has room to breathe. Simplification isn’t deprivation—it’s spaciousness reclaimed.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "42 – Increase",
+    "name": "Wind over Thunder. Rising momentum. Giving nourishes growth.",
+    "traditionalSymbols": "Uplifting others as a source of abundance.",
+    "energeticTheme": "Where am I being asked to give from fullness, not obligation?",
+    "introspectivePrompt": "What generous act today also nourishes me?",
+    "actionOrientedPrompt": "When you give from what’s real in you, it multiplies. This hexagram reminds you that contribution expands both giver and receiver. Offer freely—but only from what’s rooted and replenished.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "43 – Breakthrough",
+    "name": "Lake over Heaven. Clear expression. Declaring truth.",
+    "traditionalSymbols": "Standing in truth and making it known.",
+    "energeticTheme": "What truth is ready to be voiced, even if it changes things?",
+    "introspectivePrompt": "Where can I speak clearly without needing to fight?",
+    "actionOrientedPrompt": "There comes a point when the unspoken becomes a weight. This is that threshold. Clear, calm truth cuts through distortion—not with aggression, but with unwavering presence. Say what must be said.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "44 – Coming to Meet",
+    "name": "Heaven over Wind. A sudden encounter. The unexpected arrives.",
+    "traditionalSymbols": "Meeting what arises with discernment.",
+    "energeticTheme": "What pattern or influence has reappeared for reevaluation?",
+    "introspectivePrompt": "How can I greet this encounter with both openness and clarity?",
+    "actionOrientedPrompt": "Something or someone unexpected may be entering your field. Stay awake. Not everything that arrives is meant to stay—but every encounter is a mirror. See what it’s showing you before choosing how to respond.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "45 – Gathering Together",
+    "name": "Lake over Earth. Collective alignment. Drawing inward.",
+    "traditionalSymbols": "Finding strength through shared vision.",
+    "energeticTheme": "What am I longing to gather around—and with whom?",
+    "introspectivePrompt": "What small signal can I offer to unify those around me?",
+    "actionOrientedPrompt": "This is a call to magnetize. Not by force, but by resonance. When vision is true and energy coherent, others feel it. What you’re creating may not be yours alone—it may be a meeting point for many.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "46 – Pushing Upward",
+    "name": "Earth over Wind. Growth from below. Quiet ascension.",
+    "traditionalSymbols": "Steady, sincere progress through devotion.",
+    "energeticTheme": "What path calls me to rise with care, not speed?",
+    "introspectivePrompt": "How can I support my own upward movement, step by step?",
+    "actionOrientedPrompt": "This is the slow rise that doesn’t skip steps. Think of roots beneath a tree trunk—anchored before visible growth. When you ascend from honesty, even the smallest lift changes everything.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "47 – Oppression (Exhaustion)",
+    "name": "Lake over Water. Confinement. Weight of pressure.",
+    "traditionalSymbols": "Finding inner space when outer freedom is limited.",
+    "energeticTheme": "Where am I tightening under pressure instead of softening into presence?",
+    "introspectivePrompt": "What simple act could bring breath into this heaviness?",
+    "actionOrientedPrompt": "This moment may feel tight, dry, or draining—but it’s not endless. When choice feels small, turn inward. Even a moment of breath can change the shape of the room. Presence becomes the key to release.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "48 – The Well",
+    "name": "Water over Wind. The source. Drawing from depth.",
+    "traditionalSymbols": "Returning to the timeless source within.",
+    "energeticTheme": "What inner wellspring have I neglected to draw from?",
+    "introspectivePrompt": "How can I reconnect to what nourishes me at the root?",
+    "actionOrientedPrompt": "Some truths don’t expire. The well doesn’t move—but how you draw from it determines whether you’re fed or left thirsty. Return to your source with respect, and it will meet you every time.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "49 – Revolution (Molting)",
+    "name": "Lake over Fire. Shedding the old skin. Radical clarity.",
+    "traditionalSymbols": "Letting the truth reshape what no longer fits.",
+    "energeticTheme": "What part of my life has become too tight to keep wearing?",
+    "introspectivePrompt": "What bold change is now aligned with what I really know?",
+    "actionOrientedPrompt": "Change isn’t always gentle. Sometimes the skin peels away because it must. Trust the shape you’re becoming—even if it disrupts what came before. When clarity leads, transformation follows.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "50 – The Cauldron",
+    "name": "Fire over Wind. Sacred vessel. Alchemy in form.",
+    "traditionalSymbols": "Transmuting essence into offering.",
+    "energeticTheme": "What am I refining inside myself to become more whole?",
+    "introspectivePrompt": "What expression is asking to be served from the heat I’ve endured?",
+    "actionOrientedPrompt": "This is where the inner and outer meet. You’ve been cooking something for a while—now it’s time to share the essence. When you bring what’s true to the table, it becomes nourishment for others too.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "51 – The Arousing (Shock)",
+    "name": "Thunder over Thunder. Sudden jolt. Creative disruption.",
+    "traditionalSymbols": "Allowing the unexpected to wake you, not break you.",
+    "energeticTheme": "What truth has lightning just revealed to me?",
+    "introspectivePrompt": "How can I steady myself while honoring this new clarity?",
+    "actionOrientedPrompt": "The jolt shakes loose what was stuck. Whether it came through insight or circumstance, let the moment open your eyes. Shock doesn’t need to be chaos—it can be a gate into greater awareness.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "52 – Keeping Still (Mountain)",
+    "name": "Mountain over Mountain. Stillness. Sacred pause.",
+    "traditionalSymbols": "Centering in deep inner stillness.",
+    "energeticTheme": "What quiet truth emerges when I stop moving?",
+    "introspectivePrompt": "How can I root deeper rather than react outward?",
+    "actionOrientedPrompt": "Stillness isn’t nothingness. It’s contact with the real beneath the noise. In the space where nothing moves, something becomes unmistakably clear. Let your stillness speak first today.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "53 – Development (Gradual Progress)",
+    "name": "Wind over Mountain. A tree growing slowly. Graceful unfolding.",
+    "traditionalSymbols": "Trusting the pace of organic growth.",
+    "energeticTheme": "Where have I been expecting sudden results for a process that needs time?",
+    "introspectivePrompt": "What consistent small step today honors my long-term path?",
+    "actionOrientedPrompt": "Progress that lasts is rarely dramatic. It’s built in layers—through consistency, care, and time. Trust the slow stretch upward. Even the tallest trees started beneath the surface.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "54 – The Marrying Maiden",
+    "name": "Thunder over Lake. Secondary position. Temporary arrangement.",
+    "traditionalSymbols": "Knowing your value even when the role is limited.",
+    "energeticTheme": "Where am I accepting a position that doesn’t reflect my full worth?",
+    "introspectivePrompt": "How can I show up with integrity, even when the situation is imperfect?",
+    "actionOrientedPrompt": "Sometimes life asks you to play a part that isn’t quite yours. This doesn’t mean self-abandonment—it means discernment. Know your value, even in the margins. And watch for the moment when the center opens.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "55 – Abundance",
+    "name": "Thunder over Fire. Full harvest. Bright midday.",
+    "traditionalSymbols": "Embodying fullness while it’s present.",
+    "energeticTheme": "What have I gathered—and am I receiving it fully?",
+    "introspectivePrompt": "How can I celebrate what is here without clinging to it?",
+    "actionOrientedPrompt": "This is a moment of peak energy—ripe, bright, and alive. Receive it. Let yourself feel the abundance, even if it doesn’t last forever. Fullness is meant to be lived, not held.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "56 – The Wanderer",
+    "name": "Fire over Mountain. Movement without roots. Temporary resting place.",
+    "traditionalSymbols": "Carrying inner clarity while moving through unknown terrain.",
+    "energeticTheme": "What internal compass guides me when the external is unfamiliar?",
+    "introspectivePrompt": "How can I show up with respect in spaces I’m only passing through?",
+    "actionOrientedPrompt": "When you’re between places—physically, emotionally, or spiritually—clarity must come from within. Be respectful of what isn’t yours. Carry only what serves. Every step still matters, even when the ground is new.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "57 – The Gentle (Penetrating Wind)",
+    "name": "Wind over Wind. Subtle influence. Quiet persistence.",
+    "traditionalSymbols": "Letting clarity reshape slowly, through presence.",
+    "energeticTheme": "Where could gentle consistency shift something force hasn’t?",
+    "introspectivePrompt": "What soft truth can I offer repeatedly until it’s felt?",
+    "actionOrientedPrompt": "The wind doesn’t need to shout—it just keeps moving. What’s steady becomes powerful over time. Influence doesn’t always arrive in bursts. Let your presence be the message.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "58 – Joy",
+    "name": "Lake over Lake. Open expression. Shared delight.",
+    "traditionalSymbols": "Letting joy ripple outward without demand.",
+    "energeticTheme": "Where in my life feels light, and am I letting myself receive it?",
+    "introspectivePrompt": "How can I share joy today in a way that uplifts without agenda?",
+    "actionOrientedPrompt": "Joy isn’t fragile—it’s nourishing. This hexagram is a permission slip to feel the lightness when it comes. Not because it solves everything, but because it replenishes what matters.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "59 – Dispersion (Dissolution)",
+    "name": "Wind over Water. Dissolving rigidity. Clearing stagnation.",
+    "traditionalSymbols": "Breaking down barriers to restore flow.",
+    "energeticTheme": "What hardened energy in me is ready to soften and release?",
+    "introspectivePrompt": "What can I do today to clear what has become stuck or resistant?",
+    "actionOrientedPrompt": "When things don’t move, they congeal. This hexagram invites the dispersing breeze—the return of motion. Dissolve what’s been held too long. In the clearing, you’ll remember your shape again.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "60 – Limitation",
+    "name": "Water over Lake. Boundaries. Constructive form.",
+    "traditionalSymbols": "Honoring limits as structures, not cages.",
+    "energeticTheme": "What limitation is helping me focus, even if it frustrates me?",
+    "introspectivePrompt": "What boundary would bring more flow, not less?",
+    "actionOrientedPrompt": "Not all limits restrict—some define. This hexagram shows that form can bring freedom when it’s conscious. Choose what supports the shape of your energy, and let the rest fall away.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "61 – Inner Truth",
+    "name": "Wind over Lake. Heart-centered clarity. Resonance within.",
+    "traditionalSymbols": "Aligning with what feels unshakably true.",
+    "energeticTheme": "What truth in me is so quiet I often miss it?",
+    "introspectivePrompt": "How can I honor my inner knowing even if no one else sees it?",
+    "actionOrientedPrompt": "There’s a kind of truth that doesn’t need to be proven—it just hums. This hexagram reminds you to trust the resonance of your own core. Let your life move from that signal first.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "62 – Small Exceeding",
+    "name": "Thunder over Mountain. Attention to detail. Precision over force.",
+    "traditionalSymbols": "Attending to the small with care and humility.",
+    "energeticTheme": "Where am I overreaching when care would serve better?",
+    "introspectivePrompt": "What small act, if done well, could shift the whole tone?",
+    "actionOrientedPrompt": "This isn’t a time for big moves. It’s a time to get the small things right. Don’t overlook what seems minor. Precision and care now will ripple farther than effortful force.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "63 – After Completion",
+    "name": "Water over Fire. Balance achieved. Fragile harmony.",
+    "traditionalSymbols": "Tending to stability after the climax.",
+    "energeticTheme": "What needs maintenance now that the peak has passed?",
+    "introspectivePrompt": "How can I care for what’s working so it remains steady?",
+    "actionOrientedPrompt": "Just because it’s done doesn’t mean it holds itself. This moment calls for care, not complacency. Even in completion, presence is what keeps things whole.",
+    "interpretationParagraph": ""
+  },
+  {
+    "number": "64 – Before Completion",
+    "name": "Fire over Water. The final step. Almost there.",
+    "traditionalSymbols": "Holding focus as you near the threshold.",
+    "energeticTheme": "What inner steadiness do I need to cross this final stretch?",
+    "introspectivePrompt": "What can I do to support this transition with presence and clarity?",
+    "actionOrientedPrompt": "You’re nearly through. Don’t rush the last step. Before completion is the space where awareness matters most. Cross with care, and the shift will seal itself.",
+    "interpretationParagraph": ""
+  }
+]

@@ -93,6 +93,8 @@ export async function POST(request: Request) {
         return await handleNorthNodeInsight(data, openai);
       case 'compatibility-report':
         return await handleCompatibilityReport(data, openai);
+      case 'structured-reflection':
+        return await handleStructuredReflection(data, openai);
       default:
         return new Response('Invalid request type', { status: 400 });
     }
@@ -257,6 +259,52 @@ Format as a JSON array of exactly 3 strings. Make them personal, life-focused, a
     }
   } catch (error) {
     console.error('OpenAI API Error:', error);
+    throw error;
+  }
+}
+
+async function handleStructuredReflection(data: {
+  prompt: string;
+  cardName: string;
+  hexagramName: string;
+  isReversed: boolean;
+}, openai: OpenAI) {
+  const { prompt, cardName, hexagramName, isReversed } = data;
+
+  try {
+    const completion = await retryOperation(async () => {
+      return await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a calm, grounded reflection guide who provides structured 4-part insights combining Tarot and I Ching wisdom. Always respond with a valid JSON object containing exactly these fields: iChingReflection, tarotReflection, synthesis, reflectionPrompt.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 600,
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+      });
+    });
+
+    const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    
+    // Validate the response has all required fields
+    const requiredFields = ['iChingReflection', 'tarotReflection', 'synthesis', 'reflectionPrompt'];
+    const missingFields = requiredFields.filter(field => !result[field]);
+    
+    if (missingFields.length > 0) {
+      console.warn('⚠️ AI response missing fields:', missingFields);
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    return Response.json(result);
+  } catch (error) {
+    console.error('OpenAI Structured Reflection Error:', error);
     throw error;
   }
 }

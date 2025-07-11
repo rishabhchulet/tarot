@@ -220,6 +220,9 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
   try {
     logAuthEvent('Ensuring user profile exists', { userId: user.id, nameProvided: !!name });
     
+    // Determine the name to use: provided name, metadata, or a default
+    const profileName = name || user?.user_metadata?.name || `User-${user.id.substring(0, 5)}`;
+    
     // CRITICAL FIX: Try multiple approaches with retries
     let result = null;
     let attempts = 0;
@@ -232,7 +235,9 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
       // Try using the database function first
       result = await createTimeoutWrapper(
         () => supabase.rpc('ensure_user_profile_exists', {
-          check_user_id: user.id
+          check_user_id: user.id,
+          user_name: profileName,
+          user_email: user.email
         }),
         attempts === 1 ? 15000 : 10000, // Longer timeout on first attempt
         [{ success: false, message: 'Timeout', user_data: {} }]
@@ -248,29 +253,26 @@ const ensureUserProfileExists = async (user: any, name?: string) => {
         return;
       }
       
-      // If RPC failed, try direct upsert as fallback
-      if (attempts === maxAttempts) {
+      // Try direct upsert if function fails
+      if (!result || !result[0]?.success) {
         logAuthEvent('Trying direct profile upsert as fallback');
-        try {
-          await createTimeoutWrapper(
-            () => supabase
-              .from('users')
-              .upsert({
-                id: user.id,
-                email: user.email || `user_${user.id}@example.com`,
-                name: name || user.raw_user_meta_data?.name || 'User',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              }, {
-                onConflict: 'id'
-              }),
-            10000, // 10 second timeout
-            null
-          );
+        
+        const upsertResult = await createTimeoutWrapper(
+          () => supabase
+            .from('users')
+            .upsert({ 
+              id: user.id, 
+              name: profileName,
+              email: user.email 
+            }, { onConflict: 'id' }),
+          8000
+        );
+
+        if (upsertResult.error) {
+          logAuthEvent('Direct profile upsert failed', null, upsertResult.error);
+        } else {
           logAuthEvent('Direct profile upsert successful');
           return;
-        } catch (upsertError) {
-          logAuthEvent('Direct profile upsert failed', null, upsertError);
         }
       }
       
@@ -455,9 +457,19 @@ export const updateUserProfile = async (updates: Partial<AuthUser>) => {
       throw new Error(getEnhancedErrorMessage(error, 'updateUserProfile'));
     }
     
-    // Also update the user's metadata in auth
+    // Also update the user's metadata in auth with correctly mapped names
+    const metadataUpdate: { [key: string]: any } = {};
+    if (updates.name) metadataUpdate.name = updates.name;
+    if (updates.archetype) metadataUpdate.archetype = updates.archetype;
+    if (updates.birthDate) metadataUpdate.birth_date = updates.birthDate;
+    if (updates.birthTime) metadataUpdate.birth_time = updates.birthTime;
+    if (updates.birthLocation) metadataUpdate.birth_location = updates.birthLocation;
+    if (updates.latitude) metadataUpdate.latitude = updates.latitude;
+    if (updates.longitude) metadataUpdate.longitude = updates.longitude;
+    if (updates.onboardingStep) metadataUpdate.onboarding_step = updates.onboardingStep;
+
     const { data: updatedUser, error: metadataError } = await supabase.auth.updateUser({
-      data: { ...updates },
+      data: metadataUpdate,
     });
 
     if (metadataError) {

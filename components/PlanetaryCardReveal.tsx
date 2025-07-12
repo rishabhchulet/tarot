@@ -29,54 +29,62 @@ if (Platform.OS !== 'web') {
 const { width, height } = Dimensions.get('window');
 const center = { x: width / 2, y: height / 2 };
 
-const TAROT_CARD_WIDTH = 100;
-const TAROT_CARD_HEIGHT = 170;
+const TAROT_CARD_WIDTH = 120;
+const TAROT_CARD_HEIGHT = 200;
 
-const NUM_STARS = 200;
+const NUM_STARS = 150;
 
 interface PlanetaryCardRevealProps {
   onComplete: () => void;
 }
 
-// Web-compatible component
+// Web-compatible component with modern styling
 const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
   const cardOpacity = useSharedValue(0);
-  const cardScale = useSharedValue(0.5);
+  const cardScale = useSharedValue(0.7);
   const glowOpacity = useSharedValue(0);
   const textOpacity = useSharedValue(1);
   const starsOpacity = useSharedValue(0);
+  const pulseScale = useSharedValue(1);
 
   useEffect(() => {
     // Start stars animation
-    starsOpacity.value = withTiming(1, { duration: 2000, easing: Easing.out(Easing.cubic) });
+    starsOpacity.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
+    
+    // Pulse animation
+    pulseScale.value = withSequence(
+      withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) })
+    );
     
     const sequence = setTimeout(() => {
       // Start glow effect
-      glowOpacity.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
+      glowOpacity.value = withTiming(1, { duration: 1200, easing: Easing.out(Easing.cubic) });
 
       setTimeout(() => {
-        // Reveal card
-        cardOpacity.value = withTiming(1, { duration: 1000 });
-        cardScale.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.back(1.5)) });
-        glowOpacity.value = withTiming(0, { duration: 2000 });
+        // Reveal card with smooth animation
+        cardOpacity.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+        cardScale.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.back(1.2)) });
+        glowOpacity.value = withTiming(0.3, { duration: 1500 });
 
         setTimeout(() => {
           runOnJS(onComplete)();
-        }, 1500);
-      }, 2000);
-    }, 1000);
+        }, 1200);
+      }, 1500);
+    }, 800);
 
     return () => clearTimeout(sequence);
   }, []);
 
   useEffect(() => {
     textOpacity.value = withSequence(
-      withDelay(1000, withTiming(0, { duration: 1000 }))
+      withDelay(800, withTiming(0, { duration: 800 }))
     );
   }, []);
 
   const animatedTextStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value
+    opacity: textOpacity.value,
+    transform: [{ translateY: (1 - textOpacity.value) * 20 }],
   }));
 
   const animatedStarsStyle = useAnimatedStyle(() => ({
@@ -85,7 +93,7 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
 
   const animatedGlowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value * 0.8,
-    transform: [{ scale: 1 + glowOpacity.value * 0.2 }],
+    transform: [{ scale: 1 + glowOpacity.value * 0.3 }],
   }));
 
   const animatedCardStyle = useAnimatedStyle(() => ({
@@ -93,13 +101,31 @@ const WebPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
     transform: [{ scale: cardScale.value }],
   }));
 
+  const animatedPulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+  }));
+
   return (
     <View style={styles.container}>
       {/* Animated starfield background */}
-      <Animated.View style={[styles.starField, animatedStarsStyle]} />
+      <Animated.View style={[styles.starField, animatedStarsStyle]}>
+        {Array.from({ length: NUM_STARS }).map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.star,
+              {
+                left: Math.random() * width,
+                top: Math.random() * height,
+                opacity: Math.random() * 0.8 + 0.2,
+              },
+            ]}
+          />
+        ))}
+      </Animated.View>
       
       {/* Multiple glow effects */}
-      <Animated.View style={[styles.webGlow, animatedGlowStyle]} />
+      <Animated.View style={[styles.webGlow, animatedGlowStyle, animatedPulseStyle]} />
       <Animated.View style={[styles.webGlow2, animatedGlowStyle]} />
       
       {/* Card */}
@@ -125,7 +151,7 @@ const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
   const clock = useClock();
   const alignment = useValue(0);
   const cardOpacity = useValue(0);
-  const cardScale = useValue(0.5);
+  const cardScale = useValue(0.7);
   const glowOpacity = useValue(0);
   const textOpacity = useSharedValue(1);
 
@@ -136,12 +162,12 @@ const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
     r: Math.random() * 1.5 + 0.5,
   }));
 
-  // Planet configuration
+  // Planet configuration with golden theme
   const planets = [
-    { id: 'mercury', color: '#B7A597', size: 6, orbitR: 80, speed: 1.5 },
-    { id: 'venus', color: '#F8D5A3', size: 10, orbitR: 130, speed: 1.2 },
-    { id: 'earth', color: '#7E99A5', size: 11, orbitR: 190, speed: 1 },
-    { id: 'mars', color: '#D96941', size: 8, orbitR: 250, speed: 0.8 },
+    { id: 'mercury', color: '#fbbf24', size: 6, orbitR: 80, speed: 1.5 },
+    { id: 'venus', color: '#f59e0b', size: 10, orbitR: 130, speed: 1.2 },
+    { id: 'earth', color: '#d97706', size: 11, orbitR: 190, speed: 1 },
+    { id: 'mars', color: '#fbbf24', size: 8, orbitR: 250, speed: 0.8 },
   ];
 
   const Planet = ({ config, progress, alignment }) => {
@@ -172,32 +198,33 @@ const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
 
   useEffect(() => {
     const sequence = setTimeout(() => {
-        // Start alignment
-        alignment.current = withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.cubic) });
-        glowOpacity.current = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
+        // Start alignment with smoother timing
+        alignment.current = withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.cubic) });
+        glowOpacity.current = withTiming(1, { duration: 1200, easing: Easing.out(Easing.cubic) });
 
         setTimeout(() => {
             // Reveal card
-            cardOpacity.current = withTiming(1, { duration: 1000 });
-            cardScale.current = withTiming(1, { duration: 1000, easing: Easing.out(Easing.back(1.5))});
-            glowOpacity.current = withTiming(0, { duration: 2000 });
+            cardOpacity.current = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+            cardScale.current = withTiming(1, { duration: 1000, easing: Easing.out(Easing.back(1.2))});
+            glowOpacity.current = withTiming(0.3, { duration: 1500 });
 
             setTimeout(() => {
                 runOnJS(onComplete)();
-            }, 1500);
-        }, 2000);
-    }, 3000); // Start sequence after 3s
+            }, 1200);
+        }, 1500);
+    }, 2000); // Reduced start delay
 
     return () => clearTimeout(sequence);
   }, []);
 
   const animatedTextStyle = useAnimatedStyle(() => ({
-      opacity: textOpacity.value
+      opacity: textOpacity.value,
+      transform: [{ translateY: (1 - textOpacity.value) * 20 }],
   }));
   
   useEffect(() => {
       textOpacity.value = withSequence(
-          withDelay(1000, withTiming(0, {duration: 1000}))
+          withDelay(800, withTiming(0, {duration: 800}))
       );
   }, []);
 
@@ -205,12 +232,12 @@ const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
     <View style={styles.container}>
       <Canvas style={styles.canvas}>
         <Fill>
-            <LinearGradient start={vec(0,0)} end={vec(width, height)} colors={['#000428', '#004e92']} />
+            <LinearGradient start={vec(0,0)} end={vec(width, height)} colors={['#0f172a', '#1e293b']} />
         </Fill>
 
         {/* Stars */}
         {stars.map((star, i) => (
-          <Circle key={i} cx={star.x} cy={star.y} r={star.r} color="white" opacity={0.8} />
+          <Circle key={i} cx={star.x} cy={star.y} r={star.r} color="#fbbf24" opacity={0.6} />
         ))}
 
         {/* Planetary Orbits and Planets */}
@@ -219,15 +246,15 @@ const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
         ))}
         
         {/* Central Glow */}
-        <Circle cx={center.x} cy={center.y} r={mix(glowOpacity.current, 0, 200)} >
-            <RadialGradient c={vec(center.x, center.y)} r={200} colors={['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0)']} />
+        <Circle cx={center.x} cy={center.y} r={mix(glowOpacity.current, 0, 180)} >
+            <RadialGradient c={vec(center.x, center.y)} r={180} colors={['rgba(251, 191, 36, 0.4)', 'rgba(251, 191, 36, 0)']} />
         </Circle>
 
         {/* Tarot Card */}
         <Group transform={[{translateX: center.x - TAROT_CARD_WIDTH / 2}, {translateY: center.y - TAROT_CARD_HEIGHT / 2}]}>
             <Group origin={vec(TAROT_CARD_WIDTH/2, TAROT_CARD_HEIGHT/2)} transform={[{ scale: cardScale.current }]}>
-                <Path path={Skia.Path.MakeRRect(Skia.RRectXY(Skia.XYWHRect(0,0,TAROT_CARD_WIDTH, TAROT_CARD_HEIGHT), 10, 10))} opacity={cardOpacity.current}>
-                    <LinearGradient start={vec(0,0)} end={vec(TAROT_CARD_WIDTH, TAROT_CARD_HEIGHT)} colors={['#FBBF24', '#D97706']} />
+                <Path path={Skia.Path.MakeRRect(Skia.RRectXY(Skia.XYWHRect(0,0,TAROT_CARD_WIDTH, TAROT_CARD_HEIGHT), 12, 12))} opacity={cardOpacity.current}>
+                    <LinearGradient start={vec(0,0)} end={vec(TAROT_CARD_WIDTH, TAROT_CARD_HEIGHT)} colors={['#fbbf24', '#f59e0b']} />
                 </Path>
             </Group>
         </Group>
@@ -235,10 +262,12 @@ const SkiaPlanetaryReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
       </Canvas>
       <Animated.View style={[styles.textContainer, animatedTextStyle]}>
         <Text style={styles.text}>The cosmos aligns...</Text>
+        <Text style={styles.subText}>Preparing your mystical revelation</Text>
       </Animated.View>
     </View>
   );
 };
+
 export const PlanetaryCardReveal = ({ onComplete }: PlanetaryCardRevealProps) => {
   // Use platform-specific implementation
   if (Platform.OS === 'web') {
@@ -251,48 +280,60 @@ export const PlanetaryCardReveal = ({ onComplete }: PlanetaryCardRevealProps) =>
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#0f172a',
   },
   canvas: {
     flex: 1,
-  },
-  webGlow: {
-    position: 'absolute',
-    width: 400,
-    height: 400,
-    borderRadius: 200,
-    backgroundColor: 'rgba(59, 130, 246, 0.4)',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -200 }, { translateY: -200 }],
-  },
-  webGlow2: {
-    position: 'absolute',
-    width: 300,
-    height: 300,
-    borderRadius: 150,
-    backgroundColor: 'rgba(96, 165, 250, 0.2)',
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -150 }, { translateY: -150 }],
-  },
-  webCard: {
-    position: 'absolute',
-    width: TAROT_CARD_WIDTH + 20,
-    height: TAROT_CARD_HEIGHT + 30,
-    backgroundColor: '#1e40af',
-    borderRadius: 15,
-    top: '50%',
-    left: '50%',
-    transform: [{ translateX: -(TAROT_CARD_WIDTH + 20) / 2 }, { translateY: -(TAROT_CARD_HEIGHT + 30) / 2 }],
-    borderWidth: 2,
-    borderColor: '#60a5fa',
   },
   starField: {
     position: 'absolute',
     width: width,
     height: height,
     backgroundColor: 'transparent',
+  },
+  star: {
+    position: 'absolute',
+    width: 2,
+    height: 2,
+    backgroundColor: '#fbbf24',
+    borderRadius: 1,
+  },
+  webGlow: {
+    position: 'absolute',
+    width: 350,
+    height: 350,
+    borderRadius: 175,
+    backgroundColor: 'rgba(251, 191, 36, 0.3)',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -175 }, { translateY: -175 }],
+  },
+  webGlow2: {
+    position: 'absolute',
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -125 }, { translateY: -125 }],
+  },
+  webCard: {
+    position: 'absolute',
+    width: TAROT_CARD_WIDTH,
+    height: TAROT_CARD_HEIGHT,
+    backgroundColor: '#fbbf24',
+    borderRadius: 12,
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -TAROT_CARD_WIDTH / 2 }, { translateY: -TAROT_CARD_HEIGHT / 2 }],
+    borderWidth: 2,
+    borderColor: '#f59e0b',
+    shadowColor: '#fbbf24',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
   },
   textContainer: {
     position: 'absolute',
@@ -301,15 +342,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   text: {
-    color: 'white',
-    fontSize: 20,
-    fontFamily: 'Inter-Medium',
+    color: '#f8fafc',
+    fontSize: 22,
+    fontFamily: 'Inter-SemiBold',
     letterSpacing: 1,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subText: {
-    color: 'white',
+    color: '#cbd5e1',
     fontSize: 16,
-    fontFamily: 'Inter-Regular',
-    marginTop: 5,
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
   },
 }); 

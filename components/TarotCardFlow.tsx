@@ -8,13 +8,14 @@ import Animated, {
   interpolate,
   withSequence,
   withDelay,
-  Easing
+  Easing,
+  runOnJS
 } from 'react-native-reanimated';
 import { TAROT_CARDS } from '@/data/tarotCards';
 import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
 import { router } from 'expo-router';
-import { Star, Zap } from 'lucide-react-native';
+import { Star, Zap, Sparkles } from 'lucide-react-native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -47,29 +48,29 @@ const getIChingEssence = (hexagram: any) => {
 
   const getIChingKeywords = (hexagram: any) => {
     const keywordMap: { [key: string]: string[] } = {
-      'The Creative': ['Initiative', 'Leadership', 'Power'],
-      'The Receptive': ['Acceptance', 'Nurturing', 'Support'],
-      'Difficulty at the Beginning': ['Perseverance', 'Growth', 'Breakthrough'],
-      'Youthful Folly': ['Learning', 'Guidance', 'Wisdom'],
-      'Waiting': ['Patience', 'Timing', 'Trust'],
-      'Conflict': ['Resolution', 'Balance', 'Harmony'],
-      'The Army': ['Organization', 'Strategy', 'Discipline'],
-      'Holding Together': ['Unity', 'Cooperation', 'Bond'],
-      'Small Taming': ['Restraint', 'Gentleness', 'Patience'],
-      'Treading': ['Caution', 'Respect', 'Mindfulness'],
-      'Peace': ['Harmony', 'Balance', 'Prosperity'],
-      'Standstill': ['Stillness', 'Reflection', 'Pause'],
-      'Fellowship': ['Community', 'Friendship', 'Collaboration'],
-      'Great Possession': ['Abundance', 'Responsibility', 'Sharing'],
-      'Modesty': ['Humility', 'Grace', 'Simplicity'],
-      'Enthusiasm': ['Inspiration', 'Energy', 'Motivation'],
-      'Following': ['Adaptation', 'Flow', 'Flexibility'],
-      'Work on the Decayed': ['Healing', 'Restoration', 'Renewal'],
-      'Approach': ['Progress', 'Advancement', 'Growth'],
-      'Contemplation': ['Reflection', 'Insight', 'Understanding']
+      'The Creative': ['Initiative', 'Leadership', 'Power', 'Originality'],
+      'The Receptive': ['Acceptance', 'Nurturing', 'Support', 'Yielding'],
+      'Difficulty at the Beginning': ['New Beginnings', 'Perseverance', 'Breakthrough'],
+      'Youthful Folly': ['Learning', 'Inexperience', 'Growth', 'Guidance'],
+      'Waiting': ['Patience', 'Timing', 'Preparation', 'Trust'],
+      'Conflict': ['Resolution', 'Compromise', 'Understanding', 'Peace'],
+      'The Army': ['Organization', 'Discipline', 'Strategy', 'Leadership'],
+      'Holding Together': ['Unity', 'Cooperation', 'Harmony', 'Alliance'],
+      'Small Taming': ['Restraint', 'Patience', 'Gradual Progress', 'Refinement'],
+      'Treading': ['Caution', 'Respect', 'Proper Conduct', 'Mindfulness'],
+      'Peace': ['Harmony', 'Balance', 'Prosperity', 'Tranquility'],
+      'Standstill': ['Stillness', 'Reflection', 'Pause', 'Inner Peace'],
+      'Fellowship': ['Community', 'Friendship', 'Cooperation', 'Shared Goals'],
+      'Great Possession': ['Abundance', 'Responsibility', 'Generosity', 'Wisdom'],
+      'Modesty': ['Humility', 'Simplicity', 'Grace', 'Inner Strength'],
+      'Enthusiasm': ['Inspiration', 'Motivation', 'Joy', 'Energy'],
+      'Following': ['Adaptation', 'Flexibility', 'Flow', 'Acceptance'],
+      'Work on the Decayed': ['Healing', 'Restoration', 'Renewal', 'Transformation'],
+      'Approach': ['Progress', 'Advancement', 'Opportunity', 'Growth'],
+      'Contemplation': ['Reflection', 'Observation', 'Insight', 'Meditation']
     };
     
-    return keywordMap[hexagram.name] || ['Wisdom', 'Growth', 'Understanding'];
+    return keywordMap[hexagram.name] || ['Wisdom', 'Insight', 'Growth', 'Understanding'];
   };
 
 type FlowStep = 'card-and-iching' | 'keywords-only' | 'reflection-questions';
@@ -100,10 +101,12 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     return I_CHING_HEXAGRAMS[randomIndex];
   });
 
-  const flipAnimation = useSharedValue(0);
-  const glowAnimation = useSharedValue(0);
-  const scaleAnimation = useSharedValue(0.8);
-  const borderAnimation = useSharedValue(0);
+  // Animation values
+  const cardOpacity = useSharedValue(0);
+  const cardScale = useSharedValue(0.8);
+  const glowOpacity = useSharedValue(0);
+  const slideUpY = useSharedValue(50);
+  const fadeIn = useSharedValue(0);
 
   useEffect(() => {
     handleRevealCard();
@@ -112,22 +115,15 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   const handleRevealCard = () => {
     console.log('🎴 Card reveal triggered!');
     
-    glowAnimation.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
-    borderAnimation.value = withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) });
-    
-    scaleAnimation.value = withSequence(
-      withTiming(1.05, { duration: 800, easing: Easing.out(Easing.cubic) }),
+    // Smooth entrance animation
+    cardOpacity.value = withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) });
+    cardScale.value = withSequence(
+      withTiming(1.05, { duration: 600, easing: Easing.out(Easing.cubic) }),
       withTiming(1, { duration: 400, easing: Easing.inOut(Easing.cubic) })
     );
-    
-    flipAnimation.value = withDelay(1200, withTiming(1, { 
-      duration: 1200, 
-      easing: Easing.inOut(Easing.cubic) 
-    }));
-    
-    setTimeout(() => {
-      setCurrentStep('card-and-iching');
-    }, 2000);
+    glowOpacity.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.cubic) });
+    slideUpY.value = withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) });
+    fadeIn.value = withDelay(400, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }));
   };
 
   const handleShowKeywords = () => {
@@ -148,122 +144,96 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
     }
   };
 
-  const frontAnimatedStyle = useAnimatedStyle(() => {
-    const rotateY = interpolate(flipAnimation.value, [0, 1], [0, 180], 'clamp');
-    return {
-      transform: [
-        { scale: scaleAnimation.value },
-        { rotateY: `${rotateY}deg` }
-      ],
-      opacity: interpolate(flipAnimation.value, [0, 0.5], [1, 0], 'clamp'),
-    };
-  });
+  const animatedCardStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    transform: [
+      { scale: cardScale.value },
+      { translateY: slideUpY.value }
+    ],
+  }));
 
-  const backAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { perspective: 1000 },
-        { rotateY: `${interpolate(flipAnimation.value, [0, 1], [180, 360])}deg` },
-        { scale: scaleAnimation.value }
-      ],
-      opacity: interpolate(flipAnimation.value, [0.5, 1], [0, 1], 'clamp'),
-    };
-  });
+  const animatedGlowStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value * 0.6,
+  }));
 
-  const glowAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: glowAnimation.value,
-      transform: [{ scale: glowAnimation.value * 1.5 }]
-    };
-  });
-
-  const borderAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      opacity: borderAnimation.value,
-      transform: [{ scale: 1 + borderAnimation.value * 0.1 }]
-    };
-  });
+  const animatedContentStyle = useAnimatedStyle(() => ({
+    opacity: fadeIn.value,
+    transform: [{ translateY: interpolate(fadeIn.value, [0, 1], [20, 0]) }],
+  }));
 
   const renderCardAndIching = () => (
     <View style={styles.stepContainer}>
-      <Animated.View style={[styles.glowEffect1, glowAnimatedStyle]} />
-      <Animated.View style={[styles.glowEffect2, glowAnimatedStyle]} />
-      <Animated.View style={[styles.glowEffect3, glowAnimatedStyle]} />
+      {/* Glow effects */}
+      <Animated.View style={[styles.glowEffect, animatedGlowStyle]} />
       
-      <Animated.View style={[styles.borderRing, borderAnimatedStyle]} />
-      
-      <View style={styles.cardStack}>
-        {/* Back of card (shows after flip) */}
-        <Animated.View style={[styles.cardContainer, backAnimatedStyle]}>
-          <LinearGradient
-            colors={['#1e40af', '#3b82f6', '#60a5fa', '#1e40af']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
-          >
-            <View style={styles.innerBorder}>
-              <View style={styles.cardContent}>
-              <Image
-                  source={{ uri: selectedCard.imageUrl }}
-                style={styles.cardBackImage}
-                resizeMode="cover"
-              />
-                <View style={styles.cardOverlay}>
-                  <Text style={styles.cardName}>{selectedCard.name}</Text>
-                  <View style={styles.keywordsPreview}>
-                    {selectedCard.keywords.slice(0, 3).map((keyword, index) => (
-                      <Text key={index} style={styles.keywordPreview}>{keyword}</Text>
-                    ))}
+      {/* Main card */}
+      <Animated.View style={[styles.cardContainer, animatedCardStyle]}>
+        <LinearGradient
+          colors={['rgba(251, 191, 36, 0.2)', 'rgba(251, 191, 36, 0.1)', 'rgba(251, 191, 36, 0.05)']}
+          style={styles.cardGradient}
+        >
+          <View style={styles.cardContent}>
+            <Image
+              source={{ uri: selectedCard.imageUrl }}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+            <View style={styles.cardOverlay}>
+              <Text style={styles.cardName}>{selectedCard.name}</Text>
+              <View style={styles.keywordsPreview}>
+                {selectedCard.keywords.slice(0, 3).map((keyword, index) => (
+                  <View key={index} style={styles.keywordChip}>
+                    <Text style={styles.keywordText}>{keyword}</Text>
                   </View>
-                </View>
+                ))}
               </View>
             </View>
-          </LinearGradient>
-        </Animated.View>
+          </View>
+        </LinearGradient>
+      </Animated.View>
 
-        {/* Front of card (shows first, then flips) */}
-        <Animated.View style={[styles.cardContainer, frontAnimatedStyle]}>
+      {/* I Ching info */}
+      <Animated.View style={[styles.ichingContainer, animatedContentStyle]}>
+        <View style={styles.ichingHeader}>
+          <Sparkles size={20} color="#fbbf24" />
+          <Text style={styles.ichingLabel}>I Ching Wisdom</Text>
+        </View>
+        <Text style={styles.ichingName}>{selectedHexagram.name}</Text>
+        <Text style={styles.ichingEssence}>"{getIChingEssence(selectedHexagram)}"</Text>
+      </Animated.View>
+
+      {/* Next button */}
+      <Animated.View style={animatedContentStyle}>
+        <Pressable style={styles.nextButton} onPress={handleShowKeywords}>
           <LinearGradient
-            colors={['#1e40af', '#3b82f6', '#60a5fa', '#1e40af']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.mysticalBorder}
+            colors={['#fbbf24', '#f59e0b']}
+            style={styles.buttonGradient}
           >
-            <View style={styles.innerBorder}>
-              <Image
-                source={{ uri: selectedCard.imageUrl }}
-                style={styles.cardFrontImage}
-                resizeMode="cover"
-              />
-            </View>
+            <Text style={styles.nextButtonText}>Explore Themes</Text>
           </LinearGradient>
-        </Animated.View>
-      </View>
-
-      <Pressable style={styles.nextButton} onPress={handleShowKeywords}>
-        <Text style={styles.nextButtonText}>Explore Themes</Text>
-      </Pressable>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 
   const renderKeywordsOnly = () => (
     <View style={styles.stepContainer}>
       <View style={styles.keywordsHeader}>
-        <Star size={24} color="#fde047" />
-      <Text style={styles.stepTitle}>Key Themes</Text>
-        <Star size={24} color="#fde047" />
+        <Star size={24} color="#fbbf24" />
+        <Text style={styles.stepTitle}>Key Themes</Text>
+        <Star size={24} color="#fbbf24" />
       </View>
       
       {/* Tarot Keywords */}
       <View style={styles.keywordsSection}>
         <View style={styles.sectionHeaderContainer}>
-          <Zap size={20} color="#60a5fa" />
+          <Zap size={20} color="#fbbf24" />
           <Text style={styles.sectionTitle}>Tarot Energies</Text>
         </View>
         <View style={styles.keywordsList}>
           {selectedCard.keywords.map((keyword, index) => (
             <View key={index} style={[styles.keywordItem, styles.tarotKeyword]}>
-              <Text style={styles.keywordText}>{keyword}</Text>
+              <Text style={styles.keywordItemText}>{keyword}</Text>
             </View>
           ))}
         </View>
@@ -272,13 +242,13 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
       {/* I Ching Keywords */}
       <View style={styles.keywordsSection}>
         <View style={styles.sectionHeaderContainer}>
-          <Star size={20} color="#3b82f6" />
+          <Star size={20} color="#fbbf24" />
           <Text style={styles.sectionTitle}>I Ching Wisdom</Text>
         </View>
         <View style={styles.keywordsList}>
           {getIChingKeywords(selectedHexagram).map((keyword, index) => (
             <View key={index} style={[styles.keywordItem, styles.ichingKeyword]}>
-              <Text style={styles.keywordText}>{keyword}</Text>
+              <Text style={styles.keywordItemText}>{keyword}</Text>
             </View>
           ))}
         </View>
@@ -286,12 +256,10 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
       <Pressable style={styles.continueButton} onPress={handleShowReflection}>
         <LinearGradient
-          colors={['#3b82f6', '#1e40af']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
+          colors={['#fbbf24', '#f59e0b']}
           style={styles.buttonGradient}
         >
-        <Text style={styles.continueButtonText}>Begin Reflection</Text>
+          <Text style={styles.continueButtonText}>Begin Reflection</Text>
         </LinearGradient>
       </Pressable>
     </View>
@@ -323,7 +291,7 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0a0a0a', '#171717', '#0a0a0a']}
+        colors={['#0f172a', '#1e293b', '#0f172a']}
         style={styles.container}>
         {renderCurrentStep()}
       </LinearGradient>
@@ -334,77 +302,68 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#0f172a',
   },
   stepContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
   },
-  cardStack: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: screenWidth * 0.7,
-    height: screenHeight * 0.5,
+  glowEffect: {
+    position: 'absolute',
+    width: screenWidth * 0.8,
+    height: screenHeight * 0.6,
+    borderRadius: 40,
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    zIndex: -1,
   },
   cardContainer: {
-    width: screenWidth * 0.7,
+    width: screenWidth * 0.75,
     height: screenHeight * 0.5,
-    borderRadius: 20,
-    elevation: 10,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 25,
-    position: 'absolute',
+    borderRadius: 24,
+    marginBottom: 32,
+    shadowColor: '#fbbf24',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 12,
   },
-  mysticalBorder: {
+  cardGradient: {
     flex: 1,
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 3,
-  },
-  innerBorder: {
-    flex: 1,
-    borderRadius: 17,
-    backgroundColor: '#0a0a0a',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  cardFrontImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 17,
   },
   cardContent: {
     flex: 1,
+    borderRadius: 21,
+    backgroundColor: '#1e293b',
+    overflow: 'hidden',
     position: 'relative',
   },
-  cardBackImage: {
+  cardImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 17,
+    borderRadius: 21,
   },
   cardOverlay: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderBottomLeftRadius: 17,
-    borderBottomRightRadius: 17,
+    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+    borderBottomLeftRadius: 21,
+    borderBottomRightRadius: 21,
     padding: 20,
     alignItems: 'center',
   },
   cardName: {
     fontSize: 24,
-    fontFamily: 'CormorantGaramond-Bold',
-    color: '#F9FAFB',
+    fontFamily: 'Inter-Bold',
+    color: '#f8fafc',
     textAlign: 'center',
     marginBottom: 12,
-    textShadowColor: 'rgba(59, 130, 246, 0.8)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    letterSpacing: 0.5,
   },
   keywordsPreview: {
     flexDirection: 'row',
@@ -412,61 +371,75 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
   },
-  keywordPreview: {
-    fontSize: 12,
-    fontFamily: 'Inter-Medium',
-    color: '#60a5fa',
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+  keywordChip: {
+    backgroundColor: 'rgba(251, 191, 36, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.4)',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+  },
+  keywordText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#fbbf24',
   },
   ichingContainer: {
     alignItems: 'center',
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    padding: 20,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.3)',
+    borderColor: 'rgba(251, 191, 36, 0.2)',
+    marginBottom: 32,
+    minWidth: '80%',
   },
-  ichingTitle: {
+  ichingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  ichingLabel: {
     fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#60a5fa',
-    marginBottom: 8,
+    fontFamily: 'Inter-SemiBold',
+    color: '#fbbf24',
     textTransform: 'uppercase',
     letterSpacing: 1,
   },
   ichingName: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
+    color: '#f8fafc',
     textAlign: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   ichingEssence: {
-    fontSize: 14,
-    fontFamily: 'Inter-Regular',
-    color: '#60a5fa',
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#cbd5e1',
     textAlign: 'center',
     fontStyle: 'italic',
   },
   nextButton: {
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 20,
-    marginTop: 40,
-    borderWidth: 1,
-    borderColor: 'rgba(59, 130, 246, 0.4)',
+    borderRadius: 24,
+    shadowColor: '#fbbf24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  buttonGradient: {
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 24,
+    alignItems: 'center',
   },
   nextButtonText: {
-    color: '#60a5fa',
+    color: '#0f172a',
     fontSize: 16,
-    fontFamily: 'Inter-SemiBold',
-    textAlign: 'center',
+    fontFamily: 'Inter-Bold',
+    letterSpacing: 0.5,
   },
   keywordsHeader: {
     flexDirection: 'row',
@@ -477,7 +450,7 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
+    color: '#f8fafc',
     textAlign: 'center',
   },
   keywordsSection: {
@@ -494,7 +467,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontFamily: 'Inter-SemiBold',
-    color: '#F9FAFB',
+    color: '#f8fafc',
     textAlign: 'center',
   },
   keywordsList: {
@@ -510,69 +483,31 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   tarotKeyword: {
-    backgroundColor: 'rgba(96, 165, 250, 0.15)',
-    borderColor: 'rgba(96, 165, 250, 0.4)',
+    backgroundColor: 'rgba(251, 191, 36, 0.15)',
+    borderColor: 'rgba(251, 191, 36, 0.3)',
   },
   ichingKeyword: {
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    borderColor: 'rgba(59, 130, 246, 0.4)',
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    borderColor: 'rgba(251, 191, 36, 0.2)',
   },
-  keywordText: {
-    color: '#F9FAFB',
+  keywordItemText: {
+    color: '#f8fafc',
     fontSize: 14,
     fontFamily: 'Inter-Medium',
   },
   continueButton: {
     marginTop: 40,
-    borderRadius: 25,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 15,
-  },
-  buttonGradient: {
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 25,
+    borderRadius: 24,
+    shadowColor: '#fbbf24',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   continueButtonText: {
-    color: '#F9FAFB',
+    color: '#0f172a',
     fontSize: 18,
     fontFamily: 'Inter-Bold',
-    textAlign: 'center',
-  },
-  glowEffect1: {
-    position: 'absolute',
-    width: screenWidth * 0.8,
-    height: screenHeight * 0.6,
-    borderRadius: 30,
-    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-    zIndex: -1,
-  },
-  glowEffect2: {
-    position: 'absolute',
-    width: screenWidth * 0.85,
-    height: screenHeight * 0.65,
-    borderRadius: 35,
-    backgroundColor: 'rgba(59, 130, 246, 0.15)',
-    zIndex: -2,
-  },
-  glowEffect3: {
-    position: 'absolute',
-    width: screenWidth * 0.9,
-    height: screenHeight * 0.7,
-    borderRadius: 40,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-    zIndex: -3,
-  },
-  borderRing: {
-    position: 'absolute',
-    width: screenWidth * 0.75,
-    height: screenHeight * 0.55,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: 'rgba(59, 130, 246, 0.4)',
-    zIndex: -1,
+    letterSpacing: 0.5,
   },
 });

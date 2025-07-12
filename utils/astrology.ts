@@ -1,6 +1,8 @@
 // Simple astrology calculations without external dependencies
 // This provides basic planetary positions for demonstration
 
+console.log('🌟 Astrology utils loaded - self-contained version');
+
 // Helper function to get element color
 export const getElementColor = (element: string): string => {
   switch (element) {

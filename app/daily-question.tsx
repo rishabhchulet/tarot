@@ -206,18 +206,18 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        paddingTop: 100, // Add top padding to account for header
     },
     scrollContent: {
         flexGrow: 1,
-        justifyContent: 'center',
         paddingHorizontal: 24,
-        paddingBottom: 20,
+        paddingBottom: 120, // Increased bottom padding to prevent cutoff by bottom actions
+        minHeight: '100%',
     },
     contentContainer: {
-        flex: 1,
         justifyContent: 'center',
-        paddingHorizontal: 24,
-        paddingBottom: 20
+        paddingVertical: 40,
+        minHeight: '80%', // Ensure minimum height but allow expansion
     },
     dateText: {
         fontFamily: 'Inter-Regular',
@@ -262,13 +262,14 @@ const styles = StyleSheet.create({
         letterSpacing: 1.5,
     },
     questionText: {
-        fontSize: 24,
+        fontSize: 22,
         fontFamily: 'Inter-Bold',
         color: '#E0F2FE',
         textAlign: 'center',
-        lineHeight: 32,
+        lineHeight: 30,
         textShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
         marginBottom: 8,
+        paddingHorizontal: 8,
     },
     guidanceContainer: {
         padding: 24,

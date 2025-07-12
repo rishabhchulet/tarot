@@ -51,24 +51,16 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
   const innerRadius = outerRadius - 40;
   const planetRadius = outerRadius - 15; // Adjusted for better planet positioning
 
-  // Animation values
-  const rotation = useSharedValue(0);
+  // Animation values - only for subtle effects, not rotation
   const glowPulse = useSharedValue(0.7);
   const planetScale = useSharedValue(0);
 
   useEffect(() => {
-    // Subtle rotation animation
-    rotation.value = withRepeat(
-      withTiming(360, { duration: 120000, easing: Easing.linear }), // 2 minutes per rotation
-      -1,
-      false
-    );
-
-    // Glow pulse animation
+    // Gentle glow pulse animation
     glowPulse.value = withRepeat(
       withSequence(
-        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.7, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+        withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.7, { duration: 4000, easing: Easing.inOut(Easing.ease) })
       ),
       -1,
       true
@@ -81,12 +73,12 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
     });
   }, []);
 
-  const animatedChartStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${rotation.value}deg` }],
-  }));
-
   const animatedGlowStyle = useAnimatedStyle(() => ({
     opacity: glowPulse.value,
+  }));
+
+  const animatedPlanetStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: planetScale.value }],
   }));
 
   const getCoordinates = (degree: number, radius: number) => {
@@ -120,13 +112,13 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
         </Text>
       </View>
 
-      {/* Main chart container with proper layering */}
+      {/* Static chart container - no rotation for accurate reading */}
       <View style={styles.chartWrapper}>
         {/* Background glow effect */}
         <Animated.View style={[styles.backgroundGlow, animatedGlowStyle]} />
         
-        {/* Rotating chart background */}
-        <Animated.View style={[styles.chartContainer, animatedChartStyle]}>
+        {/* Static chart background */}
+        <View style={styles.chartContainer}>
           <Svg height={size} width={size} style={styles.svgChart}>
             <Defs>
               <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
@@ -236,10 +228,10 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
             {/* Center point */}
             <Circle cx={center} cy={center} r="4" fill="rgba(251,191,36,0.8)" />
           </Svg>
-        </Animated.View>
+        </View>
 
-        {/* Static planets overlay (non-rotating) */}
-        <View style={styles.planetsContainer}>
+        {/* Static planets overlay with subtle entrance animation */}
+        <Animated.View style={[styles.planetsContainer, animatedPlanetStyle]}>
           <Svg height={size} width={size} style={styles.svgPlanets}>
             {positions.map((planet) => {
               const coords = getCoordinates(planet.longitude, planetRadius);
@@ -272,12 +264,13 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
               );
             })}
           </Svg>
-        </View>
+        </Animated.View>
       </View>
       
       {/* Enhanced legend with more information */}
       <View style={styles.legendContainer}>
         <Text style={styles.legendTitle}>Planetary Positions</Text>
+        <Text style={styles.legendSubtitle}>Exact degrees and zodiac signs at birth</Text>
         <View style={styles.legendGrid}>
           {positions.slice(0, 6).map((planet) => {
             const sign = getZodiacSign(planet.longitude);
@@ -369,8 +362,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#f8fafc',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 4,
     fontFamily: 'Inter-SemiBold',
+  },
+  legendSubtitle: {
+    fontSize: 12,
+    color: '#94a3b8',
+    textAlign: 'center',
+    marginBottom: 12,
+    fontFamily: 'Inter-Medium',
   },
   legendGrid: {
     flexDirection: 'row',

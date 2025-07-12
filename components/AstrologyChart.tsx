@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import { Svg, Circle, Text as SvgText, G, Line, Defs, RadialGradient, Stop, Path } from 'react-native-svg';
-import { PlanetPosition, getZodiacSign } from '@/utils/astrology';
+import { PlanetPosition, getZodiacSign } from '@/utils/astrologyCalculations';
 
 interface AstrologyChartProps {
   positions: PlanetPosition[];

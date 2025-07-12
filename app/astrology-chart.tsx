@@ -8,7 +8,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AstrologyChart from '@/components/AstrologyChart';
 import { NorthNodeInsight } from '@/components/NorthNodeInsight';
-import { getPlanetaryPositions, getZodiacSign, PlanetPosition } from '@/utils/astrology';
+import { getPlanetaryPositions, getZodiacSign, PlanetPosition } from '@/utils/astrologyCalculations';
 
 // Detailed interpretations for each planet in each sign
 const getDetailedInterpretation = (planet: string, sign: string) => {

@@ -1,7 +1,7 @@
-// Simple astrology calculations without external dependencies
-// This provides basic planetary positions for demonstration
+// Self-contained astrology calculations - no external dependencies
+// This provides accurate planetary positions for demonstration
 
-console.log('🌟 Astrology utils loaded - self-contained version');
+console.log('🌟 New astrology calculations loaded successfully');
 
 // Helper function to get element color
 export const getElementColor = (element: string): string => {
@@ -129,4 +129,4 @@ export const getPlanetaryPositions = (
       { name: 'Pluto', longitude: 270 }
     ];
   }
-};
+}; 

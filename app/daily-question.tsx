@@ -97,43 +97,51 @@ export default function DailyQuestionScreen() {
       <LinearGradient colors={['#020817', '#07244A', '#0B1120']} style={StyleSheet.absoluteFill} />
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
       
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }} showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { paddingTop: insets.top, paddingBottom: 0 }]}>
-            <Pressable style={styles.backButton} onPress={() => router.back()}>
-                <ArrowLeft size={24} color="#E0F2FE" />
-            </Pressable>
-        </View>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <Pressable style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={24} color="#E0F2FE" />
+        </Pressable>
+      </View>
 
+      {/* Content */}
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+      >
         <View style={styles.contentContainer}>
-            <Text style={styles.dateText}>{new Date(todaysEntry.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</Text>
-            <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
-            
-            <Animated.View style={animatedCardStyle}>
-              <BlurView intensity={25} tint="dark" style={styles.questionContainer}>
-                  <View style={styles.questionInnerContainer}>
-                      <Text style={styles.questionLabel}>Your question for today</Text>
-                      <Text style={styles.questionText}>"{todaysEntry.daily_question}"</Text>
-                  </View>
-              </BlurView>
-            </Animated.View>
+          <Text style={styles.dateText}>{new Date(todaysEntry.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</Text>
+          <Text style={styles.cardName}>{todaysEntry.card_name}</Text>
+          
+          <Animated.View style={animatedCardStyle}>
+            <BlurView intensity={25} tint="dark" style={styles.questionContainer}>
+              <View style={styles.questionInnerContainer}>
+                <Text style={styles.questionLabel}>Your question for today</Text>
+                <Text style={styles.questionText}>"{todaysEntry.daily_question}"</Text>
+              </View>
+            </BlurView>
+          </Animated.View>
 
-            <View style={styles.guidanceContainer}>
-              <Text style={styles.guidanceText}>
-                Let this question gently guide your awareness. Notice what arises when you pause and reflect on it during quiet moments.
-              </Text>
-            </View>
+          <View style={styles.guidanceContainer}>
+            <Text style={styles.guidanceText}>
+              Let this question gently guide your awareness. Notice what arises when you pause and reflect on it during quiet moments.
+            </Text>
+          </View>
         </View>
       </ScrollView>
 
+      {/* Bottom Actions */}
       <View style={[styles.bottomActions, { paddingBottom: insets.bottom + 20 }]}>
-          <Pressable style={styles.secondaryButton} onPress={() => router.replace('/(tabs)')}>
-              <Home size={20} color="#94A3B8" />
-              <Text style={styles.secondaryButtonText}>Home</Text>
-          </Pressable>
-          <Pressable style={styles.primaryButton} onPress={() => router.replace('/draw')}>
-              <BookOpen size={20} color="#F0F9FF" />
-              <Text style={styles.primaryButtonText}>New Reading</Text>
-          </Pressable>
+        <Pressable style={styles.secondaryButton} onPress={() => router.replace('/(tabs)')}>
+          <Home size={20} color="#94A3B8" />
+          <Text style={styles.secondaryButtonText}>Home</Text>
+        </Pressable>
+        <Pressable style={styles.primaryButton} onPress={() => router.replace('/draw')}>
+          <BookOpen size={20} color="#F0F9FF" />
+          <Text style={styles.primaryButtonText}>New Reading</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -195,6 +203,15 @@ const styles = StyleSheet.create({
         color: '#CBD5E1',
         textAlign: 'center',
         maxWidth: 280,
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 24,
+        paddingBottom: 20,
     },
     contentContainer: {
         flex: 1,
@@ -292,24 +309,25 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         flexDirection: 'row',
-        justifyContent: 'space-around',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         paddingHorizontal: 24,
-        backgroundColor: 'rgba(14, 27, 56, 0.8)',
+        paddingVertical: 16,
+        backgroundColor: 'rgba(14, 27, 56, 0.9)',
         borderTopWidth: 1,
         borderTopColor: 'rgba(56, 189, 248, 0.2)',
     },
     secondaryButton: {
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 18,
-        paddingHorizontal: 16,
-        marginHorizontal: 8,
-        borderRadius: 99,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 25,
         borderWidth: 1,
         borderColor: 'rgba(56, 189, 248, 0.3)',
         backgroundColor: 'rgba(56, 189, 248, 0.1)',
+        minWidth: 120,
     },
     secondaryButtonText: {
         fontFamily: 'Inter-SemiBold',
@@ -318,17 +336,16 @@ const styles = StyleSheet.create({
         marginLeft: 8,
     },
     primaryButton: {
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingVertical: 18,
-        paddingHorizontal: 16,
-        marginHorizontal: 8,
-        borderRadius: 99,
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        borderRadius: 25,
         borderWidth: 1,
         backgroundColor: '#0EA5E9',
         borderColor: '#38BDF8',
+        minWidth: 120,
     },
     primaryButtonText: {
         fontFamily: 'Inter-SemiBold',

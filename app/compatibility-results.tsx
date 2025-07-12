@@ -39,8 +39,22 @@ export default function CompatibilityResultsScreen() {
         const personB = JSON.parse(params.personB as string) as BirthProfile;
         const reportType = params.reportType as CompatibilityReportRequest['reportType'];
 
-        // Create a cache key from the parameters
-        const cacheKey = `${personA.name}-${personA.date?.getTime()}-${personB.name}-${personB.date?.getTime()}-${reportType}`;
+        // Convert string dates back to Date objects if needed
+        const processedPersonA: BirthProfile = {
+          ...personA,
+          date: personA.date ? new Date(personA.date) : null,
+          time: personA.time ? new Date(personA.time) : null,
+        };
+
+        const processedPersonB: BirthProfile = {
+          ...personB,
+          date: personB.date ? new Date(personB.date) : null,
+          time: personB.time ? new Date(personB.time) : null,
+        };
+
+        // Create a safer cache key from the parameters
+        const getDateKey = (date: Date | null) => date ? date.getTime().toString() : 'null';
+        const cacheKey = `${processedPersonA.name}-${getDateKey(processedPersonA.date)}-${processedPersonB.name}-${getDateKey(processedPersonB.date)}-${reportType}`;
         
         // Check if we already have this report cached
         if (reportCacheRef.current === cacheKey && cachedReportRef.current) {
@@ -50,8 +64,8 @@ export default function CompatibilityResultsScreen() {
         }
 
         const { report: apiReport, error: apiError } = await getAICompatibilityReport({
-          personA,
-          personB,
+          personA: processedPersonA,
+          personB: processedPersonB,
           reportType,
         });
 
@@ -63,8 +77,8 @@ export default function CompatibilityResultsScreen() {
         if (apiReport && typeof apiReport.score === 'number' && apiReport.stats) {
           const enhancedReport: ReportData = {
             ...apiReport,
-            personAName: personA.name || 'Person A',
-            personBName: personB.name || 'Person B',
+            personAName: processedPersonA.name || 'Person A',
+            personBName: processedPersonB.name || 'Person B',
             reportType,
           };
           
@@ -78,8 +92,8 @@ export default function CompatibilityResultsScreen() {
         }
 
       } catch (e: any) {
-        setError(e.message || 'An unknown error occurred while generating the report.');
         console.error('Error fetching compatibility report:', e);
+        setError(e.message || 'An unknown error occurred while generating the report.');
       } finally {
         setLoading(false);
       }

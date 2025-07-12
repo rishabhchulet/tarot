@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable } from 'rea
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '@/contexts/AuthContext';
 import { GeneratingPlacements } from '@/components/GeneratingPlacements';
-import { ChevronLeft, Star, Sun, Moon, Sparkles } from 'lucide-react-native';
+import { ChevronLeft, Star, Sun, Moon, Sparkles, Calendar, MapPin } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AstrologyChart from '@/components/AstrologyChart';
@@ -74,21 +74,41 @@ export default function AstrologyChartScreen() {
   const sunSign = sunPosition ? getZodiacSign(sunPosition.longitude) : 'Aries';
   const moonSign = moonPosition ? getZodiacSign(moonPosition.longitude) : 'Aries';
 
+  // Format birth data for display
+  const formatDate = () => {
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatTime = () => {
+    const time = new Date();
+    time.setHours(hour, minute);
+    return time.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
   const PersonalizedInsights = () => (
     <View style={styles.insightsContainer}>
       <View style={styles.insightHeader}>
-        <Sparkles size={20} color="#FFD700" />
+        <Sparkles size={20} color="#fbbf24" />
         <Text style={styles.insightTitle}>Your Personal Cosmic Story</Text>
       </View>
 
       {/* Sun Sign Insight */}
       <View style={styles.insightCard}>
         <LinearGradient
-          colors={['rgba(255,215,0,0.1)', 'rgba(255,215,0,0.05)']}
+          colors={['rgba(251,191,36,0.1)', 'rgba(251,191,36,0.05)']}
           style={styles.insightGradient}
         >
           <View style={styles.insightCardHeader}>
-            <Sun size={18} color="#FFD700" />
+            <Sun size={18} color="#fbbf24" />
             <Text style={styles.insightCardTitle}>Sun in {sunSign}</Text>
             <Text style={styles.insightDegree}>
               {sunPosition ? `${Math.floor(sunPosition.longitude % 30)}°` : '0°'}
@@ -107,7 +127,7 @@ export default function AstrologyChartScreen() {
           style={styles.insightGradient}
         >
           <View style={styles.insightCardHeader}>
-            <Moon size={18} color="#E6E6FA" />
+            <Moon size={18} color="#e2e8f0" />
             <Text style={styles.insightCardTitle}>Moon in {moonSign}</Text>
             <Text style={styles.insightDegree}>
               {moonPosition ? `${Math.floor(moonPosition.longitude % 30)}°` : '0°'}
@@ -122,11 +142,11 @@ export default function AstrologyChartScreen() {
       {/* Planetary Summary */}
       <View style={styles.summaryCard}>
         <LinearGradient
-          colors={['rgba(138,43,226,0.1)', 'rgba(138,43,226,0.05)']}
+          colors={['rgba(139,92,246,0.1)', 'rgba(139,92,246,0.05)']}
           style={styles.summaryGradient}
         >
           <View style={styles.summaryHeader}>
-            <Star size={18} color="#A78BFA" />
+            <Star size={18} color="#8b5cf6" />
             <Text style={styles.summaryTitle}>Your Cosmic Signature</Text>
           </View>
           <Text style={styles.summaryText}>
@@ -154,12 +174,43 @@ export default function AstrologyChartScreen() {
         style={StyleSheet.absoluteFill}
       />
 
+      {/* Enhanced Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <ChevronLeft size={28} color="#f8fafc" />
+          <ChevronLeft size={24} color="#f8fafc" />
         </Pressable>
-        <Text style={styles.title}>Your Cosmic Blueprint</Text>
+        <View style={styles.headerContent}>
+          <Text style={styles.title}>Your Cosmic Blueprint</Text>
+          <Text style={styles.subtitle}>Natal Chart Analysis</Text>
+        </View>
         <View style={{ width: 40 }} />
+      </View>
+
+      {/* Birth Data Card */}
+      <View style={styles.birthDataContainer}>
+        <View style={styles.birthDataCard}>
+          <LinearGradient
+            colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']}
+            style={styles.birthDataGradient}
+          >
+            <View style={styles.birthDataRow}>
+              <View style={styles.birthDataItem}>
+                <Calendar size={16} color="#64748b" />
+                <Text style={styles.birthDataLabel}>Birth Date</Text>
+                <Text style={styles.birthDataValue}>{formatDate()}</Text>
+              </View>
+              <View style={styles.birthDataItem}>
+                <MapPin size={16} color="#64748b" />
+                <Text style={styles.birthDataLabel}>Birth Time</Text>
+                <Text style={styles.birthDataValue}>{formatTime()}</Text>
+              </View>
+            </View>
+            <View style={styles.locationRow}>
+              <MapPin size={16} color="#64748b" />
+              <Text style={styles.locationText}>{user.birthLocation}</Text>
+            </View>
+          </LinearGradient>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -185,28 +236,87 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: 'rgba(255,255,255,0.08)',
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerContent: {
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#f8fafc',
     fontFamily: 'Inter-Bold',
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 13,
+    color: '#64748b',
+    fontFamily: 'Inter-Medium',
+    marginTop: 2,
+  },
+  birthDataContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  birthDataCard: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  birthDataGradient: {
+    padding: 16,
+  },
+  birthDataRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  birthDataItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  birthDataLabel: {
+    fontSize: 12,
+    color: '#64748b',
+    fontFamily: 'Inter-Medium',
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  birthDataValue: {
+    fontSize: 14,
+    color: '#f8fafc',
+    fontFamily: 'Inter-SemiBold',
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.05)',
+  },
+  locationText: {
+    fontSize: 13,
+    color: '#94a3b8',
+    fontFamily: 'Inter-Medium',
+    marginLeft: 6,
   },
   scrollContent: {
     paddingBottom: 40,
   },
   chartContainer: {
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 8,
   },
   insightsContainer: {
     paddingHorizontal: 20,
@@ -221,7 +331,7 @@ const styles = StyleSheet.create({
   insightTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#f8fafc',
     fontFamily: 'Inter-Bold',
     marginLeft: 8,
   },
@@ -231,6 +341,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   insightGradient: {
     padding: 16,
@@ -243,19 +354,19 @@ const styles = StyleSheet.create({
   insightCardTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#f8fafc',
     fontFamily: 'Inter-SemiBold',
     marginLeft: 8,
     flex: 1,
   },
   insightDegree: {
-    fontSize: 14,
-    color: '#9CA3AF',
+    fontSize: 13,
+    color: '#64748b',
     fontFamily: 'Inter-Medium',
   },
   insightText: {
     fontSize: 14,
-    color: '#D1D5DB',
+    color: '#d1d5db',
     fontFamily: 'Inter-Regular',
     lineHeight: 20,
   },
@@ -264,7 +375,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(138,43,226,0.2)',
+    borderColor: 'rgba(139,92,246,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   summaryGradient: {
     padding: 20,
@@ -277,13 +389,13 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#f8fafc',
     fontFamily: 'Inter-SemiBold',
     marginLeft: 8,
   },
   summaryText: {
     fontSize: 15,
-    color: '#E5E7EB',
+    color: '#e2e8f0',
     fontFamily: 'Inter-Regular',
     lineHeight: 22,
   },

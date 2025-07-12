@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Dimensions, Text } from 'react-native';
 import { Svg, Circle, Text as SvgText, G, Line, Defs, RadialGradient, Stop, Path } from 'react-native-svg';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withTiming, 
+  withRepeat, 
+  withSequence,
+  Easing,
+  interpolate
+} from 'react-native-reanimated';
 import { PlanetPosition, getZodiacSign } from '@/utils/astrologyCalculations';
 
 interface AstrologyChartProps {
@@ -8,18 +17,18 @@ interface AstrologyChartProps {
 }
 
 const ZODIAC_SIGNS = [
-  { sign: '♈', name: 'Aries', element: 'Fire', color: '#FF6B6B' },
-  { sign: '♉', name: 'Taurus', element: 'Earth', color: '#4ECDC4' },
-  { sign: '♊', name: 'Gemini', element: 'Air', color: '#45B7D1' },
-  { sign: '♋', name: 'Cancer', element: 'Water', color: '#96CEB4' },
-  { sign: '♌', name: 'Leo', element: 'Fire', color: '#FECA57' },
-  { sign: '♍', name: 'Virgo', element: 'Earth', color: '#48CAE4' },
-  { sign: '♎', name: 'Libra', element: 'Air', color: '#C4B5FD' },
-  { sign: '♏', name: 'Scorpio', element: 'Water', color: '#F093FB' },
-  { sign: '♐', name: 'Sagittarius', element: 'Fire', color: '#F8AD9D' },
-  { sign: '♑', name: 'Capricorn', element: 'Earth', color: '#83D475' },
-  { sign: '♒', name: 'Aquarius', element: 'Air', color: '#74B9FF' },
-  { sign: '♓', name: 'Pisces', element: 'Water', color: '#A29BFE' },
+  { sign: '♈', name: 'Aries', element: 'Fire', color: '#FF6B6B', degrees: '0°' },
+  { sign: '♉', name: 'Taurus', element: 'Earth', color: '#4ECDC4', degrees: '30°' },
+  { sign: '♊', name: 'Gemini', element: 'Air', color: '#45B7D1', degrees: '60°' },
+  { sign: '♋', name: 'Cancer', element: 'Water', color: '#96CEB4', degrees: '90°' },
+  { sign: '♌', name: 'Leo', element: 'Fire', color: '#FECA57', degrees: '120°' },
+  { sign: '♍', name: 'Virgo', element: 'Earth', color: '#48CAE4', degrees: '150°' },
+  { sign: '♎', name: 'Libra', element: 'Air', color: '#C4B5FD', degrees: '180°' },
+  { sign: '♏', name: 'Scorpio', element: 'Water', color: '#F093FB', degrees: '210°' },
+  { sign: '♐', name: 'Sagittarius', element: 'Fire', color: '#F8AD9D', degrees: '240°' },
+  { sign: '♑', name: 'Capricorn', element: 'Earth', color: '#83D475', degrees: '270°' },
+  { sign: '♒', name: 'Aquarius', element: 'Air', color: '#74B9FF', degrees: '300°' },
+  { sign: '♓', name: 'Pisces', element: 'Water', color: '#A29BFE', degrees: '330°' },
 ];
 
 const PLANET_GLYPHS: { [key: string]: { symbol: string; color: string } } = {
@@ -42,6 +51,48 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
   const outerRadius = size / 2 - 20;
   const innerRadius = outerRadius - 40;
   const planetRadius = outerRadius - 20;
+
+  // Animation values
+  const rotation = useSharedValue(0);
+  const glowPulse = useSharedValue(0.7);
+  const planetScale = useSharedValue(0);
+
+  useEffect(() => {
+    // Subtle rotation animation
+    rotation.value = withRepeat(
+      withTiming(360, { duration: 120000, easing: Easing.linear }), // 2 minutes per rotation
+      -1,
+      false
+    );
+
+    // Glow pulse animation
+    glowPulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.7, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+
+    // Planet entrance animation
+    planetScale.value = withTiming(1, { 
+      duration: 1500, 
+      easing: Easing.out(Easing.back(1.2)) 
+    });
+  }, []);
+
+  const animatedChartStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }],
+  }));
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({
+    opacity: glowPulse.value,
+  }));
+
+  const animatedPlanetStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: planetScale.value }],
+  }));
 
   const getCoordinates = (degree: number, radius: number) => {
     const angleRad = (degree - 90) * (Math.PI / 180);
@@ -66,120 +117,153 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
 
   return (
     <View style={styles.container}>
-      <Svg height={size} width={size}>
-        <Defs>
-          <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-            <Stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
-          </RadialGradient>
-          <RadialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor="rgba(138,43,226,0.1)" />
-            <Stop offset="100%" stopColor="rgba(138,43,226,0.02)" />
-          </RadialGradient>
-        </Defs>
+      {/* Chart explanation */}
+      <View style={styles.explanationContainer}>
+        <Text style={styles.explanationTitle}>Birth Chart Wheel</Text>
+        <Text style={styles.explanationText}>
+          Your planets' positions at the moment of birth, showing their zodiac signs and degrees
+        </Text>
+      </View>
 
-        <G>
-          {/* Background circles with gradients */}
-          <Circle cx={center} cy={center} r={outerRadius} fill="url(#outerGlow)" />
-          <Circle cx={center} cy={center} r={innerRadius} fill="url(#centerGlow)" />
-          
-          {/* Zodiac house divisions */}
-          {ZODIAC_SIGNS.map((sign, index) => {
-            const startDegree = index * 30;
-            const endDegree = (index + 1) * 30;
-            const path = createHousePath(startDegree, endDegree);
+      <Animated.View style={[styles.chartContainer, animatedChartStyle]}>
+        <Svg height={size} width={size}>
+          <Defs>
+            <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+              <Stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
+              <Stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+            </RadialGradient>
+            <RadialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
+              <Stop offset="0%" stopColor="rgba(251,191,36,0.1)" />
+              <Stop offset="100%" stopColor="rgba(251,191,36,0.02)" />
+            </RadialGradient>
+          </Defs>
+
+          <G>
+            {/* Background circles with gradients */}
+            <Circle cx={center} cy={center} r={outerRadius} fill="url(#outerGlow)" />
+            <Circle cx={center} cy={center} r={innerRadius} fill="url(#centerGlow)" />
             
-            return (
-              <Path
-                key={`house-${sign.name}`}
-                d={path}
-                fill={`${sign.color}15`}
-                stroke={`${sign.color}40`}
-                strokeWidth="0.5"
-              />
-            );
-          })}
+            {/* Zodiac house divisions */}
+            {ZODIAC_SIGNS.map((sign, index) => {
+              const startDegree = index * 30;
+              const endDegree = (index + 1) * 30;
+              const path = createHousePath(startDegree, endDegree);
+              
+              return (
+                <Path
+                  key={`house-${sign.name}`}
+                  d={path}
+                  fill={`${sign.color}10`}
+                  stroke={`${sign.color}30`}
+                  strokeWidth="0.5"
+                />
+              );
+            })}
 
-          {/* Outer ring */}
-          <Circle 
-            cx={center} 
-            cy={center} 
-            r={outerRadius} 
-            stroke="rgba(255,255,255,0.6)" 
-            strokeWidth="2" 
-            fill="transparent" 
-          />
-          
-          {/* Inner ring */}
-          <Circle 
-            cx={center} 
-            cy={center} 
-            r={innerRadius} 
-            stroke="rgba(255,255,255,0.4)" 
-            strokeWidth="1" 
-            fill="transparent" 
-          />
-
-          {/* House division lines */}
-          {Array.from({ length: 12 }, (_, i) => {
-            const degree = i * 30;
-            const outer = getCoordinates(degree, outerRadius);
-            const inner = getCoordinates(degree, innerRadius);
+            {/* Outer ring */}
+            <Circle 
+              cx={center} 
+              cy={center} 
+              r={outerRadius} 
+              stroke="rgba(255,255,255,0.6)" 
+              strokeWidth="2" 
+              fill="transparent" 
+            />
             
-            return (
-              <Line
-                key={`division-${i}`}
-                x1={outer.x}
-                y1={outer.y}
-                x2={inner.x}
-                y2={inner.y}
-                stroke="rgba(255,255,255,0.3)"
-                strokeWidth="1"
-              />
-            );
-          })}
-          
-          {/* Zodiac Signs */}
-          {ZODIAC_SIGNS.map((sign, index) => {
-            const degree = index * 30 + 15;
-            const coords = getCoordinates(degree, outerRadius + 15);
-            return (
-              <SvgText
-                key={sign.name}
-                x={coords.x}
-                y={coords.y}
-                fontSize="24"
-                fill={sign.color}
-                textAnchor="middle"
-                alignmentBaseline="central"
-                fontWeight="bold"
-              >
-                {sign.sign}
-              </SvgText>
-            );
-          })}
+            {/* Inner ring */}
+            <Circle 
+              cx={center} 
+              cy={center} 
+              r={innerRadius} 
+              stroke="rgba(255,255,255,0.4)" 
+              strokeWidth="1" 
+              fill="transparent" 
+            />
 
-          {/* Planets with enhanced styling */}
-          {positions.map((planet) => {
+            {/* House division lines with degree markers */}
+            {Array.from({ length: 12 }, (_, i) => {
+              const degree = i * 30;
+              const outer = getCoordinates(degree, outerRadius);
+              const inner = getCoordinates(degree, innerRadius);
+              const degreeMarker = getCoordinates(degree, outerRadius + 8);
+              
+              return (
+                <G key={`division-${i}`}>
+                  <Line
+                    x1={outer.x}
+                    y1={outer.y}
+                    x2={inner.x}
+                    y2={inner.y}
+                    stroke="rgba(255,255,255,0.3)"
+                    strokeWidth="1"
+                  />
+                  {/* Degree markers */}
+                  <SvgText
+                    x={degreeMarker.x}
+                    y={degreeMarker.y}
+                    fontSize="10"
+                    fill="rgba(255,255,255,0.6)"
+                    textAnchor="middle"
+                    alignmentBaseline="central"
+                    fontFamily="Inter-Medium"
+                  >
+                    {degree}°
+                  </SvgText>
+                </G>
+              );
+            })}
+            
+            {/* Zodiac Signs */}
+            {ZODIAC_SIGNS.map((sign, index) => {
+              const degree = index * 30 + 15;
+              const coords = getCoordinates(degree, outerRadius + 25);
+              return (
+                <SvgText
+                  key={sign.name}
+                  x={coords.x}
+                  y={coords.y}
+                  fontSize="22"
+                  fill={sign.color}
+                  textAnchor="middle"
+                  alignmentBaseline="central"
+                  fontWeight="bold"
+                >
+                  {sign.sign}
+                </SvgText>
+              );
+            })}
+
+            {/* Center point with animated glow */}
+            <Circle cx={center} cy={center} r="4" fill="rgba(251,191,36,0.8)" />
+          </G>
+        </Svg>
+      </Animated.View>
+
+      {/* Animated planets overlay (non-rotating) */}
+      <Animated.View style={[styles.planetsOverlay, animatedPlanetStyle]}>
+        <Svg height={size} width={size}>
+          {positions.map((planet, index) => {
             const coords = getCoordinates(planet.longitude, planetRadius);
             const planetInfo = PLANET_GLYPHS[planet.name];
             
             return (
               <G key={planet.name}>
-                {/* Planet glow */}
-                <Circle
-                  cx={coords.x}
-                  cy={coords.y}
-                  r="12"
-                  fill={`${planetInfo?.color || '#FFFFFF'}20`}
-                  stroke={`${planetInfo?.color || '#FFFFFF'}60`}
-                  strokeWidth="1"
-                />
+                {/* Planet glow with animation */}
+                <Animated.View style={animatedGlowStyle}>
+                  <Circle
+                    cx={coords.x}
+                    cy={coords.y}
+                    r="14"
+                    fill={`${planetInfo?.color || '#FFFFFF'}15`}
+                    stroke={`${planetInfo?.color || '#FFFFFF'}40`}
+                    strokeWidth="1.5"
+                  />
+                </Animated.View>
                 {/* Planet symbol */}
                 <SvgText
                   x={coords.x}
                   y={coords.y}
-                  fontSize="20"
+                  fontSize="18"
                   fill={planetInfo?.color || '#FFFFFF'}
                   textAnchor="middle"
                   alignmentBaseline="central"
@@ -190,19 +274,17 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
               </G>
             );
           })}
-
-          {/* Center point */}
-          <Circle cx={center} cy={center} r="3" fill="rgba(255,255,255,0.8)" />
-        </G>
-      </Svg>
+        </Svg>
+      </Animated.View>
       
-      {/* Planet positions legend */}
+      {/* Enhanced legend with more information */}
       <View style={styles.legendContainer}>
         <Text style={styles.legendTitle}>Planetary Positions</Text>
         <View style={styles.legendGrid}>
           {positions.slice(0, 6).map((planet) => {
             const sign = getZodiacSign(planet.longitude);
             const degree = Math.floor(planet.longitude % 30);
+            const minutes = Math.floor((planet.longitude % 1) * 60);
             const planetInfo = PLANET_GLYPHS[planet.name];
             
             return (
@@ -212,7 +294,7 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
                 </Text>
                 <View style={styles.planetInfo}>
                   <Text style={styles.planetName}>{planet.name}</Text>
-                  <Text style={styles.planetPosition}>{degree}° {sign}</Text>
+                  <Text style={styles.planetPosition}>{degree}°{minutes}' {sign}</Text>
                 </View>
               </View>
             );
@@ -229,8 +311,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
+  explanationContainer: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  explanationTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#f8fafc',
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 4,
+  },
+  explanationText: {
+    fontSize: 14,
+    color: '#64748b',
+    fontFamily: 'Inter-Medium',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  chartContainer: {
+    position: 'relative',
+  },
+  planetsOverlay: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+  },
   legendContainer: {
-    marginTop: 20,
+    marginTop: 24,
     backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
     padding: 16,
@@ -239,9 +347,9 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   legendTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFFFFF',
+    color: '#f8fafc',
     textAlign: 'center',
     marginBottom: 12,
     fontFamily: 'Inter-SemiBold',
@@ -256,14 +364,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '48%',
     marginBottom: 8,
-    padding: 8,
+    padding: 10,
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.05)',
   },
   planetSymbol: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     marginRight: 8,
     width: 24,
@@ -273,14 +381,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   planetName: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#f8fafc',
     fontFamily: 'Inter-Medium',
   },
   planetPosition: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: 11,
+    color: '#94a3b8',
     fontFamily: 'Inter-Regular',
   },
 });

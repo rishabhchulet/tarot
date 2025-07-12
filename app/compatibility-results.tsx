@@ -42,17 +42,17 @@ export default function CompatibilityResultsScreen() {
         const personB = JSON.parse(params.personB as string) as BirthProfile;
         const reportType = params.reportType as CompatibilityReportRequest['reportType'];
 
-        // Convert string dates back to Date objects if needed
+        // Convert string dates back to Date objects if needed - with robust error handling
         const processedA: BirthProfile = {
           ...personA,
-          date: personA.date ? new Date(personA.date) : null,
-          time: personA.time ? new Date(personA.time) : null,
+          date: personA.date ? (personA.date instanceof Date ? personA.date : new Date(personA.date)) : null,
+          time: personA.time ? (personA.time instanceof Date ? personA.time : new Date(personA.time)) : null,
         };
 
         const processedB: BirthProfile = {
           ...personB,
-          date: personB.date ? new Date(personB.date) : null,
-          time: personB.time ? new Date(personB.time) : null,
+          date: personB.date ? (personB.date instanceof Date ? personB.date : new Date(personB.date)) : null,
+          time: personB.time ? (personB.time instanceof Date ? personB.time : new Date(personB.time)) : null,
         };
 
         // Store processed data for use in render
@@ -60,8 +60,19 @@ export default function CompatibilityResultsScreen() {
         setProcessedPersonB(processedB);
 
         // Create a safer cache key from the parameters
-        const getDateKey = (date: Date | null) => date ? date.getTime().toString() : 'null';
-        const cacheKey = `${processedA.name}-${getDateKey(processedA.date)}-${processedB.name}-${getDateKey(processedB.date)}-${reportType}`;
+        const getDateKey = (date: Date | null) => {
+          if (!date) return 'null';
+          try {
+            // Ensure it's a valid Date object and not Invalid Date
+            const time = date instanceof Date && !isNaN(date.getTime()) ? date.getTime() : null;
+            return time ? time.toString() : 'null';
+          } catch (error) {
+            console.warn('Error getting date key:', error);
+            return 'null';
+          }
+        };
+        
+        const cacheKey = `${processedA.name || 'A'}-${getDateKey(processedA.date)}-${processedB.name || 'B'}-${getDateKey(processedB.date)}-${reportType}`;
         
         // Check if we already have this report cached
         if (reportCacheRef.current === cacheKey && cachedReportRef.current) {
@@ -111,9 +122,23 @@ export default function CompatibilityResultsScreen() {
 
   const formatBirthInfo = (person: BirthProfile | null) => {
     if (!person?.date) return 'N/A';
-    const month = person.date.toLocaleString('default', { month: 'numeric' });
-    const day = person.date.toLocaleString('default', { day: 'numeric' });
-    return `${month}/${day}`;
+    
+    try {
+      // Ensure we have a valid Date object
+      const date = person.date instanceof Date ? person.date : new Date(person.date);
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return 'N/A';
+      }
+      
+      const month = date.toLocaleString('default', { month: 'numeric' });
+      const day = date.toLocaleString('default', { day: 'numeric' });
+      return `${month}/${day}`;
+    } catch (error) {
+      console.warn('Error formatting birth info:', error);
+      return 'N/A';
+    }
   };
 
   const getScoreDescription = (score: number) => {

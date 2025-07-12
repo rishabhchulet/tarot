@@ -83,7 +83,6 @@ export default function AuthWelcomeScreen() {
           <Text style={styles.signOutErrorText}>⚠️ Sign out incomplete</Text>
         </View>
       )}
-
       <View style={styles.content}>
         <View style={styles.iconSection}>
           <Animated.View style={[styles.iconContainer, animatedIconStyle]}>

@@ -112,9 +112,17 @@ export const getStructuredReflection = async (
   isReversed: boolean = false
 ): Promise<{ reflection: StructuredReflectionResponse | null; error: string | null }> => {
   try {
+    // Debug the hexagram lookup issue
+    console.log('🔍 Debug: Testing hexagram lookup for:', hexagramName);
+    
     // Find the data from our JSON files
     const card = getTarotCardByName(cardName);
     const hexagram = getHexagramByName(hexagramName);
+    
+    console.log('🔍 Debug: Hexagram lookup result:', hexagram ? 'FOUND' : 'NOT FOUND');
+    if (hexagram) {
+      console.log('🔍 Debug: Found hexagram:', hexagram.number, '-', hexagram.name);
+    }
     
     if (!card) {
       throw new Error(`Tarot card "${cardName}" not found in structured data`);

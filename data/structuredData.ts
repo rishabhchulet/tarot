@@ -54,10 +54,26 @@ export const getHexagramByName = (name: string): IChingHexagramData | undefined 
   const normalizedName = name.toLowerCase().trim();
 
   return iChingData.find(hexagram => {
-    // The simple name (e.g., "The Creative") is part of the "number" field in the JSON
-    // Format is like "1 – The Creative"
-    const nameFromData = hexagram.number.toString().toLowerCase().split('–')[1]?.trim();
-    return nameFromData === normalizedName;
+    // The hexagram number field contains the full name like "26 – Taming the Power of the Great"
+    const fullNameFromData = hexagram.number.toString().toLowerCase().trim();
+    
+    // Try exact match first (for full names like "26 – Taming the Power of the Great")
+    if (fullNameFromData === normalizedName) {
+      return true;
+    }
+    
+    // Try matching just the name part after the dash (for names like "Taming the Power of the Great")
+    const namePartFromData = fullNameFromData.split('–')[1]?.trim();
+    if (namePartFromData && namePartFromData === normalizedName) {
+      return true;
+    }
+    
+    // Try partial matching for flexibility
+    if (fullNameFromData.includes(normalizedName) || normalizedName.includes(fullNameFromData)) {
+      return true;
+    }
+    
+    return false;
   });
 };
 
@@ -92,5 +108,22 @@ export const logDataSummary = () => {
   
   if (iChingData.length > 0) {
     console.log(`   - First Hexagram: ${iChingData[0].number}. ${iChingData[0].name}`);
+  }
+  
+  // Test the problematic hexagram lookup
+  const testHexagram = getHexagramByName('26 – Taming the Power of the Great');
+  console.log('🔍 Testing hexagram lookup:');
+  console.log(`   - Searching for: "26 – Taming the Power of the Great"`);
+  console.log(`   - Found: ${testHexagram ? 'YES' : 'NO'}`);
+  if (testHexagram) {
+    console.log(`   - Result: ${testHexagram.number} - ${testHexagram.name}`);
+  }
+  
+  // Test alternative name format
+  const testHexagram2 = getHexagramByName('Taming the Power of the Great');
+  console.log(`   - Searching for: "Taming the Power of the Great"`);
+  console.log(`   - Found: ${testHexagram2 ? 'YES' : 'NO'}`);
+  if (testHexagram2) {
+    console.log(`   - Result: ${testHexagram2.number} - ${testHexagram2.name}`);
   }
 }; 

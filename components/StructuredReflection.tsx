@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MessageCircle, RefreshCw, Sparkles, Star, Zap } from 'lucide-react-native';
 import { PlanetaryLoadingAnimation } from '@/components/PlanetaryLoadingAnimation';
+import { getStructuredReflection } from '@/utils/structuredAI';
 
 const { width } = Dimensions.get('window');
 
@@ -48,56 +49,40 @@ export function StructuredReflection({
     setError(null);
     
     try {
-      // Create a timeout wrapper for the fetch request
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
-      });
+      // Start the loading animation timer
+      const startTime = Date.now();
+      const minLoadingTime = 2000; // 2 seconds minimum loading time
       
-      const fetchPromise = fetch('/ai', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'structured-reflection',
-          data: {
-            prompt: `Create a structured 4-part reflection combining the Tarot card "${cardName}"${isReversed ? ' (reversed)' : ''} and the I Ching hexagram "${hexagramName}". 
+      // Use the proper structured AI utility function
+      const { reflection: structuredReflection, error: apiError } = await getStructuredReflection(
+        cardName,
+        hexagramName,
+        isReversed
+      );
 
-Provide exactly these 4 sections:
-1. iChingReflection: A 2-3 sentence reflection on the I Ching hexagram's wisdom
-2. tarotReflection: A 2-3 sentence reflection on the Tarot card's message
-3. synthesis: A 2-3 sentence synthesis of how these energies work together
-4. reflectionPrompt: A single powerful question for daily contemplation
-
-Keep each section concise and meaningful.`,
-            cardName,
-            hexagramName,
-            isReversed
-          }
-        }),
-      });
-
-      // Race between fetch and timeout
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: Failed to generate reflection`);
+      if (apiError) {
+        throw new Error(apiError);
       }
 
-      const result = await response.json();
-      
-      // Validate the response structure
-      if (!result.iChingReflection || !result.tarotReflection || !result.synthesis || !result.reflectionPrompt) {
-        throw new Error('Invalid response structure');
+      if (structuredReflection) {
+        // Create a formatted reflection string
+        const formattedReflection = `${structuredReflection.synthesis}\n\n${structuredReflection.reflectionPrompt}`;
+        setReflection(formattedReflection);
+        
+        // Trigger the callback with the reflection prompt
+        if (onReflectionGenerated) {
+          onReflectionGenerated(structuredReflection.reflectionPrompt);
+        }
+      } else {
+        throw new Error('No reflection data received');
       }
       
-      // Create a formatted reflection string
-      const formattedReflection = `${result.synthesis}\n\n${result.reflectionPrompt}`;
-      setReflection(formattedReflection);
+      // Ensure minimum loading time for better UX
+      const elapsedTime = Date.now() - startTime;
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
       
-      // Trigger the callback with the reflection prompt
-      if (onReflectionGenerated) {
-        onReflectionGenerated(result.reflectionPrompt);
+      if (remainingTime > 0) {
+        await new Promise(resolve => setTimeout(resolve, remainingTime));
       }
       
       // Start animations

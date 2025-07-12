@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ChevronRight } from 'lucide-react-native';
 
 interface NavCardProps {
   title: string;
@@ -13,16 +14,25 @@ interface NavCardProps {
 export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
   return (
     <Pressable style={styles.container} onPress={() => router.push(href)}>
-      <LinearGradient
-        colors={['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)']}
-        style={styles.gradientBorder}
-      >
-        <View style={styles.innerContainer}>
-          <View style={styles.iconContainer}>{icon}</View>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>{subtitle}</Text>
-        </View>
-      </LinearGradient>
+      <View style={styles.card}>
+        <LinearGradient
+          colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']}
+          style={styles.cardGradient}
+        >
+          <View style={styles.content}>
+            <View style={styles.iconContainer}>
+              {icon}
+            </View>
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle}>{subtitle}</Text>
+            </View>
+            <View style={styles.arrowContainer}>
+              <ChevronRight size={16} color="#64748b" />
+            </View>
+          </View>
+        </LinearGradient>
+      </View>
     </Pressable>
   );
 }
@@ -30,32 +40,45 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    borderRadius: 20,
   },
-  gradientBorder: {
-    flex: 1,
-    borderRadius: 20,
-    padding: 1,
+  card: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
-  innerContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(23, 23, 23, 0.8)', // Semi-transparent background
-    borderRadius: 19,
+  cardGradient: {
     padding: 16,
-    alignItems: 'flex-start',
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   iconContainer: {
-    marginBottom: 12,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
   },
   title: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 18,
-    color: '#f9fafb',
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#f8fafc',
+    marginBottom: 2,
   },
   subtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#d1d5db',
-    marginTop: 2,
+    fontFamily: 'Inter-Medium',
+    fontSize: 13,
+    color: '#64748b',
+  },
+  arrowContainer: {
+    marginLeft: 8,
   },
 }); 

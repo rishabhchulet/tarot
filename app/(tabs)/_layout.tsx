@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { BookOpen, Calendar, Settings, Sparkles, Chrome as Home } from 'lucide-react-native';
+import { BookOpen, Settings, Sparkles, Home } from 'lucide-react-native';
 import { Platform } from 'react-native';
 
 export default function TabLayout() {
@@ -8,18 +8,21 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#0f0f0f',
-          borderTopColor: '#1a1a1a',
+          backgroundColor: '#0f172a',
+          borderTopColor: 'rgba(255,255,255,0.1)',
           borderTopWidth: 1,
-          paddingTop: 8,
-          paddingBottom: 8,
-          height: 70,
+          paddingTop: 12,
+          paddingBottom: Platform.OS === 'ios' ? 32 : 12,
+          height: Platform.OS === 'ios' ? 88 : 72,
         },
-        tabBarActiveTintColor: '#1e3a8a',
-        tabBarInactiveTintColor: '#6B7280',
+        tabBarActiveTintColor: '#fbbf24',
+        tabBarInactiveTintColor: '#64748b',
         tabBarLabelStyle: {
           fontFamily: 'Inter-Medium',
-          fontSize: 12,
+          fontSize: 11,
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
           marginTop: 4,
         },
       }}>
@@ -30,18 +33,17 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <Home size={size} color={color} strokeWidth={2} />
           ),
-          // Remove native header for all platforms
           headerShown: false,
         }}
       />
       <Tabs.Screen
-        name="today" // Alias for index
+        name="today"
         options={{
           title: 'Today',
           tabBarIcon: ({ size, color }) => (
             <Sparkles size={size} color={color} strokeWidth={2} />
           ),
-          href: null, // Hide from tab bar but keep as navigation target
+          href: null,
         }}
       />
       <Tabs.Screen

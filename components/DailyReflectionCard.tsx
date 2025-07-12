@@ -34,7 +34,7 @@ export function DailyReflectionCard() {
     if (!hasDrawn && !loading) {
       scale.value = withRepeat(
         withSequence(
-          withTiming(1.05, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1.02, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
           withTiming(1, { duration: 2500, easing: Easing.inOut(Easing.ease) })
         ), -1, true
       );
@@ -70,30 +70,40 @@ export function DailyReflectionCard() {
   return (
     <Pressable onPress={handlePress}>
       <Animated.View style={[styles.container, animatedStyle]}>
-        <LinearGradient
-          colors={hasDrawn ? ['#374151', '#1f2937'] : ['#4f46e5', '#818cf8']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.gradient}
-        >
-          {!hasDrawn && (
-            <Animated.View style={[styles.glow, animatedGlowStyle]} />
-          )}
-          <View style={styles.iconContainer}>
-            <Sparkles size={28} color="#f9fafb" />
-          </View>
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>
-              {hasDrawn ? "Review Today's Reading" : 'Your Daily Reading is Ready'}
-            </Text>
-            <Text style={styles.subtitle}>
-              {hasDrawn ? 'Revisit your reflection for today' : 'Tap here to draw your card'}
-            </Text>
-          </View>
-          <View style={styles.arrowContainer}>
-            <ArrowRight size={24} color="#e5e7eb" />
-          </View>
-        </LinearGradient>
+        <View style={styles.card}>
+          <LinearGradient
+            colors={hasDrawn 
+              ? ['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)'] 
+              : ['rgba(251,191,36,0.2)', 'rgba(251,191,36,0.1)']}
+            style={styles.gradient}
+          >
+            {!hasDrawn && (
+              <Animated.View style={[styles.glow, animatedGlowStyle]} />
+            )}
+            <View style={styles.content}>
+              <View style={[
+                styles.iconContainer,
+                { backgroundColor: hasDrawn ? 'rgba(255,255,255,0.1)' : 'rgba(251,191,36,0.2)' }
+              ]}>
+                <Sparkles 
+                  size={24} 
+                  color={hasDrawn ? '#94a3b8' : '#fbbf24'} 
+                />
+              </View>
+              <View style={styles.textContainer}>
+                <Text style={styles.title}>
+                  {hasDrawn ? "Review Today's Reading" : 'Your Daily Reading is Ready'}
+                </Text>
+                <Text style={styles.subtitle}>
+                  {hasDrawn ? 'Revisit your reflection for today' : 'Tap here to draw your card'}
+                </Text>
+              </View>
+              <View style={styles.arrowContainer}>
+                <ArrowRight size={16} color="#64748b" />
+              </View>
+            </View>
+          </LinearGradient>
+        </View>
       </Animated.View>
     </Pressable>
   );
@@ -101,58 +111,62 @@ export function DailyReflectionCard() {
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 24,
-    shadowColor: '#818cf8',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 15,
+    width: '100%',
   },
   loadingState: {
-    height: 100,
+    height: 80,
     backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  card: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
   },
   gradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 24,
-    borderRadius: 24,
-    overflow: 'hidden',
+    padding: 20,
   },
   glow: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#a78bfa',
-    borderRadius: 24,
+    top: -2,
+    left: -2,
+    right: -2,
+    bottom: -2,
+    backgroundColor: 'rgba(251,191,36,0.1)',
+    borderRadius: 18,
+    zIndex: -1,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 20,
+    marginRight: 16,
   },
   textContainer: {
     flex: 1,
   },
   title: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 18,
-    color: '#f9fafb',
-    marginBottom: 2,
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 16,
+    color: '#f8fafc',
+    marginBottom: 4,
   },
   subtitle: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
-    color: '#e5e7eb',
+    fontFamily: 'Inter-Medium',
+    fontSize: 13,
+    color: '#64748b',
   },
   arrowContainer: {
-    marginLeft: 16,
+    marginLeft: 12,
   },
 }); 

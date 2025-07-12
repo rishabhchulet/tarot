@@ -262,11 +262,13 @@ const styles = StyleSheet.create({
         letterSpacing: 1.5,
     },
     questionText: {
-        fontFamily: 'Inter-Bold',
-        color: '#F0F9FF',
         fontSize: 24,
-        lineHeight: 36,
+        fontFamily: 'Inter-Bold',
+        color: '#E0F2FE',
         textAlign: 'center',
+        lineHeight: 32,
+        textShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
+        marginBottom: 8,
     },
     guidanceContainer: {
         padding: 24,

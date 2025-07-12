@@ -48,46 +48,56 @@ export function StructuredReflection({
     setError(null);
     
     try {
-      const response = await fetch('/ai', {
+      // Create a timeout wrapper for the fetch request
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+      });
+      
+      const fetchPromise = fetch('/ai', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: `You are a wise and insightful spiritual guide who creates thoughtful reflection questions. Your role is to help people connect with their inner wisdom through meaningful contemplation.
+          type: 'structured-reflection',
+          data: {
+            prompt: `Create a structured 4-part reflection combining the Tarot card "${cardName}"${isReversed ? ' (reversed)' : ''} and the I Ching hexagram "${hexagramName}". 
 
-Create a single, powerful reflection question that combines the wisdom of both Tarot and I Ching. The question should be:
-- Deeply personal and introspective
-- Focused on growth and self-discovery
-- Practical for daily reflection
-- Meaningful and thought-provoking
-- Suitable for quiet contemplation
+Provide exactly these 4 sections:
+1. iChingReflection: A 2-3 sentence reflection on the I Ching hexagram's wisdom
+2. tarotReflection: A 2-3 sentence reflection on the Tarot card's message
+3. synthesis: A 2-3 sentence synthesis of how these energies work together
+4. reflectionPrompt: A single powerful question for daily contemplation
 
-Format: Return ONLY the question itself, without quotes, prefixes, or explanations.`
-            },
-            {
-              role: 'user',
-              content: `Create a reflection question that weaves together the energy of the Tarot card "${cardName}"${isReversed ? ' (reversed)' : ''} and the I Ching hexagram "${hexagramName}". The question should help someone reflect on how these combined energies might guide their day.`
-            }
-          ]
+Keep each section concise and meaningful.`,
+            cardName,
+            hexagramName,
+            isReversed
+          }
         }),
       });
 
+      // Race between fetch and timeout
+      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+
       if (!response.ok) {
-        throw new Error('Failed to generate reflection');
+        throw new Error(`HTTP ${response.status}: Failed to generate reflection`);
       }
 
-      const data = await response.json();
-      const generatedReflection = data.content.trim();
+      const result = await response.json();
       
-      setReflection(generatedReflection);
+      // Validate the response structure
+      if (!result.iChingReflection || !result.tarotReflection || !result.synthesis || !result.reflectionPrompt) {
+        throw new Error('Invalid response structure');
+      }
       
-      // Trigger the callback with the generated reflection
+      // Create a formatted reflection string
+      const formattedReflection = `${result.synthesis}\n\n${result.reflectionPrompt}`;
+      setReflection(formattedReflection);
+      
+      // Trigger the callback with the reflection prompt
       if (onReflectionGenerated) {
-        onReflectionGenerated(generatedReflection);
+        onReflectionGenerated(result.reflectionPrompt);
       }
       
       // Start animations
@@ -96,12 +106,65 @@ Format: Return ONLY the question itself, without quotes, prefixes, or explanatio
       fadeIn3.value = withDelay(900, withTiming(1, { duration: 800 }));
       fadeIn4.value = withDelay(1200, withTiming(1, { duration: 800 }));
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error generating reflection:', err);
-      setError('Unable to generate reflection. Please try again.');
+      
+      // Enhanced fallback with meaningful content
+      const fallbackReflection = createFallbackReflection(cardName, hexagramName, isReversed);
+      setReflection(fallbackReflection);
+      
+      if (onReflectionGenerated) {
+        onReflectionGenerated(fallbackReflection);
+      }
+      
+      // Start animations even with fallback
+      fadeIn1.value = withDelay(300, withTiming(1, { duration: 800 }));
+      fadeIn2.value = withDelay(600, withTiming(1, { duration: 800 }));
+      fadeIn3.value = withDelay(900, withTiming(1, { duration: 800 }));
+      fadeIn4.value = withDelay(1200, withTiming(1, { duration: 800 }));
+      
+      // Don't show error if we have fallback content
+      if (!fallbackReflection) {
+        setError('Unable to generate reflection. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
+  };
+
+  // Enhanced fallback reflection generator
+  const createFallbackReflection = (cardName: string, hexagramName: string, isReversed: boolean): string => {
+    const cardKeywords = {
+      'The Fool': 'new beginnings, spontaneity, innocence',
+      'The Magician': 'manifestation, resourcefulness, power',
+      'The High Priestess': 'intuition, sacred knowledge, divine feminine',
+      'The Empress': 'femininity, beauty, nature',
+      'The Emperor': 'authority, structure, control',
+      'The Hierophant': 'spiritual wisdom, religious beliefs, conformity',
+      'The Lovers': 'love, harmony, relationships',
+      'The Chariot': 'control, willpower, success',
+      'Strength': 'inner strength, bravery, compassion',
+      'The Hermit': 'soul searching, introspection, inner guidance',
+      'Wheel of Fortune': 'good luck, karma, life cycles',
+      'Justice': 'justice, fairness, truth',
+      'The Hanged Man': 'suspension, restriction, letting go',
+      'Death': 'endings, beginnings, change',
+      'Temperance': 'balance, moderation, patience',
+      'The Devil': 'bondage, addiction, sexuality',
+      'The Tower': 'sudden change, upheaval, chaos',
+      'The Star': 'hope, faith, purpose',
+      'The Moon': 'illusion, fear, anxiety',
+      'The Sun': 'optimism, freedom, fun',
+      'Judgement': 'judgement, rebirth, inner calling',
+      'The World': 'completion, accomplishment, travel'
+    };
+
+    const keywords = cardKeywords[cardName as keyof typeof cardKeywords] || 'wisdom, growth, insight';
+    const reversedText = isReversed ? ' in its shadow aspect' : '';
+    
+    return `The energy of ${cardName}${reversedText} combines with the ancient wisdom of ${hexagramName} to offer you guidance today. ${keywords.split(', ')[0]} emerges as a key theme, inviting you to explore how this quality can serve your highest good.
+
+How might you embody the essence of ${keywords.split(', ')[0]} while honoring the deeper wisdom that ${hexagramName} brings to your path?`;
   };
 
   const handleRetry = () => {

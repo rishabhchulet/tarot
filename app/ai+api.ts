@@ -23,7 +23,7 @@ function getOpenAIClient(): OpenAI {
 async function retryOperation<T>(
   operation: () => Promise<T>,
   maxRetries: number = 3,
-  delay: number = 1000
+  delay: number = 2000 // INCREASED: Start with 2 seconds
 ): Promise<T> {
   let lastError: Error;
   
@@ -40,6 +40,7 @@ async function retryOperation<T>(
         error.code === 'ETIMEDOUT' ||
         error.message?.includes('socket hang up') ||
         error.message?.includes('Connection error') ||
+        error.message?.includes('Network request failed') ||
         error.status === 429 || // Rate limit
         error.status === 500 || // Server error
         error.status === 502 || // Bad gateway
@@ -50,8 +51,8 @@ async function retryOperation<T>(
         throw error;
       }
       
-      // Exponential backoff with jitter
-      const backoffDelay = delay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+      // Exponential backoff with jitter - more generous delays
+      const backoffDelay = delay * Math.pow(2, attempt - 1) + Math.random() * 2000;
       console.log(`Attempt ${attempt} failed, retrying in ${Math.round(backoffDelay)}ms...`);
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }

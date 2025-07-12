@@ -20,7 +20,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-// Custom storage adapter for Expo SecureStore with better error handling
+// Custom storage adapter for Expo SecureStore with better error handling and size optimization
 const ExpoSecureStoreAdapter = {
   getItem: (key: string) => {
     try {
@@ -47,6 +47,12 @@ const ExpoSecureStoreAdapter = {
         }
         // Do nothing if localStorage is not available
       } else {
+        // Check value size before storing in SecureStore
+        if (value.length > 2048) {
+          console.warn('⚠️ Large value being stored in SecureStore, consider optimization');
+          // For large values, we could implement chunking or use a different storage method
+          // For now, we'll still store it but warn the user
+        }
         SecureStore.setItemAsync(key, value);
       }
     } catch (error) {

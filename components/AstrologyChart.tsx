@@ -8,7 +8,6 @@ import Animated, {
   withRepeat, 
   withSequence,
   Easing,
-  interpolate
 } from 'react-native-reanimated';
 import { PlanetPosition, getZodiacSign } from '@/utils/astrologyCalculations';
 
@@ -48,9 +47,9 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
   const { width } = Dimensions.get('window');
   const size = Math.min(width - 40, 400);
   const center = size / 2;
-  const outerRadius = size / 2 - 20;
+  const outerRadius = size / 2 - 30; // Increased margin for better spacing
   const innerRadius = outerRadius - 40;
-  const planetRadius = outerRadius - 20;
+  const planetRadius = outerRadius - 15; // Adjusted for better planet positioning
 
   // Animation values
   const rotation = useSharedValue(0);
@@ -90,10 +89,6 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
     opacity: glowPulse.value,
   }));
 
-  const animatedPlanetStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: planetScale.value }],
-  }));
-
   const getCoordinates = (degree: number, radius: number) => {
     const angleRad = (degree - 90) * (Math.PI / 180);
     return {
@@ -125,20 +120,25 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
         </Text>
       </View>
 
-      <Animated.View style={[styles.chartContainer, animatedChartStyle]}>
-        <Svg height={size} width={size}>
-          <Defs>
-            <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-              <Stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
-            </RadialGradient>
-            <RadialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor="rgba(251,191,36,0.1)" />
-              <Stop offset="100%" stopColor="rgba(251,191,36,0.02)" />
-            </RadialGradient>
-          </Defs>
+      {/* Main chart container with proper layering */}
+      <View style={styles.chartWrapper}>
+        {/* Background glow effect */}
+        <Animated.View style={[styles.backgroundGlow, animatedGlowStyle]} />
+        
+        {/* Rotating chart background */}
+        <Animated.View style={[styles.chartContainer, animatedChartStyle]}>
+          <Svg height={size} width={size} style={styles.svgChart}>
+            <Defs>
+              <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
+                <Stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+              </RadialGradient>
+              <RadialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
+                <Stop offset="0%" stopColor="rgba(251,191,36,0.1)" />
+                <Stop offset="100%" stopColor="rgba(251,191,36,0.02)" />
+              </RadialGradient>
+            </Defs>
 
-          <G>
             {/* Background circles with gradients */}
             <Circle cx={center} cy={center} r={outerRadius} fill="url(#outerGlow)" />
             <Circle cx={center} cy={center} r={innerRadius} fill="url(#centerGlow)" />
@@ -185,7 +185,7 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
               const degree = i * 30;
               const outer = getCoordinates(degree, outerRadius);
               const inner = getCoordinates(degree, innerRadius);
-              const degreeMarker = getCoordinates(degree, outerRadius + 8);
+              const degreeMarker = getCoordinates(degree, outerRadius + 15);
               
               return (
                 <G key={`division-${i}`}>
@@ -222,7 +222,7 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
                   key={sign.name}
                   x={coords.x}
                   y={coords.y}
-                  fontSize="22"
+                  fontSize="20"
                   fill={sign.color}
                   textAnchor="middle"
                   alignmentBaseline="central"
@@ -233,49 +233,47 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
               );
             })}
 
-            {/* Center point with animated glow */}
+            {/* Center point */}
             <Circle cx={center} cy={center} r="4" fill="rgba(251,191,36,0.8)" />
-          </G>
-        </Svg>
-      </Animated.View>
+          </Svg>
+        </Animated.View>
 
-      {/* Animated planets overlay (non-rotating) */}
-      <Animated.View style={[styles.planetsOverlay, animatedPlanetStyle]}>
-        <Svg height={size} width={size}>
-          {positions.map((planet, index) => {
-            const coords = getCoordinates(planet.longitude, planetRadius);
-            const planetInfo = PLANET_GLYPHS[planet.name];
-            
-            return (
-              <G key={planet.name}>
-                {/* Planet glow with animation */}
-                <Animated.View style={animatedGlowStyle}>
+        {/* Static planets overlay (non-rotating) */}
+        <View style={styles.planetsContainer}>
+          <Svg height={size} width={size} style={styles.svgPlanets}>
+            {positions.map((planet) => {
+              const coords = getCoordinates(planet.longitude, planetRadius);
+              const planetInfo = PLANET_GLYPHS[planet.name];
+              
+              return (
+                <G key={planet.name}>
+                  {/* Planet glow background */}
                   <Circle
                     cx={coords.x}
                     cy={coords.y}
-                    r="14"
-                    fill={`${planetInfo?.color || '#FFFFFF'}15`}
+                    r="12"
+                    fill={`${planetInfo?.color || '#FFFFFF'}20`}
                     stroke={`${planetInfo?.color || '#FFFFFF'}40`}
-                    strokeWidth="1.5"
+                    strokeWidth="1"
                   />
-                </Animated.View>
-                {/* Planet symbol */}
-                <SvgText
-                  x={coords.x}
-                  y={coords.y}
-                  fontSize="18"
-                  fill={planetInfo?.color || '#FFFFFF'}
-                  textAnchor="middle"
-                  alignmentBaseline="central"
-                  fontWeight="bold"
-                >
-                  {planetInfo?.symbol || '?'}
-                </SvgText>
-              </G>
-            );
-          })}
-        </Svg>
-      </Animated.View>
+                  {/* Planet symbol */}
+                  <SvgText
+                    x={coords.x}
+                    y={coords.y}
+                    fontSize="16"
+                    fill={planetInfo?.color || '#FFFFFF'}
+                    textAnchor="middle"
+                    alignmentBaseline="central"
+                    fontWeight="bold"
+                  >
+                    {planetInfo?.symbol || '?'}
+                  </SvgText>
+                </G>
+              );
+            })}
+          </Svg>
+        </View>
+      </View>
       
       {/* Enhanced legend with more information */}
       <View style={styles.legendContainer}>
@@ -329,22 +327,42 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  chartContainer: {
+  chartWrapper: {
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  planetsOverlay: {
+  backgroundGlow: {
     position: 'absolute',
-    top: 20,
-    left: 20,
+    width: '120%',
+    height: '120%',
+    borderRadius: 1000,
+    backgroundColor: 'rgba(251, 191, 36, 0.05)',
+    zIndex: 0,
+  },
+  chartContainer: {
+    zIndex: 1,
+  },
+  planetsContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 2,
+  },
+  svgChart: {
+    overflow: 'visible',
+  },
+  svgPlanets: {
+    overflow: 'visible',
   },
   legendContainer: {
     marginTop: 24,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
     borderRadius: 16,
     padding: 16,
     width: '100%',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: 'rgba(251, 191, 36, 0.1)',
   },
   legendTitle: {
     fontSize: 16,
@@ -365,13 +383,13 @@ const styles = StyleSheet.create({
     width: '48%',
     marginBottom: 8,
     padding: 10,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    backgroundColor: 'rgba(251, 191, 36, 0.05)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: 'rgba(251, 191, 36, 0.1)',
   },
   planetSymbol: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     marginRight: 8,
     width: 24,

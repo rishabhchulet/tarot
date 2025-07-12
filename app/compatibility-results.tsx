@@ -34,13 +34,23 @@ export default function CompatibilityResultsScreen() {
   // Cache the report to prevent reloading
   const reportCacheRef = useRef<string>('');
   const cachedReportRef = useRef<ReportData | null>(null);
+  const hasInitialized = useRef(false);
+
+  // Extract stable values from params to avoid infinite loop
+  const personAParam = params.personA as string;
+  const personBParam = params.personB as string;
+  const reportTypeParam = params.reportType as string;
 
   useEffect(() => {
+    // Prevent multiple initializations
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const fetchReport = async () => {
       try {
-        const personA = JSON.parse(params.personA as string) as BirthProfile;
-        const personB = JSON.parse(params.personB as string) as BirthProfile;
-        const reportType = params.reportType as CompatibilityReportRequest['reportType'];
+        const personA = JSON.parse(personAParam) as BirthProfile;
+        const personB = JSON.parse(personBParam) as BirthProfile;
+        const reportType = reportTypeParam as CompatibilityReportRequest['reportType'];
 
         // Convert string dates back to Date objects if needed - with robust error handling
         const processedA: BirthProfile = {
@@ -118,7 +128,7 @@ export default function CompatibilityResultsScreen() {
     };
 
     fetchReport();
-  }, [params]);
+  }, [personAParam, personBParam, reportTypeParam]); // Use stable string values instead of params object
 
   const formatBirthInfo = (person: BirthProfile | null) => {
     if (!person?.date) return 'N/A';

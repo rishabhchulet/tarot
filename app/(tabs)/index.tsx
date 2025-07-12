@@ -10,9 +10,9 @@ import { FreeReadingCard } from '@/components/FreeReadingCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelestialInfo } from '@/components/CelestialInfo';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
   withTiming,
   withDelay,
   Easing,
@@ -41,7 +41,7 @@ const AnimatedSectionHeader: React.FC<AnimatedSectionHeaderProps> = ({ title, su
     transform: [{ translateY: translateY.value }],
   }));
 
-  return (
+    return (
     <Animated.View style={[styles.sectionHeader, animatedStyle]}>
       <View style={styles.sectionTitleContainer}>
         <Text style={styles.sectionTitle}>{title}</Text>
@@ -163,7 +163,7 @@ export default function HomeScreen() {
             <View style={styles.celestialContainer}>
               <CelestialInfo />
             </View>
-          </View>
+      </View>
 
         </ScrollView>
       </Animated.View>

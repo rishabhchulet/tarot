@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Calendar, Heart, Play, Pause } from 'lucide-react-native';
+import { Calendar, Heart, Play, Pause, Sparkles } from 'lucide-react-native';
 import { playAudio } from '@/utils/audio';
 
 interface NoteEntryProps {
   entry: any;
   onUpdate: () => void;
 }
-//TESTING in my new game
-//let's see
+
 export function NoteEntry({ entry }: NoteEntryProps) {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
 
@@ -36,57 +35,73 @@ export function NoteEntry({ entry }: NoteEntryProps) {
 
   return (
     <View style={styles.container}>
+      {/* Header with date and heart */}
       <View style={styles.header}>
         <View style={styles.dateContainer}>
-          <Calendar size={16} color="#6B7280" />
+          <View style={styles.dateIconContainer}>
+            <Calendar size={16} color="#fbbf24" />
+          </View>
           <Text style={styles.date}>{formatDate(entry.date)}</Text>
         </View>
-        <Heart size={16} color="#1e3a8a" />
+        <View style={styles.heartContainer}>
+          <Heart size={18} color="#fbbf24" fill="rgba(251, 191, 36, 0.1)" />
+        </View>
       </View>
 
-      <Text style={[styles.cardName, { color: '#F9FAFB' }]}>{entry.card_name}</Text>
+      {/* Card name */}
+      <Text style={styles.cardName}>{entry.card_name}</Text>
       
+      {/* Keywords */}
       {entry.card_keywords && (
         <View style={styles.keywords}>
           {entry.card_keywords.map((keyword: string, index: number) => (
-            <View key={index} style={[styles.keyword, { 
-              backgroundColor: 'rgba(30, 58, 138, 0.2)',
-              borderColor: 'rgba(30, 58, 138, 0.3)'
-            }]}>
-              <Text style={[styles.keywordText, { color: '#F9FAFB' }]}>{keyword}</Text>
+            <View key={index} style={styles.keyword}>
+              <Text style={styles.keywordText}>{keyword}</Text>
             </View>
           ))}
         </View>
       )}
 
+      {/* Reflection sections */}
       <View style={styles.reflectionContainer}>
         {entry.first_impressions && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>First Impressions</Text>
+            <View style={styles.sectionHeader}>
+              <Sparkles size={16} color="#fbbf24" />
+              <Text style={styles.sectionTitle}>First Impressions</Text>
+            </View>
             <Text style={styles.reflectionText}>{entry.first_impressions}</Text>
           </View>
         )}
 
         {entry.personal_meaning && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Personal Meaning</Text>
+            <View style={styles.sectionHeader}>
+              <Heart size={16} color="#fbbf24" />
+              <Text style={styles.sectionTitle}>Personal Meaning</Text>
+            </View>
             <Text style={styles.reflectionText}>{entry.personal_meaning}</Text>
           </View>
         )}
 
         {entry.voice_memo_path && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Voice Memo</Text>
+            <View style={styles.sectionHeader}>
+              <Play size={16} color="#fbbf24" />
+              <Text style={styles.sectionTitle}>Voice Memo</Text>
+            </View>
             <Pressable
               style={[styles.voiceButton, isPlayingAudio && styles.voiceButtonActive]}
               onPress={handlePlayVoiceMemo}
               disabled={isPlayingAudio}
             >
-              {isPlayingAudio ? (
-                <Pause size={20} color="#FFFFFF" />
-              ) : (
-                <Play size={20} color="#F59E0B" />
-              )}
+              <View style={styles.voiceButtonIcon}>
+                {isPlayingAudio ? (
+                  <Pause size={20} color="#0f172a" />
+                ) : (
+                  <Play size={20} color="#fbbf24" />
+                )}
+              </View>
               <Text style={[styles.voiceButtonText, isPlayingAudio && styles.voiceButtonTextActive]}>
                 {isPlayingAudio ? 'Playing...' : 'Play Voice Memo'}
               </Text>
@@ -100,88 +115,136 @@ export function NoteEntry({ entry }: NoteEntryProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(30, 58, 138, 0.08)',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    borderRadius: 20,
+    padding: 24,
     borderWidth: 1,
-    borderColor: 'rgba(30, 58, 138, 0.15)',
+    borderColor: 'rgba(251, 191, 36, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   dateContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 10,
+  },
+  dateIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
   },
   date: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-Medium',
-    color: '#6B7280',
+    color: '#94a3b8',
+  },
+  heartContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(251, 191, 36, 0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.1)',
   },
   cardName: {
-    fontSize: 20,
-    fontFamily: 'CormorantGaramond-Bold',
-    marginBottom: 12,
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#f8fafc',
+    marginBottom: 16,
+    letterSpacing: 0.5,
   },
   keywords: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 16,
+    gap: 8,
+    marginBottom: 20,
   },
   keyword: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
     borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
   },
   keywordText: {
-    fontSize: 12,
+    fontSize: 13,
     fontFamily: 'Inter-SemiBold',
+    color: '#fbbf24',
   },
   reflectionContainer: {
-    gap: 16,
+    gap: 20,
   },
   section: {
+    gap: 12,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
-    color: '#9CA3AF',
+    color: '#cbd5e1',
   },
   reflectionText: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#F9FAFB',
+    color: '#e2e8f0',
     lineHeight: 24,
+    paddingLeft: 24,
   },
   voiceButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(30, 58, 138, 0.1)',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     borderWidth: 1,
-    borderColor: '#1e3a8a',
-    gap: 8,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
+    gap: 12,
     alignSelf: 'flex-start',
+    marginLeft: 24,
   },
   voiceButtonActive: {
-    backgroundColor: '#1e3a8a',
+    backgroundColor: '#fbbf24',
+    borderColor: '#fbbf24',
+  },
+  voiceButtonIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(15, 23, 42, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   voiceButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontFamily: 'Inter-SemiBold',
-    color: '#1e3a8a',
+    color: '#fbbf24',
   },
   voiceButtonTextActive: {
-    color: '#F9FAFB',
+    color: '#0f172a',
   },
 });

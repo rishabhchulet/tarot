@@ -28,27 +28,45 @@ export default function JournalScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#0a0a0a', '#171717', '#0a0a0a']}
+        colors={['#0f172a', '#1e293b', '#0f172a']}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <BookUser size={28} color="#A78BFA" />
-        <Text style={styles.title}>Journal</Text>
+      
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+        <View style={styles.headerContent}>
+          <View style={styles.titleContainer}>
+            <View style={styles.iconContainer}>
+              <BookUser size={28} color="#fbbf24" />
+            </View>
+            <View style={styles.titleTextContainer}>
+              <Text style={styles.title}>Journal</Text>
+              <Text style={styles.subtitle}>Your Sacred Reflections</Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       <ScrollView 
         style={styles.scrollView} 
         showsVerticalScrollIndicator={false}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={loadEntries} tintColor="#A78BFA" />
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={loadEntries} 
+            tintColor="#fbbf24"
+            colors={['#fbbf24']}
+          />
         }
       >
         {entries.length === 0 ? (
           <View style={styles.emptyState}>
-            <BookOpen size={64} color="#6B7280" strokeWidth={1.5} />
-            <Text style={styles.emptyTitle}>Your journal is a sacred space.</Text>
+            <View style={styles.emptyIconContainer}>
+              <BookOpen size={64} color="#64748b" strokeWidth={1.5} />
+            </View>
+            <Text style={styles.emptyTitle}>Your Sacred Space Awaits</Text>
             <Text style={styles.emptyDescription}>
-              As you complete your daily readings, your reflections will be safely stored here.
+              As you complete your daily readings, your reflections and insights will be beautifully preserved here. Each entry becomes part of your spiritual journey.
             </Text>
           </View>
         ) : (
@@ -70,19 +88,47 @@ export default function JournalScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#0f172a',
   },
   header: {
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+  },
+  headerContent: {
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.1)',
+  },
+  titleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingBottom: 16,
-    paddingHorizontal: 24,
-    gap: 12,
+    gap: 16,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.2)',
+  },
+  titleTextContainer: {
+    flex: 1,
   },
   title: {
     fontSize: 28,
     fontFamily: 'Inter-Bold',
-    color: '#F9FAFB',
+    color: '#f8fafc',
+    marginBottom: 2,
+  },
+  subtitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#94a3b8',
   },
   scrollView: {
     flex: 1,
@@ -90,28 +136,38 @@ const styles = StyleSheet.create({
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: '30%',
+    paddingTop: '25%',
     paddingHorizontal: 32,
   },
+  emptyIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(30, 41, 59, 0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(100, 116, 139, 0.2)',
+  },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontFamily: 'Inter-SemiBold',
-    color: '#E4E4E7',
+    color: '#f1f5f9',
     textAlign: 'center',
-    marginTop: 24,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   emptyDescription: {
     fontSize: 16,
     fontFamily: 'Inter-Regular',
-    color: '#A1A1AA',
+    color: '#94a3b8',
     textAlign: 'center',
     lineHeight: 24,
-    maxWidth: 300,
+    maxWidth: 320,
   },
   entriesContainer: {
     paddingBottom: 40,
     paddingHorizontal: 24,
-    gap: 16,
+    gap: 20,
   },
 });

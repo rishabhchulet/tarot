@@ -5,7 +5,7 @@ import { GeneratingPlacements } from '@/components/GeneratingPlacements';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { DailyReflectionCard } from '@/components/DailyReflectionCard';
 import { NavCard } from '@/components/NavCard';
-import { Users, Star, BookOpen, Sparkles, Zap, Moon, Sun } from 'lucide-react-native';
+import { Users, Star } from 'lucide-react-native';
 import { FreeReadingCard } from '@/components/FreeReadingCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelestialInfo } from '@/components/CelestialInfo';
@@ -14,134 +14,31 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withRepeat,
-  withSequence,
   withDelay,
   Easing,
-  interpolate,
 } from 'react-native-reanimated';
 
 const { width } = Dimensions.get('window');
 
-// Floating cosmic elements component
-const FloatingCosmicElements = () => {
-  const float1 = useSharedValue(0);
-  const float2 = useSharedValue(0);
-  const float3 = useSharedValue(0);
-  const rotate1 = useSharedValue(0);
-  const rotate2 = useSharedValue(0);
-  const pulse1 = useSharedValue(0.8);
-  const pulse2 = useSharedValue(0.9);
+interface AnimatedSectionHeaderProps {
+  title: string;
+  subtitle: string;
+  delay: number;
+}
+
+// Animated section header component
+const AnimatedSectionHeader: React.FC<AnimatedSectionHeaderProps> = ({ title, subtitle, delay }) => {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
 
   useEffect(() => {
-    // Floating animations
-    float1.value = withRepeat(
-      withSequence(
-        withTiming(20, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 4000, easing: Easing.inOut(Easing.ease) })
-      ), -1, true
-    );
-
-    float2.value = withRepeat(
-      withSequence(
-        withTiming(-15, { duration: 3500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 3500, easing: Easing.inOut(Easing.ease) })
-      ), -1, true
-    );
-
-    float3.value = withRepeat(
-      withSequence(
-        withTiming(25, { duration: 5000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0, { duration: 5000, easing: Easing.inOut(Easing.ease) })
-      ), -1, true
-    );
-
-    // Rotation animations
-    rotate1.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
-      -1, false
-    );
-
-    rotate2.value = withRepeat(
-      withTiming(-360, { duration: 15000, easing: Easing.linear }),
-      -1, false
-    );
-
-    // Pulse animations
-    pulse1.value = withRepeat(
-      withSequence(
-        withTiming(1.2, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.8, { duration: 2000, easing: Easing.inOut(Easing.ease) })
-      ), -1, true
-    );
-
-    pulse2.value = withRepeat(
-      withSequence(
-        withTiming(1.1, { duration: 2500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(0.9, { duration: 2500, easing: Easing.inOut(Easing.ease) })
-      ), -1, true
-    );
-  }, []);
-
-  const animatedFloat1 = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: float1.value },
-      { rotate: `${rotate1.value}deg` },
-      { scale: pulse1.value }
-    ],
-  }));
-
-  const animatedFloat2 = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: float2.value },
-      { rotate: `${rotate2.value}deg` },
-      { scale: pulse2.value }
-    ],
-  }));
-
-  const animatedFloat3 = useAnimatedStyle(() => ({
-    transform: [{ translateY: float3.value }],
-  }));
-
-  return (
-    <View style={styles.floatingElements}>
-      {/* Floating sparkles */}
-      <Animated.View style={[styles.floatingElement1, animatedFloat1]}>
-        <Sparkles size={16} color="#fbbf24" fill="rgba(251, 191, 36, 0.3)" />
-      </Animated.View>
-      
-      <Animated.View style={[styles.floatingElement2, animatedFloat2]}>
-        <Star size={12} color="#f59e0b" fill="rgba(245, 158, 11, 0.4)" />
-      </Animated.View>
-      
-      <Animated.View style={[styles.floatingElement3, animatedFloat3]}>
-        <Moon size={14} color="#fbbf24" fill="rgba(251, 191, 36, 0.2)" />
-      </Animated.View>
-      
-      <Animated.View style={[styles.floatingElement4, animatedFloat1]}>
-        <Zap size={10} color="#f59e0b" fill="rgba(245, 158, 11, 0.3)" />
-      </Animated.View>
-      
-      <Animated.View style={[styles.floatingElement5, animatedFloat2]}>
-        <Sun size={18} color="#fbbf24" fill="rgba(251, 191, 36, 0.2)" />
-      </Animated.View>
-    </View>
-  );
-};
-
-// Enhanced section header with animations
-const AnimatedSectionHeader = ({ title, subtitle, delay = 0 }) => {
-  const fadeIn = useSharedValue(0);
-  const slideUp = useSharedValue(30);
-
-  useEffect(() => {
-    fadeIn.value = withDelay(delay, withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) }));
-    slideUp.value = withDelay(delay, withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) }));
+    opacity.value = withDelay(delay, withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) }));
+    translateY.value = withDelay(delay, withTiming(0, { duration: 800, easing: Easing.out(Easing.cubic) }));
   }, [delay]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: fadeIn.value,
-    transform: [{ translateY: slideUp.value }],
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
   }));
 
   return (
@@ -188,14 +85,6 @@ export default function HomeScreen() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
-      
-      {/* Floating cosmic elements */}
-      <FloatingCosmicElements />
-      
-      {/* Ambient glow effects */}
-      <View style={styles.ambientGlow1} />
-      <View style={styles.ambientGlow2} />
-      <View style={styles.ambientGlow3} />
       
       <Animated.View style={[styles.contentContainer, animatedContentStyle]}>
         <ScrollView 
@@ -287,74 +176,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0f172a',
   },
-  floatingElements: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 1,
-  },
-  floatingElement1: {
-    position: 'absolute',
-    top: '15%',
-    right: '10%',
-    opacity: 0.6,
-  },
-  floatingElement2: {
-    position: 'absolute',
-    top: '25%',
-    left: '8%',
-    opacity: 0.5,
-  },
-  floatingElement3: {
-    position: 'absolute',
-    top: '45%',
-    right: '15%',
-    opacity: 0.4,
-  },
-  floatingElement4: {
-    position: 'absolute',
-    top: '65%',
-    left: '12%',
-    opacity: 0.7,
-  },
-  floatingElement5: {
-    position: 'absolute',
-    top: '80%',
-    right: '8%',
-    opacity: 0.5,
-  },
-  ambientGlow1: {
-    position: 'absolute',
-    top: '10%',
-    left: '20%',
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(251, 191, 36, 0.05)',
-    opacity: 0.6,
-  },
-  ambientGlow2: {
-    position: 'absolute',
-    top: '50%',
-    right: '10%',
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    backgroundColor: 'rgba(139, 92, 246, 0.03)',
-    opacity: 0.8,
-  },
-  ambientGlow3: {
-    position: 'absolute',
-    bottom: '20%',
-    left: '10%',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    backgroundColor: 'rgba(251, 191, 36, 0.04)',
-    opacity: 0.7,
-  },
   contentContainer: {
     flex: 1,
     zIndex: 2,
@@ -393,41 +214,25 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     fontFamily: 'Inter-Medium',
-    fontSize: 15,
+    fontSize: 14,
     color: '#94a3b8',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   dailyReadingContainer: {
-    shadowColor: '#fbbf24',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    elevation: 8,
+    marginBottom: 8,
   },
   exploreGrid: {
     flexDirection: 'row',
     gap: 16,
+    marginBottom: 8,
   },
   gridItem: {
     flex: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
   },
   universeContainer: {
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    marginBottom: 8,
   },
   celestialContainer: {
-    shadowColor: '#fbbf24',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 5,
+    marginBottom: 8,
   },
 });

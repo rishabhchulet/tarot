@@ -72,7 +72,13 @@ const handleNetworkError = (error: any, context: string) => {
 export const getAICardInterpretation = async (data: AICardInterpretationRequest) => {
   try {
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/ai`, {
+    
+    // Create a timeout wrapper for the fetch request
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+    });
+    
+    const fetchPromise = fetch(`${baseUrl}/ai`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -83,17 +89,25 @@ export const getAICardInterpretation = async (data: AICardInterpretationRequest)
       }),
     });
 
+    // Race between fetch and timeout
+    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+
     if (!response.ok) {
-      throw new Error('Failed to get AI interpretation');
+      throw new Error(`HTTP ${response.status}: Failed to get AI interpretation`);
     }
 
     const result = await response.json();
     return { interpretation: result.interpretation, error: null };
   } catch (error: any) {
+    console.error('Card interpretation error:', error);
     const enhancedError = handleNetworkError(error, 'interpretation');
+    
+    // Create a fallback interpretation
+    const fallbackInterpretation = createFallbackInterpretation(data);
+    
     return { 
-      interpretation: null, 
-      error: enhancedError
+      interpretation: fallbackInterpretation, 
+      error: null // Don't show error since we have fallback
     };
   }
 };
@@ -101,7 +115,13 @@ export const getAICardInterpretation = async (data: AICardInterpretationRequest)
 export const getAIReflectionPrompts = async (data: AIReflectionPromptsRequest) => {
   try {
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/ai`, {
+    
+    // Create a timeout wrapper for the fetch request
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+    });
+    
+    const fetchPromise = fetch(`${baseUrl}/ai`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -112,17 +132,25 @@ export const getAIReflectionPrompts = async (data: AIReflectionPromptsRequest) =
       }),
     });
 
+    // Race between fetch and timeout
+    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+
     if (!response.ok) {
-      throw new Error('Failed to get AI reflection prompts');
+      throw new Error(`HTTP ${response.status}: Failed to get AI reflection prompts`);
     }
 
     const result = await response.json();
     return { questions: result.questions, error: null };
   } catch (error: any) {
+    console.error('Reflection prompts error:', error);
     const enhancedError = handleNetworkError(error, 'reflection prompts');
+    
+    // Create fallback prompts
+    const fallbackPrompts = createFallbackReflectionPrompts(data);
+    
     return { 
-      questions: [], 
-      error: enhancedError
+      questions: fallbackPrompts, 
+      error: null // Don't show error since we have fallback
     };
   }
 };
@@ -130,7 +158,13 @@ export const getAIReflectionPrompts = async (data: AIReflectionPromptsRequest) =
 export const getAIPersonalizedGuidance = async (data: AIPersonalizedGuidanceRequest) => {
   try {
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/ai`, {
+    
+    // Create a timeout wrapper for the fetch request
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+    });
+    
+    const fetchPromise = fetch(`${baseUrl}/ai`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -141,17 +175,25 @@ export const getAIPersonalizedGuidance = async (data: AIPersonalizedGuidanceRequ
       }),
     });
 
+    // Race between fetch and timeout
+    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+
     if (!response.ok) {
-      throw new Error('Failed to get AI guidance');
+      throw new Error(`HTTP ${response.status}: Failed to get AI guidance`);
     }
 
     const result = await response.json();
     return { guidance: result.guidance, error: null };
   } catch (error: any) {
+    console.error('Personalized guidance error:', error);
     const enhancedError = handleNetworkError(error, 'guidance');
+    
+    // Create fallback guidance
+    const fallbackGuidance = createFallbackGuidance(data);
+    
     return { 
-      guidance: null, 
-      error: enhancedError
+      guidance: fallbackGuidance, 
+      error: null // Don't show error since we have fallback
     };
   }
 };
@@ -253,6 +295,37 @@ const createFallbackCompatibilityReport = (data: CompatibilityReportRequest) => 
     personBName: personBName,
     insight: `Born under different stars, ${personAName} and ${personBName} find their paths converging in meaningful ways. This ${reportType.toLowerCase()} offers rich opportunities for mutual growth and understanding.`,
   };
+};
+
+// Enhanced fallback functions for AI features
+const createFallbackInterpretation = (data: AICardInterpretationRequest): string => {
+  const { cardName, cardKeywords, hexagramName, focusArea } = data;
+  const primaryKeyword = cardKeywords[0] || 'wisdom';
+  const focusText = focusArea || 'your journey';
+  
+  return `The energy of ${cardName} combines beautifully with the ancient wisdom of ${hexagramName} to offer guidance for ${focusText}. ${primaryKeyword} emerges as a key theme today, inviting you to explore how this quality can serve your highest good. Consider how the essence of ${primaryKeyword.toLowerCase()} might illuminate your path forward, while the deeper teachings of ${hexagramName} provide a foundation for meaningful growth and understanding.`;
+};
+
+const createFallbackReflectionPrompts = (data: AIReflectionPromptsRequest): string[] => {
+  const { cardName, cardKeywords, hexagramName, focusArea } = data;
+  const primaryKeyword = cardKeywords[0] || 'wisdom';
+  const focusText = focusArea || 'life';
+  
+  return [
+    `Where in your ${focusText} are you being called to embody the essence of ${primaryKeyword.toLowerCase()}, as reflected in ${cardName}?`,
+    `How can the ancient wisdom of ${hexagramName} guide you through your current challenges and opportunities?`,
+    `What would it look like to fully embrace both the energy of ${cardName} and the teachings of ${hexagramName} in your daily choices?`
+  ];
+};
+
+const createFallbackGuidance = (data: AIPersonalizedGuidanceRequest): string => {
+  const { cardName, hexagramName, focusArea, timeOfDay } = data;
+  const timeText = timeOfDay === 'morning' ? 'As you begin your day' : 
+                   timeOfDay === 'evening' ? 'As you reflect on your day' : 
+                   'In this moment';
+  const focusText = focusArea || 'your personal growth';
+  
+  return `${timeText}, ${cardName} and ${hexagramName} come together to offer gentle guidance for ${focusText}. This combination suggests a time for mindful awareness and authentic action. Trust in your inner wisdom as you navigate the opportunities and challenges ahead. The path forward may not always be clear, but by staying true to your values and remaining open to growth, you'll find the guidance you need.`;
 };
 
 // Helper function to determine time of day

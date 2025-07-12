@@ -130,7 +130,13 @@ export const getStructuredReflection = async (
     const prompt = createStructuredPrompt(card, hexagram, isReversed);
     
     const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/ai`, {
+    
+    // Create a timeout wrapper for the fetch request
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+    });
+    
+    const fetchPromise = fetch(`${baseUrl}/ai`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -146,10 +152,13 @@ export const getStructuredReflection = async (
       }),
     });
 
+    // Race between fetch and timeout
+    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+
     if (!response.ok) {
       const errorBody = await response.text();
       console.error('Structured Reflection API Error:', errorBody);
-      throw new Error('Failed to get structured reflection from AI');
+      throw new Error(`HTTP ${response.status}: Failed to get structured reflection from AI`);
     }
 
     const result = await response.json();

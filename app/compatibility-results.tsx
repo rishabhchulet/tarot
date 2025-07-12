@@ -8,6 +8,7 @@ import { getAICompatibilityReport, CompatibilityReportRequest } from '@/utils/ai
 import { ScoreGauge } from '@/components/ScoreGauge';
 import { StatsList, Stat } from '@/components/StatsList';
 import { BirthProfile } from '@/components/BirthProfileInput';
+import { PlanetaryLoadingAnimation } from '@/components/PlanetaryLoadingAnimation';
 
 interface ReportData {
   score: number;
@@ -90,16 +91,11 @@ export default function CompatibilityResultsScreen() {
   const renderContent = () => {
     if (loading) {
       return (
-        <View style={styles.centered}>
-          <View style={styles.loadingContainer}>
-            <Sparkles size={48} color="#a78bfa" />
-            <ActivityIndicator size="large" color="#c7d2fe" style={styles.spinner} />
-            <Text style={styles.loadingText}>Consulting the stars for your connection...</Text>
-            <Text style={styles.loadingSubtext}>
-              Weaving cosmic insights for your souls
-            </Text>
-          </View>
-        </View>
+        <PlanetaryLoadingAnimation 
+          message="Consulting the stars for your connection..."
+          submessage="Weaving cosmic insights for your souls"
+          showFloatingStars={true}
+        />
       );
     }
 

@@ -7,6 +7,7 @@ import { getTodaysEntry } from '@/utils/database';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence, interpolate, Extrapolate } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import { PlanetaryLoadingAnimation } from '@/components/PlanetaryLoadingAnimation';
 
 export default function DailyQuestionScreen() {
   const [todaysEntry, setTodaysEntry] = useState<any>(null);
@@ -60,13 +61,11 @@ export default function DailyQuestionScreen() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <LinearGradient colors={['#0C1427', '#1A2A4D', '#0C1427']} style={StyleSheet.absoluteFill} />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator color="#38BDF8" size="large" />
-          <Text style={styles.loadingText}>Loading your daily insight...</Text>
-        </View>
-      </View>
+      <PlanetaryLoadingAnimation 
+        message="Loading your daily insight..."
+        submessage="Retrieving your cosmic guidance for today"
+        showFloatingStars={true}
+      />
     );
   }
 
@@ -124,18 +123,18 @@ export default function DailyQuestionScreen() {
               </Text>
             </View>
         </View>
-
-        <View style={styles.actions}>
-            <Pressable style={styles.actionButton} onPress={() => router.push('/(tabs)/journal')}>
-                <BookOpen size={20} color="#E0F2FE" />
-                <Text style={styles.actionButtonText}>Go to Journal</Text>
-            </Pressable>
-            <Pressable style={[styles.actionButton, styles.primaryButton]} onPress={() => router.replace('/(tabs)')}>
-                <Home size={20} color="#F9FAFB" />
-                <Text style={styles.primaryButtonText}>Done for Today</Text>
-            </Pressable>
-        </View>
       </ScrollView>
+
+      <View style={[styles.bottomActions, { paddingBottom: insets.bottom + 20 }]}>
+          <Pressable style={styles.secondaryButton} onPress={() => router.replace('/(tabs)')}>
+              <Home size={20} color="#94A3B8" />
+              <Text style={styles.secondaryButtonText}>Home</Text>
+          </Pressable>
+          <Pressable style={styles.primaryButton} onPress={() => router.replace('/draw')}>
+              <BookOpen size={20} color="#F0F9FF" />
+              <Text style={styles.primaryButtonText}>New Reading</Text>
+          </Pressable>
+      </View>
     </View>
   );
 }
@@ -295,6 +294,34 @@ const styles = StyleSheet.create({
     primaryButtonText: {
         fontFamily: 'Inter-SemiBold',
         color: '#F0F9FF',
+        fontSize: 16,
+        marginLeft: 8,
+    },
+    bottomActions: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingHorizontal: 24,
+        backgroundColor: 'rgba(14, 27, 56, 0.8)',
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(56, 189, 248, 0.2)',
+    },
+    secondaryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 18,
+        borderRadius: 99,
+        borderWidth: 1,
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    },
+    secondaryButtonText: {
+        fontFamily: 'Inter-SemiBold',
+        color: '#94A3B8',
         fontSize: 16,
         marginLeft: 8,
     },

@@ -9,29 +9,50 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: '#0f172a',
-          borderTopColor: 'rgba(255,255,255,0.1)',
+          borderTopColor: 'rgba(251, 191, 36, 0.2)',
           borderTopWidth: 1,
-          paddingTop: 12,
-          paddingBottom: Platform.OS === 'ios' ? 32 : 12,
-          height: Platform.OS === 'ios' ? 88 : 72,
+          paddingTop: 16,
+          paddingBottom: Platform.OS === 'ios' ? 34 : 16,
+          paddingHorizontal: 8,
+          height: Platform.OS === 'ios' ? 92 : 76,
+          shadowColor: '#000',
+          shadowOffset: {
+            width: 0,
+            height: -4,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 8,
         },
         tabBarActiveTintColor: '#fbbf24',
         tabBarInactiveTintColor: '#64748b',
         tabBarLabelStyle: {
-          fontFamily: 'Inter-Medium',
-          fontSize: 11,
-          marginTop: 4,
+          fontFamily: 'Inter-SemiBold',
+          fontSize: 12,
+          marginTop: 6,
+          letterSpacing: 0.3,
         },
         tabBarIconStyle: {
-          marginTop: 4,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 4,
+          marginHorizontal: 4,
+          borderRadius: 16,
+          backgroundColor: 'transparent',
         },
       }}>
       <Tabs.Screen
         name="index" 
         options={{
-          title: 'Today',
-          tabBarIcon: ({ size, color }) => (
-            <Home size={size} color={color} strokeWidth={2} />
+          title: 'Home',
+          tabBarIcon: ({ size, color, focused }) => (
+            <Home 
+              size={focused ? 26 : 24} 
+              color={color} 
+              strokeWidth={focused ? 2.5 : 2}
+              fill={focused ? 'rgba(251, 191, 36, 0.1)' : 'transparent'}
+            />
           ),
           headerShown: false,
         }}
@@ -50,8 +71,13 @@ export default function TabLayout() {
         name="journal"
         options={{
           title: 'Journal',
-          tabBarIcon: ({ size, color }) => (
-            <BookOpen size={size} color={color} strokeWidth={2} />
+          tabBarIcon: ({ size, color, focused }) => (
+            <BookOpen 
+              size={focused ? 26 : 24} 
+              color={color} 
+              strokeWidth={focused ? 2.5 : 2}
+              fill={focused ? 'rgba(251, 191, 36, 0.1)' : 'transparent'}
+            />
           ),
         }}
       />
@@ -59,8 +85,13 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ size, color }) => (
-            <Settings size={size} color={color} strokeWidth={2} />
+          tabBarIcon: ({ size, color, focused }) => (
+            <Settings 
+              size={focused ? 26 : 24} 
+              color={color} 
+              strokeWidth={focused ? 2.5 : 2}
+              fill={focused ? 'rgba(251, 191, 36, 0.1)' : 'transparent'}
+            />
           ),
         }}
       />

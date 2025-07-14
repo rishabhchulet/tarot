@@ -2,16 +2,18 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { Sparkles, CircleCheck as CheckCircle } from 'lucide-react-native';
+import { CircleCheck as CheckCircle } from 'lucide-react-native';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
   withTiming,
   withSequence,
   withRepeat,
-  Easing
+  Easing,
+  interpolate
 } from 'react-native-reanimated';
 import { useAuth } from '@/contexts/AuthContext';
+import { MandalaIcon } from '@/components/MandalaIcon';
 
 export default function AuthWelcomeScreen() {
   const { user, session } = useAuth();
@@ -26,6 +28,8 @@ export default function AuthWelcomeScreen() {
   const iconRotation = useSharedValue(0);
   const iconScale = useSharedValue(1);
   const glowScale = useSharedValue(1);
+  const particleRotation = useSharedValue(0);
+  const particleOpacity = useSharedValue(0.6);
 
   useEffect(() => {
     // Pulsating glow animation
@@ -38,11 +42,46 @@ export default function AuthWelcomeScreen() {
       true
     );
 
-    // Gentle icon rotation
-    iconRotation.value = withRepeat(
-      withTiming(360, { duration: 20000, easing: Easing.linear }),
+    // Enhanced mandala rotation: starts fast, then slows down to gentle rotation
+    iconRotation.value = withSequence(
+      // Fast initial spin (3 full rotations in 2 seconds)
+      withTiming(1080, { duration: 2000, easing: Easing.out(Easing.cubic) }),
+      // Then continue with slow, eternal rotation
+      withRepeat(
+        withTiming(1080 + 360, { duration: 20000, easing: Easing.linear }),
+        -1,
+        false
+      )
+    );
+
+    // Add a scaling effect that complements the rotation
+    iconScale.value = withSequence(
+      withTiming(1.1, { duration: 1000, easing: Easing.out(Easing.back(1.5)) }),
+      withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: 4000, easing: Easing.inOut(Easing.ease) }),
+          withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.ease) })
+        ),
+        -1,
+        true
+      )
+    );
+
+    // Add particle effects for extra ambiance
+    particleRotation.value = withRepeat(
+      withTiming(360, { duration: 30000, easing: Easing.linear }),
       -1,
       false
+    );
+
+    particleOpacity.value = withRepeat(
+      withSequence(
+        withTiming(0.8, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.4, { duration: 3000, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
     );
   }, [user, session]);
 
@@ -58,6 +97,13 @@ export default function AuthWelcomeScreen() {
         { rotate: `${iconRotation.value}deg` },
         { scale: iconScale.value }
       ],
+    };
+  });
+
+  const animatedParticleStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ rotate: `${particleRotation.value}deg` }],
+      opacity: particleOpacity.value,
     };
   });
 
@@ -85,12 +131,37 @@ export default function AuthWelcomeScreen() {
       )}
       <View style={styles.content}>
         <View style={styles.iconSection}>
+          {/* Floating Particles for Sacred Geometry Ambiance */}
+          <Animated.View style={[styles.particleContainer, animatedParticleStyle]}>
+            {Array.from({ length: 8 }, (_, i) => {
+              const angle = (i * 45) * (Math.PI / 180);
+              const radius = 80;
+              const x = Math.cos(angle) * radius;
+              const y = Math.sin(angle) * radius;
+              
+              return (
+                <View
+                  key={i}
+                  style={[
+                    styles.particle,
+                    {
+                      transform: [
+                        { translateX: x },
+                        { translateY: y },
+                      ],
+                    },
+                  ]}
+                />
+              );
+            })}
+          </Animated.View>
+
           <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
             <LinearGradient
               colors={['#1e40af', '#3b82f6']}
               style={styles.iconGradient}
             >
-              <Sparkles size={64} color="#FFFFFF" strokeWidth={1.5} />
+              <MandalaIcon size={64} color="#FFFFFF" strokeWidth={1.5} />
             </LinearGradient>
           </Animated.View>
         </View>
@@ -256,5 +327,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
     color: '#EF4444',
     marginBottom: 4,
+  },
+  particleContainer: {
+    position: 'absolute',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    overflow: 'hidden',
+    opacity: 0.3,
+    backgroundColor: 'transparent',
+  },
+  particle: {
+    position: 'absolute',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
 });

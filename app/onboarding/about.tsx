@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
-import { Heart } from 'lucide-react-native';
+import { Eye } from 'lucide-react-native';
 
 export default function AboutScreen() {
   const glowScale = useSharedValue(1);
@@ -40,8 +40,8 @@ export default function AboutScreen() {
 
       <View style={styles.content}>
         <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
-          <LinearGradient colors={['#c026d3', '#ec4899']} style={styles.iconGradient}>
-            <Heart size={70} color="#FFFFFF" strokeWidth={1.5} fill="#FFFFFF" />
+          <LinearGradient colors={['#8b5cf6', '#a855f7']} style={styles.iconGradient}>
+            <Eye size={70} color="#FFFFFF" strokeWidth={1.5} fill="#FFFFFF" />
           </LinearGradient>
         </Animated.View>
         
@@ -54,7 +54,7 @@ export default function AboutScreen() {
       
       <Pressable onPress={handleContinue}>
         <LinearGradient
-            colors={['#c026d3', '#ec4899']}
+            colors={['#8b5cf6', '#a855f7']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={styles.primaryButton}
           >
@@ -72,13 +72,13 @@ const styles = StyleSheet.create({
   },
   glow: {
     position: 'absolute', top: '10%', left: '50%', width: 400, height: 400,
-    backgroundColor: 'rgba(192, 38, 211, 0.2)', borderRadius: 200,
+    backgroundColor: 'rgba(139, 92, 246, 0.2)', borderRadius: 200,
     transform: [{ translateX: -200 }],
   },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   iconContainer: {
     width: 120, height: 120, alignItems: 'center', justifyContent: 'center',
-    borderRadius: 30, shadowColor: '#c026d3', shadowOffset: { width: 0, height: 4 },
+    borderRadius: 30, shadowColor: '#8b5cf6', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5, shadowRadius: 20, elevation: 10, marginBottom: 48,
   },
   iconGradient: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     borderRadius: 12, paddingVertical: 18, paddingHorizontal: 32,
-    alignItems: 'center', shadowColor: '#c026d3',
+    alignItems: 'center', shadowColor: '#8b5cf6',
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.4,
     shadowRadius: 10, elevation: 8,
   },

@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { FlaskConical, Eye, PenTool, User, Sparkles, Shuffle } from 'lucide-react-native';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  Easing,
+  withDelay
+} from 'react-native-reanimated';
 
 const ARCHETYPES = [
   { id: 'alchemist', name: 'The Alchemist', icon: FlaskConical, colors: ['#3b82f6', '#2563eb'], description: 'You walk the path of transformation and depth. Turning challenges into your power.' },
@@ -14,6 +22,58 @@ const ARCHETYPES = [
   { id: 'trickster', name: 'The Trickster', icon: Sparkles, colors: ['#f59e0b', '#d97706'], description: 'You challenge norms with humor and adaptability, pushing others to grow.' },
   { id: 'shapeshifter', name: 'The Shapeshifter', icon: Shuffle, colors: ['#6366f1', '#4f46e5'], description: 'You move between roles, but may wonder: "Which form is truly me?"' },
 ];
+
+// Animated Icon Component with gentle spinning
+const AnimatedIcon = ({ IconComponent, index, isSelected }: { 
+  IconComponent: any; 
+  index: number; 
+  isSelected: boolean; 
+}) => {
+  const rotation = useSharedValue(0);
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    // Staggered animation start for each icon
+    rotation.value = withDelay(
+      index * 200, // 200ms delay between each icon
+      withRepeat(
+        withTiming(360, { 
+          duration: 8000 + (index * 1000), // Different speeds for variety
+          easing: Easing.linear 
+        }),
+        -1,
+        false
+      )
+    );
+
+    // Selected card gets a subtle bounce
+    if (isSelected) {
+      scale.value = withRepeat(
+        withTiming(1.05, { 
+          duration: 1000, 
+          easing: Easing.inOut(Easing.ease) 
+        }),
+        -1,
+        true
+      );
+    } else {
+      scale.value = withTiming(1, { duration: 300 });
+    }
+  }, [isSelected, index]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { rotate: `${rotation.value}deg` },
+      { scale: scale.value }
+    ],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <IconComponent size={28} color="#FFFFFF" strokeWidth={2} />
+    </Animated.View>
+  );
+};
 
 export default function ArchetypeQuiz() {
   const { refreshUser } = useAuth();
@@ -53,14 +113,14 @@ export default function ArchetypeQuiz() {
         </View>
 
         <View style={styles.cardsSection}>
-          {ARCHETYPES.map((archetype) => {
+          {ARCHETYPES.map((archetype, index) => {
             const IconComponent = archetype.icon;
             const isSelected = selected === archetype.id;
             return (
               <Pressable key={archetype.id} onPress={() => setSelected(archetype.id)} style={[styles.archetypeCard, isSelected && styles.selectedCard]}>
                 <View style={styles.cardContent}>
                   <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
-                    <IconComponent size={28} color="#FFFFFF" strokeWidth={2} />
+                    <AnimatedIcon IconComponent={IconComponent} index={index} isSelected={isSelected} />
                   </LinearGradient>
                   <View style={styles.cardText}>
                     <Text style={styles.cardTitle}>{archetype.name}</Text>

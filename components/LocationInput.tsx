@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, ActivityIndicator, ScrollView } from 'react-native';
-import { MapPin, Navigation, Search, X } from 'lucide-react-native';
-import { geocodeLocation, getCurrentLocation } from '@/utils/geocoding';
+import { MapPin, Search, X } from 'lucide-react-native';
+import { geocodeLocation } from '@/utils/geocoding';
 
 interface LocationInputProps {
   value: string;
@@ -99,31 +99,6 @@ export function LocationInput({
     }
   };
 
-  const handleCurrentLocation = async () => {
-    setLoading(true);
-    setError(null);
-    setShowSuggestions(false);
-
-    try {
-      const result = await getCurrentLocation();
-      
-      if (result.coordinates) {
-        onLocationChange('Current Location', {
-          latitude: result.coordinates.latitude,
-          longitude: result.coordinates.longitude
-        });
-        setError(null);
-        console.log('📍 Current location found:', result.coordinates);
-      } else {
-        setError(result.error || 'Could not get current location');
-      }
-    } catch (err: any) {
-      setError(err.message || 'Failed to get current location');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleTextChange = (text: string) => {
     onLocationChange(text);
     setError(null);
@@ -192,7 +167,7 @@ export function LocationInput({
         )}
         
         {/* Manual search button */}
-        {!isSearching && (
+        {value.trim() && !isSearching && (
           <>
             {loading ? (
               <ActivityIndicator size="small" color="#f59e0b" style={styles.actionButton} />
@@ -229,18 +204,6 @@ export function LocationInput({
           </ScrollView>
         </View>
       )}
-
-      {/* Current Location Button */}
-      <Pressable 
-        style={[styles.currentLocationButton, disabled && styles.buttonDisabled]} 
-        onPress={handleCurrentLocation}
-        disabled={disabled || loading}
-      >
-        <Navigation size={16} color={disabled ? "#64748b" : "#f59e0b"} />
-        <Text style={[styles.currentLocationText, disabled && styles.textDisabled]}>
-          Use Current Location
-        </Text>
-      </Pressable>
 
       {/* Error Message */}
       {error && (
@@ -288,30 +251,6 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     padding: 16,
-  },
-  currentLocationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.1)',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
-    gap: 8,
-  },
-  buttonDisabled: {
-    backgroundColor: 'rgba(100, 116, 139, 0.1)',
-    borderColor: 'rgba(100, 116, 139, 0.3)',
-  },
-  currentLocationText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
-    color: '#f59e0b',
-  },
-  textDisabled: {
-    color: '#64748b',
   },
   suggestionsContainer: {
     marginTop: 4,

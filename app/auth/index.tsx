@@ -161,7 +161,7 @@ export default function AuthWelcomeScreen() {
               colors={['#1e40af', '#3b82f6']}
               style={styles.iconGradient}
             >
-              <MandalaIcon size={64} color="#FFFFFF" strokeWidth={1.5} />
+              <MandalaIcon size={100} color="#FFFFFF" strokeWidth={1.2} />
             </LinearGradient>
           </Animated.View>
         </View>

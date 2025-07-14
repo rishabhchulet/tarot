@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, Dimensions, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Dimensions, Text, Pressable } from 'react-native';
 import { Svg, Circle, Text as SvgText, G, Line, Defs, RadialGradient, Stop, Path } from 'react-native-svg';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
-  withTiming, 
+  withTiming,
   withRepeat, 
   withSequence,
   Easing,
 } from 'react-native-reanimated';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { PlanetPosition, getZodiacSign } from '@/utils/astrologyCalculations';
 
 interface AstrologyChartProps {
@@ -41,6 +42,88 @@ const PLANET_GLYPHS: { [key: string]: { symbol: string; color: string } } = {
   Uranus: { symbol: '♅', color: '#40E0D0' },
   Neptune: { symbol: '♆', color: '#4169E1' },
   Pluto: { symbol: '♇', color: '#8B0000' },
+  'North Node': { symbol: '☊', color: '#FF6B35' },
+  'South Node': { symbol: '☋', color: '#FF6B35' },
+};
+
+const PLANETARY_MEANINGS: { [key: string]: { 
+  title: string; 
+  description: string; 
+  influence: string;
+  keywords: string[];
+}} = {
+  Sun: {
+    title: "Your Core Identity & Life Purpose",
+    description: "The Sun represents your essential self, ego, and creative expression. It's the center of your personality and your life's driving force.",
+    influence: "Shows your natural leadership style, core values, and how you express your authentic self in the world.",
+    keywords: ["Identity", "Ego", "Vitality", "Leadership", "Purpose", "Self-Expression"]
+  },
+  Moon: {
+    title: "Emotions & Intuitive Nature", 
+    description: "The Moon governs your emotional responses, subconscious mind, and nurturing instincts. It reveals your inner world and emotional needs.",
+    influence: "Affects your mood patterns, intuitive abilities, and how you process feelings and memories.",
+    keywords: ["Emotions", "Intuition", "Subconscious", "Nurturing", "Memory", "Instincts"]
+  },
+  Mercury: {
+    title: "Communication & Mental Processes",
+    description: "Mercury rules communication, thinking patterns, and information processing. It governs how you learn, speak, and connect with others.",
+    influence: "Shapes your communication style, learning preferences, and how you process and share information.",
+    keywords: ["Communication", "Learning", "Logic", "Writing", "Technology", "Adaptability"]
+  },
+  Venus: {
+    title: "Love, Beauty & Relationships",
+    description: "Venus governs love, relationships, beauty, and material pleasures. It shows what you find attractive and how you express affection.",
+    influence: "Influences your romantic style, aesthetic preferences, and approach to harmony and partnership.",
+    keywords: ["Love", "Beauty", "Relationships", "Art", "Harmony", "Values"]
+  },
+  Mars: {
+    title: "Action, Drive & Passion",
+    description: "Mars represents your energy, ambition, and how you pursue goals. It's your inner warrior and drive for achievement.",
+    influence: "Determines your action style, anger expression, physical energy, and approach to challenges.",
+    keywords: ["Action", "Energy", "Passion", "Courage", "Competition", "Drive"]
+  },
+  Jupiter: {
+    title: "Growth, Wisdom & Expansion",
+    description: "Jupiter brings expansion, optimism, and higher learning. It represents your philosophical outlook and areas of growth.",
+    influence: "Affects your belief systems, teaching abilities, and where you seek meaning and adventure.",
+    keywords: ["Growth", "Wisdom", "Philosophy", "Travel", "Teaching", "Optimism"]
+  },
+  Saturn: {
+    title: "Discipline, Structure & Lessons",
+    description: "Saturn represents discipline, responsibility, and life lessons. It shows where you need to develop patience and mastery.",
+    influence: "Reveals your relationship with authority, long-term goals, and areas requiring discipline and commitment.",
+    keywords: ["Discipline", "Responsibility", "Structure", "Patience", "Mastery", "Maturity"]
+  },
+  Uranus: {
+    title: "Innovation, Freedom & Revolution",
+    description: "Uranus brings sudden changes, innovation, and freedom. It represents your unique qualities and desire for independence.",
+    influence: "Governs your rebellious nature, technological interests, and need for personal freedom and originality.",
+    keywords: ["Innovation", "Freedom", "Revolution", "Technology", "Independence", "Uniqueness"]
+  },
+  Neptune: {
+    title: "Dreams, Spirituality & Imagination",
+    description: "Neptune rules dreams, spirituality, and imagination. It connects you to the mystical and transcendent realms.",
+    influence: "Affects your spiritual beliefs, creative imagination, and connection to the collective unconscious.",
+    keywords: ["Dreams", "Spirituality", "Imagination", "Mysticism", "Compassion", "Illusion"]
+  },
+  Pluto: {
+    title: "Transformation & Hidden Power",
+    description: "Pluto represents deep transformation, regeneration, and hidden power. It reveals your capacity for profound change.",
+    influence: "Governs your transformative abilities, psychological depths, and relationship with power and control.",
+    keywords: ["Transformation", "Power", "Regeneration", "Psychology", "Secrets", "Rebirth"]
+  },
+  'North Node': {
+    title: "Soul's Purpose & Life Direction",
+    description: "The North Node (not a planet but a calculated point) represents your soul's growth direction and life purpose in this incarnation.",
+    influence: "Shows the qualities you're meant to develop and the path toward your highest potential and spiritual evolution.",
+    keywords: ["Soul Purpose", "Growth", "Destiny", "Life Direction", "Evolution", "Future"]
+  },
+  'South Node': {
+    title: "Past Life Gifts & Karmic Patterns",
+    description: "The South Node represents past life talents and karmic patterns you're meant to balance or transcend in this lifetime.",
+    influence: "Reveals natural gifts from past experiences and patterns that may hold you back from growth.",
+    keywords: ["Past Lives", "Karma", "Natural Gifts", "Comfort Zone", "Balance", "Release"]
+  }
 };
 
 const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
@@ -50,6 +133,9 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
   const outerRadius = size / 2 - 30; // Increased margin for better spacing
   const innerRadius = outerRadius - 40;
   const planetRadius = outerRadius - 15; // Adjusted for better planet positioning
+
+  // State for expandable insights
+  const [expandedPlanet, setExpandedPlanet] = useState<string | null>(null);
 
   // Animation values - only for subtle effects, not rotation
   const glowPulse = useSharedValue(0.7);
@@ -72,6 +158,75 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
       easing: Easing.out(Easing.back(1.2)) 
     });
   }, []);
+
+  // Expandable Planet Insight Component
+  const PlanetInsightCard = ({ planet }: { planet: any }) => {
+    const sign = getZodiacSign(planet.longitude);
+    const degree = Math.floor(planet.longitude % 30);
+    const minutes = Math.floor((planet.longitude % 1) * 60);
+    const planetInfo = PLANET_GLYPHS[planet.name];
+    const meaning = PLANETARY_MEANINGS[planet.name];
+    const isExpanded = expandedPlanet === planet.name;
+
+    const cardScale = useSharedValue(1);
+    const cardOpacity = useSharedValue(1);
+
+    const animatedCardStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: cardScale.value }],
+      opacity: cardOpacity.value,
+    }));
+
+    const handleToggle = () => {
+      cardScale.value = withSequence(
+        withTiming(0.95, { duration: 100 }),
+        withTiming(1, { duration: 100 })
+      );
+      setExpandedPlanet(isExpanded ? null : planet.name);
+    };
+
+    return (
+      <Animated.View style={[styles.planetCard, animatedCardStyle]}>
+        <Pressable onPress={handleToggle} style={styles.planetCardHeader}>
+          <View style={styles.planetCardLeft}>
+            <Text style={[styles.planetSymbol, { color: planetInfo?.color || '#FFFFFF' }]}>
+              {planetInfo?.symbol || '?'}
+            </Text>
+            <View style={styles.planetBasicInfo}>
+              <Text style={styles.planetName}>{planet.name}</Text>
+              <Text style={styles.planetPosition}>{degree}°{minutes}' {sign}</Text>
+            </View>
+          </View>
+          <View style={styles.expandButton}>
+            {isExpanded ? (
+              <ChevronUp size={20} color="#64748b" />
+            ) : (
+              <ChevronDown size={20} color="#64748b" />
+            )}
+          </View>
+        </Pressable>
+        
+        {isExpanded && meaning && (
+          <View style={styles.planetInsights}>
+            <Text style={styles.insightTitle}>{meaning.title}</Text>
+            <Text style={styles.insightDescription}>{meaning.description}</Text>
+            <Text style={styles.insightInfluence}>
+              <Text style={styles.influenceLabel}>Your {planet.name} in {sign}:</Text> {meaning.influence}
+            </Text>
+            <View style={styles.keywordsContainer}>
+              <Text style={styles.keywordsLabel}>Key Themes:</Text>
+              <View style={styles.keywordsList}>
+                {meaning.keywords.map((keyword, index) => (
+                  <View key={index} style={styles.keywordTag}>
+                    <Text style={styles.keywordText}>{keyword}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
+        )}
+      </Animated.View>
+    );
+  };
 
   const animatedGlowStyle = useAnimatedStyle(() => ({
     opacity: glowPulse.value,
@@ -272,24 +427,9 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
         <Text style={styles.legendTitle}>Planetary Positions</Text>
         <Text style={styles.legendSubtitle}>Exact degrees and zodiac signs at birth</Text>
         <View style={styles.legendGrid}>
-          {positions.slice(0, 6).map((planet) => {
-            const sign = getZodiacSign(planet.longitude);
-            const degree = Math.floor(planet.longitude % 30);
-            const minutes = Math.floor((planet.longitude % 1) * 60);
-            const planetInfo = PLANET_GLYPHS[planet.name];
-            
-            return (
-              <View key={planet.name} style={styles.legendItem}>
-                <Text style={[styles.planetSymbol, { color: planetInfo?.color || '#FFFFFF' }]}>
-                  {planetInfo?.symbol || '?'}
-                </Text>
-                <View style={styles.planetInfo}>
-                  <Text style={styles.planetName}>{planet.name}</Text>
-                  <Text style={styles.planetPosition}>{degree}°{minutes}' {sign}</Text>
-                </View>
-              </View>
-            );
-          })}
+          {positions.map((planet) => (
+            <PlanetInsightCard key={planet.name} planet={planet} />
+          ))}
         </View>
       </View>
     </View>
@@ -373,9 +513,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
   },
   legendGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    gap: 8,
   },
   legendItem: {
     flexDirection: 'row',
@@ -408,6 +547,88 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#94a3b8',
     fontFamily: 'Inter-Regular',
+  },
+  planetCard: {
+    width: '100%',
+    marginBottom: 12,
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(30, 58, 138, 0.2)',
+    overflow: 'hidden',
+  },
+  planetCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: 'rgba(30, 58, 138, 0.05)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(30, 58, 138, 0.1)',
+  },
+  planetCardLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  planetBasicInfo: {
+    marginLeft: 8,
+  },
+  expandButton: {
+    padding: 4,
+  },
+  planetInsights: {
+    padding: 12,
+    paddingTop: 0,
+  },
+  insightTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#f8fafc',
+    marginBottom: 4,
+    fontFamily: 'Inter-SemiBold',
+  },
+  insightDescription: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginBottom: 8,
+    fontFamily: 'Inter-Medium',
+  },
+  insightInfluence: {
+    fontSize: 12,
+    color: '#94a3b8',
+    fontFamily: 'Inter-Medium',
+  },
+  influenceLabel: {
+    fontWeight: 'bold',
+    color: '#f8fafc',
+  },
+  keywordsContainer: {
+    marginTop: 8,
+  },
+  keywordsLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#f8fafc',
+    marginBottom: 4,
+    fontFamily: 'Inter-SemiBold',
+  },
+  keywordsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  keywordTag: {
+    backgroundColor: 'rgba(30, 58, 138, 0.2)',
+    borderRadius: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(30, 58, 138, 0.3)',
+  },
+  keywordText: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontFamily: 'Inter-Medium',
   },
 });
 

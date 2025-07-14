@@ -122,12 +122,12 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
           <Svg height={size} width={size} style={styles.svgChart}>
             <Defs>
               <RadialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-                <Stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+                <Stop offset="0%" stopColor="rgba(59, 130, 246, 0.08)" />
+                <Stop offset="100%" stopColor="rgba(59, 130, 246, 0.02)" />
               </RadialGradient>
               <RadialGradient id="outerGlow" cx="50%" cy="50%" r="50%">
-                <Stop offset="0%" stopColor="rgba(251,191,36,0.1)" />
-                <Stop offset="100%" stopColor="rgba(251,191,36,0.02)" />
+                <Stop offset="0%" stopColor="rgba(30, 58, 138, 0.06)" />
+                <Stop offset="100%" stopColor="rgba(30, 58, 138, 0.01)" />
               </RadialGradient>
             </Defs>
 
@@ -226,7 +226,7 @@ const AstrologyChart: React.FC<AstrologyChartProps> = ({ positions }) => {
             })}
 
             {/* Center point */}
-            <Circle cx={center} cy={center} r="4" fill="rgba(251,191,36,0.8)" />
+            <Circle cx={center} cy={center} r="4" fill="rgba(30, 58, 138, 0.8)" />
           </Svg>
         </View>
 
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     width: '120%',
     height: '120%',
     borderRadius: 1000,
-    backgroundColor: 'rgba(251, 191, 36, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.03)',
     zIndex: 0,
   },
   chartContainer: {
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: '100%',
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.2)',
   },
   legendTitle: {
     fontSize: 16,
@@ -383,10 +383,10 @@ const styles = StyleSheet.create({
     width: '48%',
     marginBottom: 8,
     padding: 10,
-    backgroundColor: 'rgba(251, 191, 36, 0.05)',
+    backgroundColor: 'rgba(30, 58, 138, 0.1)',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.1)',
+    borderColor: 'rgba(30, 58, 138, 0.2)',
   },
   planetSymbol: {
     fontSize: 16,

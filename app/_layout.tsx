@@ -2,8 +2,13 @@ import 'react-native-get-random-values';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { AppState, Platform } from 'react-native';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { registerForPushNotificationsAsync } from '@/utils/notifications';
+import { 
+  registerForPushNotificationsAsync, 
+  scheduleSmartDailyNotifications,
+  updateNotificationsWithFreshContent 
+} from '@/utils/notifications';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useFonts } from 'expo-font';
@@ -15,7 +20,6 @@ import {
   Inter_800ExtraBold
 } from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
-import { Platform } from 'react-native';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,12 +38,59 @@ export default function RootLayout() {
     if (fontsLoaded) {
       SplashScreen.hideAsync();
       
-      // Only register for push notifications on native platforms
-      if (Platform.OS !== 'web') {
-        registerForPushNotificationsAsync();
-      }
+      // Initialize notification system
+      initializeNotificationSystem();
     }
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    // Handle app state changes for notification updates
+    const handleAppStateChange = (nextAppState: string) => {
+      if (nextAppState === 'active') {
+        console.log('📱 App became active, checking for notification updates...');
+        updateNotificationsWithFreshContent();
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    
+    return () => subscription?.remove();
+  }, []);
+
+  const initializeNotificationSystem = async () => {
+    if (Platform.OS === 'web') {
+      console.log('⚠️ Skipping notification setup on web platform');
+      return;
+    }
+
+    try {
+      console.log('🔔 Initializing enhanced notification system...');
+      
+      // Register for push notifications
+      const token = await registerForPushNotificationsAsync();
+      
+      if (token) {
+        console.log('✅ Push notifications registered successfully');
+        
+        // Set up smart daily notifications with remote + local fallback
+        await scheduleSmartDailyNotifications();
+        
+        console.log('🌟 Smart notification system initialized!');
+      } else {
+        console.log('⚠️ Push notification permission not granted');
+      }
+    } catch (error) {
+      console.error('❌ Error initializing notification system:', error);
+      
+      // Try basic fallback setup
+      try {
+        await scheduleSmartDailyNotifications();
+        console.log('✅ Fallback notification system initialized');
+      } catch (fallbackError) {
+        console.error('❌ Even fallback notification setup failed:', fallbackError);
+      }
+    }
+  };
 
   if (!fontsLoaded) {
     return null;

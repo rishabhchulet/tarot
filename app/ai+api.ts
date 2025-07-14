@@ -13,6 +13,9 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     openaiClient = new OpenAI({
       apiKey: apiKey,
+      timeout: 60000, // 60 second timeout
+      maxRetries: 2, // Let our custom retry handle most retries
+      httpAgent: undefined, // Use default agent
     });
   }
   
@@ -22,8 +25,8 @@ function getOpenAIClient(): OpenAI {
 // Retry mechanism for handling transient network errors
 async function retryOperation<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  delay: number = 2000 // INCREASED: Start with 2 seconds
+  maxRetries: number = 4, // Increased from 3 to 4
+  delay: number = 3000 // INCREASED: Start with 3 seconds
 ): Promise<T> {
   let lastError: Error;
   
@@ -33,14 +36,19 @@ async function retryOperation<T>(
     } catch (error: any) {
       lastError = error;
       
-      // Check if it's a retryable error (connection issues, timeouts, etc.)
+      // Enhanced error detection for connection issues
       const isRetryable = 
         error.code === 'ECONNRESET' ||
         error.code === 'ENOTFOUND' ||
         error.code === 'ETIMEDOUT' ||
+        error.code === 'ECONNABORTED' ||
+        error.code === 'ECONNREFUSED' ||
+        error.cause?.code === 'ECONNRESET' || // Check nested error
         error.message?.includes('socket hang up') ||
         error.message?.includes('Connection error') ||
         error.message?.includes('Network request failed') ||
+        error.message?.includes('fetch failed') ||
+        error.name === 'FetchError' ||
         error.status === 429 || // Rate limit
         error.status === 500 || // Server error
         error.status === 502 || // Bad gateway
@@ -48,12 +56,21 @@ async function retryOperation<T>(
         error.status === 504;   // Gateway timeout
       
       if (!isRetryable || attempt === maxRetries) {
+        console.error(`Non-retryable error or max retries reached:`, {
+          attempt,
+          maxRetries,
+          errorCode: error.code,
+          errorMessage: error.message,
+          causeCode: error.cause?.code,
+          isRetryable
+        });
         throw error;
       }
       
-      // Exponential backoff with jitter - more generous delays
-      const backoffDelay = delay * Math.pow(2, attempt - 1) + Math.random() * 2000;
-      console.log(`Attempt ${attempt} failed, retrying in ${Math.round(backoffDelay)}ms...`);
+      // Enhanced exponential backoff with jitter - more generous delays for connection issues
+      const baseDelay = error.code === 'ECONNRESET' ? delay * 2 : delay; // Double delay for connection resets
+      const backoffDelay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 3000;
+      console.log(`🔄 Attempt ${attempt}/${maxRetries} failed (${error.code || error.name}), retrying in ${Math.round(backoffDelay)}ms...`);
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }
   }

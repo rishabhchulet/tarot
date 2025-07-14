@@ -192,18 +192,41 @@ export default function CompatibilityResultsScreen() {
     if (report) {
       return (
         <>
+          {/* Enhanced Header */}
+          <View style={[styles.header, { paddingTop: insets.top }]}>
+            <Pressable style={styles.backButton} onPress={() => router.back()}>
+              <ChevronLeft size={24} color="#f8fafc" />
+            </Pressable>
+            <Text style={styles.headerTitle}>Compatibility Report</Text>
+            <View style={styles.headerSpacer} />
+          </View>
+
           {/* Enhanced Names Header with Animation */}
           <View style={styles.namesHeader}>
             <View style={styles.nameContainer}>
-              <Text style={styles.personName}>{report.personAName}</Text>
+              <Text 
+                style={styles.personName}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.8}
+              >
+                {report.personAName}
+              </Text>
               <Text style={styles.nameSubtext}>Born {formatBirthInfo(processedPersonA)}</Text>
             </View>
             <View style={styles.heartContainer}>
-              <Heart size={24} color="#f87171" fill="#f87171" />
-              <Sparkles size={16} color="#fbbf24" style={styles.sparkle} />
+              <Heart size={28} color="#f87171" fill="#f87171" />
+              <Sparkles size={18} color="#fbbf24" style={styles.sparkleIcon} />
             </View>
             <View style={styles.nameContainer}>
-              <Text style={styles.personName}>{report.personBName}</Text>
+              <Text 
+                style={styles.personName}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.8}
+              >
+                {report.personBName}
+              </Text>
               <Text style={styles.nameSubtext}>Born {formatBirthInfo(processedPersonB)}</Text>
             </View>
           </View>
@@ -212,9 +235,12 @@ export default function CompatibilityResultsScreen() {
           <View style={styles.titleSection}>
             <Text style={styles.reportTitle}>{report.title}</Text>
             <View style={styles.reportTypeContainer}>
-              <Text style={styles.reportType}>{report.reportType} Compatibility</Text>
               <View style={styles.reportTypeBadge}>
-                <Text style={styles.reportTypeBadgeText}>Cosmic Analysis</Text>
+                <Star size={14} color="#a78bfa" />
+                <Text style={styles.reportType}>{report.reportType} Compatibility</Text>
+              </View>
+              <View style={styles.cosmicBadge}>
+                <Text style={styles.cosmicBadgeText}>Cosmic Analysis</Text>
               </View>
             </View>
           </View>
@@ -284,15 +310,6 @@ export default function CompatibilityResultsScreen() {
         style={StyleSheet.absoluteFill}
       />
 
-      {/* Enhanced Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton} disabled={loading}>
-          <ChevronLeft size={28} color="#F9FAFB" />
-        </Pressable>
-        <Text style={styles.title}>Compatibility Report</Text>
-        <View style={{ width: 40 }} /> 
-      </View>
-
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -313,14 +330,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingBottom: 16,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: 'rgba(2, 8, 23, 0.95)',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
   },
-  backButton: { 
-    padding: 8,
+  backButton: {
+    padding: 12,
     borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
   },
   title: {
     fontFamily: 'Inter-Bold',
@@ -393,48 +416,64 @@ const styles = StyleSheet.create({
   namesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    gap: 12,
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    paddingHorizontal: 16,
+    marginTop: 120, // Account for fixed header
   },
   nameContainer: {
     alignItems: 'center',
+    flex: 1,
+    maxWidth: '35%',
   },
   heartContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginHorizontal: 20,
+    padding: 12,
+    borderRadius: 50,
+    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(248, 113, 113, 0.3)',
   },
   sparkle: {
     marginLeft: -8,
   },
   personName: {
     fontFamily: 'Inter-Bold',
-    fontSize: 20,
+    fontSize: 18,
     color: '#c084fc',
+    textAlign: 'center',
+    marginBottom: 4,
   },
   nameSubtext: {
-    fontFamily: 'Inter-Regular',
-    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    fontSize: 13,
     color: '#94a3b8',
     textAlign: 'center',
   },
   titleSection: {
-    marginBottom: 24,
+    marginBottom: 32,
+    paddingHorizontal: 20,
   },
   reportTitle: {
-    fontFamily: 'Inter-Bold',
-    fontSize: 26,
+    fontFamily: 'Inter-Black',
+    fontSize: 28,
     color: '#F9FAFB',
     textAlign: 'center',
-    marginBottom: 4,
+    lineHeight: 34,
+    marginBottom: 16,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,
   },
   reportTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 12,
+    flexWrap: 'wrap',
   },
   reportType: {
     fontFamily: 'Inter-Medium',
@@ -451,11 +490,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   reportTypeBadgeText: {
     fontFamily: 'Inter-SemiBold',
     fontSize: 12,
     color: '#fbbf24',
+    textTransform: 'uppercase',
+  },
+  cosmicBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: 12,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  cosmicBadgeText: {
+    fontFamily: 'Inter-SemiBold',
+    fontSize: 12,
+    color: '#a78bfa',
     textTransform: 'uppercase',
   },
   scoreSection: {
@@ -566,5 +622,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
+  },
+  headerTitle: {
+    fontFamily: 'Inter-Bold',
+    fontSize: 22,
+    color: '#F9FAFB',
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  sparkleIcon: {
+    marginLeft: -4,
   },
 }); 

@@ -24,20 +24,8 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
               {icon}
             </View>
             <View style={styles.textContainer}>
-              <Text 
-                style={styles.title} 
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {title}
-              </Text>
-              <Text 
-                style={styles.subtitle}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {subtitle}
-              </Text>
+              <Text style={styles.title}>{title}</Text>
+              <Text style={styles.subtitle}>{subtitle}</Text>
             </View>
             <View style={styles.arrowContainer}>
               <ChevronRight size={16} color="#64748b" />
@@ -75,11 +63,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
-    flexShrink: 0,
   },
   textContainer: {
     flex: 1,
-    minWidth: 0,
   },
   title: {
     fontFamily: 'Inter-SemiBold',
@@ -94,6 +80,5 @@ const styles = StyleSheet.create({
   },
   arrowContainer: {
     marginLeft: 8,
-    flexShrink: 0,
   },
 }); 

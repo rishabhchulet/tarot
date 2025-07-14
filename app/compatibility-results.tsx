@@ -195,13 +195,7 @@ export default function CompatibilityResultsScreen() {
           {/* Enhanced Names Header with Animation */}
           <View style={styles.namesHeader}>
             <View style={styles.nameContainer}>
-              <Text 
-                style={styles.personName}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {report.personAName}
-              </Text>
+              <Text style={styles.personName}>{report.personAName}</Text>
               <Text style={styles.nameSubtext}>Born {formatBirthInfo(processedPersonA)}</Text>
             </View>
             <View style={styles.heartContainer}>
@@ -209,13 +203,7 @@ export default function CompatibilityResultsScreen() {
               <Sparkles size={16} color="#fbbf24" style={styles.sparkle} />
             </View>
             <View style={styles.nameContainer}>
-              <Text 
-                style={styles.personName}
-                numberOfLines={2}
-                ellipsizeMode="tail"
-              >
-                {report.personBName}
-              </Text>
+              <Text style={styles.personName}>{report.personBName}</Text>
               <Text style={styles.nameSubtext}>Born {formatBirthInfo(processedPersonB)}</Text>
             </View>
           </View>
@@ -405,37 +393,32 @@ const styles = StyleSheet.create({
   namesHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     marginBottom: 16,
-    paddingHorizontal: 10,
+    gap: 12,
   },
   nameContainer: {
     alignItems: 'center',
-    flex: 1,
-    maxWidth: '35%',
   },
   heartContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    paddingHorizontal: 10,
   },
   sparkle: {
     marginLeft: -8,
   },
   personName: {
     fontFamily: 'Inter-Bold',
-    fontSize: 18,
+    fontSize: 20,
     color: '#c084fc',
-    textAlign: 'center',
   },
   nameSubtext: {
     fontFamily: 'Inter-Regular',
     fontSize: 14,
     color: '#94a3b8',
     textAlign: 'center',
-    marginTop: 4,
   },
   titleSection: {
     marginBottom: 24,
@@ -446,15 +429,12 @@ const styles = StyleSheet.create({
     color: '#F9FAFB',
     textAlign: 'center',
     marginBottom: 4,
-    lineHeight: 32,
-    paddingHorizontal: 10,
   },
   reportTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    flexWrap: 'wrap',
   },
   reportType: {
     fontFamily: 'Inter-Medium',
@@ -480,27 +460,23 @@ const styles = StyleSheet.create({
   },
   scoreSection: {
     marginBottom: 24,
-    alignItems: 'center',
   },
   scoreInsight: {
     alignItems: 'center',
     marginTop: 12,
-    paddingHorizontal: 20,
   },
   scoreLabel: {
     fontFamily: 'Inter-Medium',
     fontSize: 14,
     color: '#94a3b8',
     marginBottom: 4,
-    textAlign: 'center',
   },
   scoreDescription: {
     fontFamily: 'Inter-Regular',
     fontSize: 16,
     color: '#d1d5db',
     textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: '90%',
+    lineHeight: 22,
   },
   summaryContainer: {
     marginVertical: 24,
@@ -513,7 +489,6 @@ const styles = StyleSheet.create({
   summaryHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 12,
     gap: 8,
   },
@@ -542,7 +517,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Regular',
     fontSize: 15,
     lineHeight: 22,
-    textAlign: 'center',
   },
   statsSection: {
     marginBottom: 24,

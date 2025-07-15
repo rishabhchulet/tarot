@@ -3,8 +3,47 @@ import OpenAI from 'openai';
 // Lazy initialization of OpenAI client
 let openaiClient: OpenAI | null = null;
 
+// Enhanced OpenAI API key detection for Bolt.new environment
+function getOpenAIApiKey(): string | null {
+  // Try different possible environment variable sources
+  const possibleKeys = [
+    process.env.OPENAI_API_KEY,
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+    // In Bolt.new or similar environments, sometimes keys are accessible differently
+    (globalThis as any).OPENAI_API_KEY,
+    (globalThis as any).process?.env?.OPENAI_API_KEY,
+  ];
+
+  console.log('🔍 Searching for OpenAI API key in environment...');
+  
+  for (let i = 0; i < possibleKeys.length; i++) {
+    const key = possibleKeys[i];
+    const keyName = ['OPENAI_API_KEY', 'EXPO_PUBLIC_OPENAI_API_KEY', 'globalThis.OPENAI_API_KEY', 'globalThis.process.env.OPENAI_API_KEY'][i];
+    
+    if (key && typeof key === 'string' && key.length > 10) {
+      console.log(`✅ Found OpenAI API key from: ${keyName}`);
+      return key;
+    } else {
+      console.log(`❌ ${keyName}: ${key ? 'Too short' : 'Not found'}`);
+    }
+  }
+
+  // If still not found, check if it's in any global configuration
+  try {
+    const envVars = Object.keys(process.env || {});
+    const apiKeyVars = envVars.filter(key => key.toLowerCase().includes('openai'));
+    console.log('🔍 Available OpenAI-related environment variables:', apiKeyVars);
+    console.log('🔍 Total environment variables:', envVars.length);
+  } catch (e) {
+    console.log('🔍 Could not list environment variables:', e);
+  }
+
+  console.log('❌ No valid OpenAI API key found in any environment source');
+  return null;
+}
+
 function getOpenAIClient(): OpenAI {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIApiKey();
   
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY environment variable is required but not set');
@@ -13,25 +52,26 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     openaiClient = new OpenAI({
       apiKey: apiKey,
-      timeout: 60000, // 60 second timeout
-      maxRetries: 2, // Let our custom retry handle most retries
-      httpAgent: undefined, // Use default agent
+      timeout: 120000, // INCREASED: 120 second timeout for complex requests
+      maxRetries: 0, // Disable OpenAI's built-in retry, use our custom retry
+      httpAgent: undefined,
     });
   }
   
   return openaiClient;
 }
 
-// Retry mechanism for handling transient network errors
+// Enhanced retry mechanism for handling transient network errors
 async function retryOperation<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 4, // Increased from 3 to 4
-  delay: number = 3000 // INCREASED: Start with 3 seconds
+  maxRetries: number = 3, // Optimized retry count
+  delay: number = 2000 // Start with 2 seconds
 ): Promise<T> {
   let lastError: Error;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      console.log(`🔄 AI operation attempt ${attempt}/${maxRetries}`);
       return await operation();
     } catch (error: any) {
       lastError = error;
@@ -43,7 +83,7 @@ async function retryOperation<T>(
         error.code === 'ETIMEDOUT' ||
         error.code === 'ECONNABORTED' ||
         error.code === 'ECONNREFUSED' ||
-        error.cause?.code === 'ECONNRESET' || // Check nested error
+        error.cause?.code === 'ECONNRESET' ||
         error.message?.includes('socket hang up') ||
         error.message?.includes('Connection error') ||
         error.message?.includes('Network request failed') ||
@@ -56,7 +96,7 @@ async function retryOperation<T>(
         error.status === 504;   // Gateway timeout
       
       if (!isRetryable || attempt === maxRetries) {
-        console.error(`Non-retryable error or max retries reached:`, {
+        console.error(`❌ Final attempt failed or non-retryable error:`, {
           attempt,
           maxRetries,
           errorCode: error.code,
@@ -67,9 +107,8 @@ async function retryOperation<T>(
         throw error;
       }
       
-      // Enhanced exponential backoff with jitter - more generous delays for connection issues
-      const baseDelay = error.code === 'ECONNRESET' ? delay * 2 : delay; // Double delay for connection resets
-      const backoffDelay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 3000;
+      // Enhanced exponential backoff with jitter
+      const backoffDelay = delay * Math.pow(1.5, attempt - 1) + Math.random() * 1000;
       console.log(`🔄 Attempt ${attempt}/${maxRetries} failed (${error.code || error.name}), retrying in ${Math.round(backoffDelay)}ms...`);
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }
@@ -80,13 +119,37 @@ async function retryOperation<T>(
 
 export async function POST(request: Request) {
   try {
-    // Check if OpenAI API key is available before processing
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Enhanced environment variable checking
+    const apiKey = getOpenAIApiKey();
     
     if (!apiKey) {
+      console.error('❌ OPENAI_API_KEY environment variable is missing');
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.' 
+          error: 'OpenAI API key not configured. Please check your environment variables.',
+          code: 'MISSING_API_KEY'
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log('✅ OpenAI API key is available');
+    
+    // Test OpenAI client initialization
+    let openai;
+    try {
+      openai = getOpenAIClient();
+      console.log('✅ OpenAI client initialized successfully');
+    } catch (clientError: any) {
+      console.error('❌ Failed to initialize OpenAI client:', clientError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to initialize AI service',
+          details: clientError.message,
+          code: 'CLIENT_INIT_ERROR'
         }),
         { 
           status: 500,
@@ -95,11 +158,42 @@ export async function POST(request: Request) {
       );
     }
     
-    const openai = getOpenAIClient();
+    // Parse request body with error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError: any) {
+      console.error('❌ Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid request format',
+          code: 'INVALID_JSON'
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
-    const body = await request.json();
     const { type, data } = body;
 
+    if (!type || !data) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing required fields: type and data',
+          code: 'MISSING_FIELDS'
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log(`🎯 Processing AI request: ${type}`);
+
+    // Route to appropriate handler
     switch (type) {
       case 'card-interpretation':
         return await handleCardInterpretation(data, openai);
@@ -114,26 +208,57 @@ export async function POST(request: Request) {
       case 'structured-reflection':
         return await handleStructuredReflection(data, openai);
       default:
-        return new Response('Invalid request type', { status: 400 });
+        return new Response(
+          JSON.stringify({ 
+            error: `Invalid request type: ${type}`,
+            code: 'INVALID_TYPE'
+          }),
+          { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
     }
   } catch (error: any) {
-    console.error('AI API Error:', error);
+    console.error('❌ AI API Error:', error);
+    console.error('❌ Error stack:', error.stack);
     
-    // Handle missing API key specifically
+    // Enhanced error categorization
+    let errorResponse = {
+      error: 'Internal server error',
+      code: 'UNKNOWN_ERROR',
+      details: error.message
+    };
+    
+    // Handle specific error types
     if (error.message?.includes('OPENAI_API_KEY')) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.' 
-        }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      errorResponse = {
+        error: 'OpenAI API key not configured',
+        code: 'MISSING_API_KEY',
+        details: 'Please set the OPENAI_API_KEY environment variable'
+      };
+    } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+      errorResponse = {
+        error: 'Network connection error',
+        code: 'NETWORK_ERROR',
+        details: 'Please check your internet connection and try again'
+      };
+    } else if (error.status === 429) {
+      errorResponse = {
+        error: 'Rate limit exceeded',
+        code: 'RATE_LIMIT',
+        details: 'Too many requests. Please wait a moment and try again'
+      };
+    } else if (error.status === 401) {
+      errorResponse = {
+        error: 'Invalid API key',
+        code: 'INVALID_API_KEY',
+        details: 'The OpenAI API key is invalid or expired'
+      };
     }
     
     return new Response(
-      JSON.stringify({ error: 'Failed to process AI request' }),
+      JSON.stringify(errorResponse),
       { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -290,26 +415,36 @@ async function handleStructuredReflection(data: {
   const { prompt, cardName, hexagramName, isReversed } = data;
 
   try {
+    console.log(`🎴 Processing structured reflection: ${cardName} + ${hexagramName} (${isReversed ? 'reversed' : 'upright'})`);
+    
     const completion = await retryOperation(async () => {
       return await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini', // OPTIMIZED: Use faster gpt-4o-mini for structured responses
         messages: [
           {
             role: 'system',
-            content: 'You are a calm, grounded reflection guide who provides structured 4-part insights combining Tarot and I Ching wisdom. Always respond with a valid JSON object containing exactly these fields: iChingReflection, tarotReflection, synthesis, reflectionPrompt.'
+            content: 'You are a calm, grounded reflection guide who provides structured 4-part insights combining Tarot and I Ching wisdom. Always respond with a valid JSON object containing exactly these fields: iChingReflection, tarotReflection, synthesis, reflectionPrompt. Keep responses concise but meaningful.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 600,
+        max_tokens: 500, // OPTIMIZED: Reduced for faster response
         temperature: 0.7,
         response_format: { type: 'json_object' },
       });
     });
 
-    const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    console.log('✅ AI response received, parsing...');
+    
+    let result;
+    try {
+      result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError);
+      throw new Error('AI returned invalid JSON response');
+    }
     
     // Validate the response has all required fields
     const requiredFields = ['iChingReflection', 'tarotReflection', 'synthesis', 'reflectionPrompt'];
@@ -320,9 +455,10 @@ async function handleStructuredReflection(data: {
       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
 
+    console.log('✅ Structured reflection completed successfully');
     return Response.json(result);
   } catch (error) {
-    console.error('OpenAI Structured Reflection Error:', error);
+    console.error('❌ OpenAI Structured Reflection Error:', error);
     throw error;
   }
 }

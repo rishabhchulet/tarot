@@ -13,7 +13,7 @@ const getApiBaseUrl = () => {
     return '';
   }
   
-  const isDevelopment = __DEV__;
+  const isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
   
   if (isDevelopment) {
     const expoUrl = process.env.EXPO_PUBLIC_API_URL;
@@ -139,9 +139,9 @@ export const getStructuredReflection = async (
     
     const baseUrl = getApiBaseUrl();
     
-    // Create a timeout wrapper for the fetch request
+    // FIXED: Increased timeout to accommodate OpenAI processing time + network latency
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+      setTimeout(() => reject(new Error('Request timeout')), 130000); // INCREASED: 130 second timeout (10s buffer over server)
     });
     
     const fetchPromise = fetch(`${baseUrl}/ai`, {
@@ -171,8 +171,9 @@ export const getStructuredReflection = async (
 
     // FIXED: Enhanced response parsing with better error handling
     let result;
+    let responseText = '';
     try {
-      const responseText = await response.text();
+      responseText = await response.text();
       console.log('🔍 Raw API response:', responseText);
       
       // Check if response is empty or not JSON

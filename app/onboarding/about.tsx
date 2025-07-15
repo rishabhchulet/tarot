@@ -90,8 +90,8 @@ const styles = StyleSheet.create({
     textAlign: 'center', marginBottom: 24, lineHeight: 40,
   },
   subtitle: {
-    fontSize: 18, fontFamily: 'Inter-Regular', color: '#D1D5DB',
-    textAlign: 'center', lineHeight: 26, maxWidth: 320,
+    fontSize: 20, fontFamily: 'Inter-Regular', color: '#D1D5DB',
+    textAlign: 'center', lineHeight: 28, maxWidth: 340,
   },
   primaryButton: {
     borderRadius: 12, paddingVertical: 18, paddingHorizontal: 32,

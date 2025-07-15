@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: 'rgba(30, 58, 138, 0.08)',
     borderRadius: 12,
-    padding: 14,
+    padding: 16,
     marginBottom: 12,
     borderWidth: 1,
     borderColor: 'rgba(30, 58, 138, 0.3)',
@@ -148,11 +148,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
     gap: 6,
   },
   title: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: 'CormorantGaramond-SemiBold',
   },
   loadingContainer: {
@@ -162,19 +162,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   loadingText: {
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
   interpretation: {
-    fontSize: 13,
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#F9FAFB',
-    lineHeight: 18,
+    lineHeight: 24,
   },
   fallbackNote: {
-    fontSize: 11,
+    fontSize: 13,
     fontFamily: 'Inter-Medium',
     color: '#6B7280',
     textAlign: 'center',

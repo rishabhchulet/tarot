@@ -157,11 +157,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#9CA3AF',
     fontFamily: 'Inter-Medium',
     textAlign: 'center',
-    lineHeight: 24,
+    lineHeight: 26,
   },
   insightsContainer: {
     marginBottom: 24,
@@ -196,10 +196,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-SemiBold',
   },
   insightDescription: {
-    fontSize: 15,
+    fontSize: 17,
     color: '#D1D5DB',
     fontFamily: 'Inter-Regular',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   wisdomSection: {
     backgroundColor: 'rgba(255,255,255,0.03)',
@@ -232,10 +232,10 @@ const styles = StyleSheet.create({
   },
   wisdomText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: '#D1D5DB',
     fontFamily: 'Inter-Regular',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   guidanceSection: {
     borderRadius: 16,
@@ -260,10 +260,10 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   guidanceText: {
-    fontSize: 15,
+    fontSize: 17,
     color: '#E5E7EB',
     fontFamily: 'Inter-Regular',
-    lineHeight: 24,
+    lineHeight: 26,
     marginBottom: 16,
   },
   guidanceFooter: {
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(255,255,255,0.1)',
   },
   guidanceFooterText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#A78BFA',
     fontFamily: 'Inter-Medium',
     fontStyle: 'italic',
@@ -294,9 +294,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   accuracyText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#D1D5DB',
     fontFamily: 'Inter-Regular',
-    lineHeight: 20,
+    lineHeight: 22,
   },
 }); 

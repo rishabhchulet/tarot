@@ -261,12 +261,12 @@ const styles = StyleSheet.create({
     lineHeight: 36,
   },
   description: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'Inter-Regular',
     color: '#D1D5DB',
     textAlign: 'center',
-    lineHeight: 24,
-    maxWidth: 320,
+    lineHeight: 26,
+    maxWidth: 340,
   },
   buttonContainer: {
     alignItems: 'center',

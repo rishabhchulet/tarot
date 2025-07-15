@@ -145,13 +145,13 @@ const styles = StyleSheet.create({
     lineHeight: 40,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Inter-Regular',
     color: '#D1D5DB',
     textAlign: 'center',
     marginBottom: 20,
-    lineHeight: 26,
-    maxWidth: 320,
+    lineHeight: 28,
+    maxWidth: 340,
   },
   primaryButton: {
     borderRadius: 12,

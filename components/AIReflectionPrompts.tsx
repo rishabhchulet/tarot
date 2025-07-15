@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '180deg' }],
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     marginBottom: 16,
@@ -182,13 +182,13 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   loadingText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#9CA3AF',
     fontStyle: 'italic',
   },
   errorText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#F59E0B',
     marginBottom: 8,
@@ -210,14 +210,14 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   promptText: {
-    fontSize: 15,
+    fontSize: 17,
     fontFamily: 'Inter-Regular',
     color: '#F9FAFB',
-    lineHeight: 22,
+    lineHeight: 24,
     flex: 1,
   },
   footerText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: 'Inter-Medium',
     color: '#6B7280',
     textAlign: 'center',

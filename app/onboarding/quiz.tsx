@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 140 },
   headerSection: { paddingHorizontal: 24, paddingTop: 60, paddingBottom: 32, alignItems: 'center' },
   mainTitle: { fontSize: 28, fontFamily: 'Inter-Bold', color: '#F9FAFB', textAlign: 'center', marginBottom: 12 },
-  subtitle: { fontSize: 16, fontFamily: 'Inter-Regular', color: '#A1A1AA', textAlign: 'center', lineHeight: 24, maxWidth: 340 },
+  subtitle: { fontSize: 18, fontFamily: 'Inter-Regular', color: '#A1A1AA', textAlign: 'center', lineHeight: 26, maxWidth: 340 },
   cardsSection: { paddingHorizontal: 16, gap: 12 },
   archetypeCard: {
     backgroundColor: '#1C1C1E',
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
   },
   cardText: { flex: 1 },
   cardTitle: { fontSize: 17, fontFamily: 'Inter-SemiBold', color: '#FFFFFF', marginBottom: 4 },
-  cardDescription: { fontSize: 14, fontFamily: 'Inter-Regular', color: '#A1A1AA', lineHeight: 20 },
+  cardDescription: { fontSize: 16, fontFamily: 'Inter-Regular', color: '#A1A1AA', lineHeight: 24 },
   buttonContainer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     paddingHorizontal: 20, paddingBottom: 40, paddingTop: 20,

@@ -149,11 +149,11 @@ const styles = StyleSheet.create({
     padding: 16,
     color: '#F9FAFB',
     fontFamily: 'Inter-Regular',
-    fontSize: 16,
+    fontSize: 17,
     minHeight: 100,
     borderWidth: 1,
     borderColor: 'rgba(59, 130, 246, 0.3)',
-    lineHeight: 24,
+    lineHeight: 26,
   },
   optionalNote: {
     backgroundColor: 'rgba(251, 191, 36, 0.1)',
@@ -166,8 +166,8 @@ const styles = StyleSheet.create({
   noteText: {
     color: '#fbbf24',
     fontFamily: 'Inter-Medium',
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
 });

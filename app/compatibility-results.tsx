@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: '#94a3b8',
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'center',
   },
   errorContainer: {
@@ -395,9 +395,9 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#e5e7eb',
     fontFamily: 'Inter-Regular',
-    fontSize: 15,
+    fontSize: 17,
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
     marginBottom: 24,
   },
   retryButton: {
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   nameSubtext: {
     fontFamily: 'Inter-Medium',
-    fontSize: 13,
+    fontSize: 15,
     color: '#94a3b8',
     textAlign: 'center',
   },
@@ -523,16 +523,16 @@ const styles = StyleSheet.create({
   },
   scoreLabel: {
     fontFamily: 'Inter-Medium',
-    fontSize: 14,
+    fontSize: 16,
     color: '#94a3b8',
     marginBottom: 4,
   },
   scoreDescription: {
     fontFamily: 'Inter-Regular',
-    fontSize: 16,
+    fontSize: 18,
     color: '#d1d5db',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   summaryContainer: {
     marginVertical: 24,
@@ -556,8 +556,8 @@ const styles = StyleSheet.create({
   summaryText: {
     color: '#d1d5db',
     fontFamily: 'Inter-Regular',
-    fontSize: 16,
-    lineHeight: 26,
+    fontSize: 18,
+    lineHeight: 28,
     textAlign: 'center',
   },
   insightContainer: {
@@ -571,8 +571,8 @@ const styles = StyleSheet.create({
   insightText: {
     color: '#e5e7eb',
     fontFamily: 'Inter-Regular',
-    fontSize: 15,
-    lineHeight: 22,
+    fontSize: 17,
+    lineHeight: 24,
   },
   statsSection: {
     marginBottom: 24,
@@ -617,11 +617,11 @@ const styles = StyleSheet.create({
   },
   guidanceCardText: {
     fontFamily: 'Inter-Regular',
-    fontSize: 14,
+    fontSize: 16,
     color: '#d1d5db',
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 22,
   },
   headerTitle: {
     fontFamily: 'Inter-Bold',

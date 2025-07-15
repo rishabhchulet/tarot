@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sourceText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: '#94a3b8',
     textAlign: 'center',
@@ -287,21 +287,21 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(251, 191, 36, 0.2)',
   },
   reflectionQuestion: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'Inter-Medium',
     color: '#f8fafc',
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: 30,
   },
   guidanceContainer: {
     alignItems: 'center',
   },
   guidanceText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#64748b',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   errorContainer: {
     flex: 1,

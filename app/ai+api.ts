@@ -13,25 +13,26 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     openaiClient = new OpenAI({
       apiKey: apiKey,
-      timeout: 60000, // 60 second timeout
-      maxRetries: 2, // Let our custom retry handle most retries
-      httpAgent: undefined, // Use default agent
+      timeout: 90000, // INCREASED: 90 second timeout for complex requests
+      maxRetries: 1, // Reduced to let our custom retry handle it
+      httpAgent: undefined,
     });
   }
   
   return openaiClient;
 }
 
-// Retry mechanism for handling transient network errors
+// Enhanced retry mechanism for handling transient network errors
 async function retryOperation<T>(
   operation: () => Promise<T>,
-  maxRetries: number = 4, // Increased from 3 to 4
-  delay: number = 3000 // INCREASED: Start with 3 seconds
+  maxRetries: number = 3, // Optimized retry count
+  delay: number = 2000 // Start with 2 seconds
 ): Promise<T> {
   let lastError: Error;
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
+      console.log(`🔄 AI operation attempt ${attempt}/${maxRetries}`);
       return await operation();
     } catch (error: any) {
       lastError = error;
@@ -43,7 +44,7 @@ async function retryOperation<T>(
         error.code === 'ETIMEDOUT' ||
         error.code === 'ECONNABORTED' ||
         error.code === 'ECONNREFUSED' ||
-        error.cause?.code === 'ECONNRESET' || // Check nested error
+        error.cause?.code === 'ECONNRESET' ||
         error.message?.includes('socket hang up') ||
         error.message?.includes('Connection error') ||
         error.message?.includes('Network request failed') ||
@@ -56,7 +57,7 @@ async function retryOperation<T>(
         error.status === 504;   // Gateway timeout
       
       if (!isRetryable || attempt === maxRetries) {
-        console.error(`Non-retryable error or max retries reached:`, {
+        console.error(`❌ Final attempt failed or non-retryable error:`, {
           attempt,
           maxRetries,
           errorCode: error.code,
@@ -67,9 +68,8 @@ async function retryOperation<T>(
         throw error;
       }
       
-      // Enhanced exponential backoff with jitter - more generous delays for connection issues
-      const baseDelay = error.code === 'ECONNRESET' ? delay * 2 : delay; // Double delay for connection resets
-      const backoffDelay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 3000;
+      // Enhanced exponential backoff with jitter
+      const backoffDelay = delay * Math.pow(1.5, attempt - 1) + Math.random() * 1000;
       console.log(`🔄 Attempt ${attempt}/${maxRetries} failed (${error.code || error.name}), retrying in ${Math.round(backoffDelay)}ms...`);
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }
@@ -290,26 +290,37 @@ async function handleStructuredReflection(data: {
   const { prompt, cardName, hexagramName, isReversed } = data;
 
   try {
+    console.log(`🎴 Processing structured reflection: ${cardName} + ${hexagramName} (${isReversed ? 'reversed' : 'upright'})`);
+    
     const completion = await retryOperation(async () => {
       return await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini', // OPTIMIZED: Use faster gpt-4o-mini for structured responses
         messages: [
           {
             role: 'system',
-            content: 'You are a calm, grounded reflection guide who provides structured 4-part insights combining Tarot and I Ching wisdom. Always respond with a valid JSON object containing exactly these fields: iChingReflection, tarotReflection, synthesis, reflectionPrompt.'
+            content: 'You are a calm, grounded reflection guide who provides structured 4-part insights combining Tarot and I Ching wisdom. Always respond with a valid JSON object containing exactly these fields: iChingReflection, tarotReflection, synthesis, reflectionPrompt. Keep responses concise but meaningful.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 600,
+        max_tokens: 500, // OPTIMIZED: Reduced for faster response
         temperature: 0.7,
         response_format: { type: 'json_object' },
+        timeout: 45000, // ADDED: 45 second timeout per request
       });
     });
 
-    const result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    console.log('✅ AI response received, parsing...');
+    
+    let result;
+    try {
+      result = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError);
+      throw new Error('AI returned invalid JSON response');
+    }
     
     // Validate the response has all required fields
     const requiredFields = ['iChingReflection', 'tarotReflection', 'synthesis', 'reflectionPrompt'];
@@ -320,9 +331,10 @@ async function handleStructuredReflection(data: {
       throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
     }
 
+    console.log('✅ Structured reflection completed successfully');
     return Response.json(result);
   } catch (error) {
-    console.error('OpenAI Structured Reflection Error:', error);
+    console.error('❌ OpenAI Structured Reflection Error:', error);
     throw error;
   }
 }

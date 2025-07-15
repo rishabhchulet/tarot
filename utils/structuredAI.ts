@@ -139,29 +139,47 @@ export const getStructuredReflection = async (
     
     const baseUrl = getApiBaseUrl();
     
-    // Create a timeout wrapper for the fetch request
+    // FIXED: Increased timeout to accommodate OpenAI processing time + network latency
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout
+      setTimeout(() => reject(new Error('Request timeout')), 75000); // INCREASED: 75 second timeout
     });
     
-    const fetchPromise = fetch(`${baseUrl}/ai`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        type: 'structured-reflection',
-        data: {
-          prompt,
-          cardName,
-          hexagramName,
-          isReversed
-        },
-      }),
-    });
+    // FIXED: Added retry mechanism for network resilience
+    const fetchWithRetry = async (retryCount = 0): Promise<Response> => {
+      try {
+        const fetchPromise = fetch(`${baseUrl}/ai`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'structured-reflection',
+            data: {
+              prompt,
+              cardName,
+              hexagramName,
+              isReversed
+            },
+          }),
+        });
 
-    // Race between fetch and timeout
-    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+        return await Promise.race([fetchPromise, timeoutPromise]) as Response;
+      } catch (error: any) {
+        // Retry on network errors (max 2 retries)
+        const isNetworkError = error.message?.includes('Network request failed') || 
+                               error.message?.includes('fetch') ||
+                               error.code === 'ECONNRESET';
+        
+        if (isNetworkError && retryCount < 2) {
+          console.log(`🔄 Network error, retrying attempt ${retryCount + 1}/2...`);
+          await new Promise(resolve => setTimeout(resolve, (retryCount + 1) * 2000));
+          return fetchWithRetry(retryCount + 1);
+        }
+        throw error;
+      }
+    };
+
+    const response = await fetchWithRetry();
 
     if (!response.ok) {
       const errorBody = await response.text();
@@ -190,7 +208,7 @@ export const getStructuredReflection = async (
       result = JSON.parse(responseText);
     } catch (parseError: any) {
       console.error('❌ JSON parsing error:', parseError);
-      console.error('❌ Response that failed to parse:', responseText?.substring(0, 200));
+      console.error('❌ Response that failed to parse:', typeof responseText !== 'undefined' ? responseText?.substring(0, 200) : 'undefined');
       throw new Error(`Failed to parse AI response: ${parseError.message}`);
     }
     

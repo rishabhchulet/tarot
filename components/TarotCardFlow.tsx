@@ -169,10 +169,8 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
   }));
 
   const animatedExpandStyle = useAnimatedStyle(() => ({
+    maxHeight: interpolate(contentHeight.value, [0, 1], [0, 200]),
     opacity: contentHeight.value,
-    transform: [{ 
-      scaleY: contentHeight.value,
-    }],
   }));
 
   const renderCardAndIching = () => (
@@ -487,14 +485,13 @@ const styles = StyleSheet.create({
     color: '#fbbf24',
   },
   expandableContent: {
-    // Remove overflow hidden to allow full content visibility
+    overflow: 'hidden',
   },
   detailedInfo: {
     padding: 20,
     backgroundColor: 'rgba(30, 41, 59, 0.4)',
     borderRadius: 12,
     marginTop: 12,
-    // Ensure no height constraints
   },
   cardDescription: {
     fontSize: 14,

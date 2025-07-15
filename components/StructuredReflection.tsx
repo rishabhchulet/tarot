@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 8, // Reduced from 16 for maximum width
+    paddingHorizontal: 16, // Reduced from 24 for more width
     paddingVertical: 32,
   },
   header: {
@@ -281,22 +281,22 @@ const styles = StyleSheet.create({
   reflectionContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 16,
-    padding: 12, // Reduced from 20 to minimal padding
+    padding: 20, // Reduced from 24 for more text width
     marginBottom: 32,
     borderWidth: 1,
     borderColor: 'rgba(251, 191, 36, 0.2)',
-    marginHorizontal: 0, // Removed horizontal margin for maximum width
+    marginHorizontal: 4, // Minimal horizontal margin for maximum width
   },
   reflectionQuestion: {
-    fontSize: 18,
+    fontSize: 18, // Increased from 20 for better fit
     fontFamily: 'Inter-Medium',
     color: '#f8fafc',
-    textAlign: 'left',
-    lineHeight: 26,
+    textAlign: 'left', // Changed from center for better readability
+    lineHeight: 26, // Reduced for better spacing
   },
   guidanceContainer: {
     alignItems: 'center',
-    marginHorizontal: 0, // Removed margin for width
+    marginHorizontal: 4, // Minimal margin for width
   },
   guidanceText: {
     fontSize: 15, // Increased from 16

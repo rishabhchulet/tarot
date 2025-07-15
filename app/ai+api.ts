@@ -3,8 +3,48 @@ import OpenAI from 'openai';
 // Lazy initialization of OpenAI client
 let openaiClient: OpenAI | null = null;
 
+// In Expo API routes, environment variables from .env might not be auto-loaded
+// Let's check all possible sources for the OpenAI API key
+function getOpenAIApiKey(): string | null {
+  // Try different possible environment variable sources
+  const possibleKeys = [
+    process.env.OPENAI_API_KEY,
+    process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+    // In Bolt.new or similar environments, sometimes keys are accessible differently
+    (globalThis as any).OPENAI_API_KEY,
+    (globalThis as any).process?.env?.OPENAI_API_KEY,
+  ];
+
+  console.log('🔍 Searching for OpenAI API key in environment...');
+  
+  for (let i = 0; i < possibleKeys.length; i++) {
+    const key = possibleKeys[i];
+    const keyName = ['OPENAI_API_KEY', 'EXPO_PUBLIC_OPENAI_API_KEY', 'globalThis.OPENAI_API_KEY', 'globalThis.process.env.OPENAI_API_KEY'][i];
+    
+    if (key && typeof key === 'string' && key.length > 10) {
+      console.log(`✅ Found OpenAI API key from: ${keyName}`);
+      return key;
+    } else {
+      console.log(`❌ ${keyName}: ${key ? 'Too short' : 'Not found'}`);
+    }
+  }
+
+  // If still not found, check if it's in any global configuration
+  try {
+    const envVars = Object.keys(process.env || {});
+    const apiKeyVars = envVars.filter(key => key.toLowerCase().includes('openai'));
+    console.log('🔍 Available OpenAI-related environment variables:', apiKeyVars);
+    console.log('🔍 Total environment variables:', envVars.length);
+  } catch (e) {
+    console.log('🔍 Could not list environment variables:', e);
+  }
+
+  console.log('❌ No valid OpenAI API key found in any environment source');
+  return null;
+}
+
 function getOpenAIClient(): OpenAI {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = getOpenAIApiKey();
   
   if (!apiKey) {
     throw new Error('OPENAI_API_KEY environment variable is required but not set');
@@ -13,8 +53,8 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     openaiClient = new OpenAI({
       apiKey: apiKey,
-      timeout: 90000, // INCREASED: 90 second timeout for complex requests
-      maxRetries: 1, // Reduced to let our custom retry handle it
+      timeout: 120000, // INCREASED: 120 second timeout for complex requests
+      maxRetries: 0, // Disable OpenAI's built-in retry, use our custom retry
       httpAgent: undefined,
     });
   }
@@ -80,13 +120,37 @@ async function retryOperation<T>(
 
 export async function POST(request: Request) {
   try {
-    // Check if OpenAI API key is available before processing
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Enhanced environment variable checking
+    const apiKey = getOpenAIApiKey();
     
     if (!apiKey) {
+      console.error('❌ OPENAI_API_KEY environment variable is missing');
       return new Response(
         JSON.stringify({ 
-          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.' 
+          error: 'OpenAI API key not configured. Please check your environment variables.',
+          code: 'MISSING_API_KEY'
+        }),
+        { 
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log('✅ OpenAI API key is available');
+    
+    // Test OpenAI client initialization
+    let openai;
+    try {
+      openai = getOpenAIClient();
+      console.log('✅ OpenAI client initialized successfully');
+    } catch (clientError: any) {
+      console.error('❌ Failed to initialize OpenAI client:', clientError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to initialize AI service',
+          details: clientError.message,
+          code: 'CLIENT_INIT_ERROR'
         }),
         { 
           status: 500,
@@ -95,11 +159,42 @@ export async function POST(request: Request) {
       );
     }
     
-    const openai = getOpenAIClient();
+    // Parse request body with error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError: any) {
+      console.error('❌ Failed to parse request body:', parseError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid request format',
+          code: 'INVALID_JSON'
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
     
-    const body = await request.json();
     const { type, data } = body;
 
+    if (!type || !data) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Missing required fields: type and data',
+          code: 'MISSING_FIELDS'
+        }),
+        { 
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    console.log(`🎯 Processing AI request: ${type}`);
+
+    // Route to appropriate handler
     switch (type) {
       case 'card-interpretation':
         return await handleCardInterpretation(data, openai);
@@ -114,26 +209,57 @@ export async function POST(request: Request) {
       case 'structured-reflection':
         return await handleStructuredReflection(data, openai);
       default:
-        return new Response('Invalid request type', { status: 400 });
+        return new Response(
+          JSON.stringify({ 
+            error: `Invalid request type: ${type}`,
+            code: 'INVALID_TYPE'
+          }),
+          { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
     }
   } catch (error: any) {
-    console.error('AI API Error:', error);
+    console.error('❌ AI API Error:', error);
+    console.error('❌ Error stack:', error.stack);
     
-    // Handle missing API key specifically
+    // Enhanced error categorization
+    let errorResponse = {
+      error: 'Internal server error',
+      code: 'UNKNOWN_ERROR',
+      details: error.message
+    };
+    
+    // Handle specific error types
     if (error.message?.includes('OPENAI_API_KEY')) {
-      return new Response(
-        JSON.stringify({ 
-          error: 'OpenAI API key not configured. Please set the OPENAI_API_KEY environment variable.' 
-        }),
-        { 
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      errorResponse = {
+        error: 'OpenAI API key not configured',
+        code: 'MISSING_API_KEY',
+        details: 'Please set the OPENAI_API_KEY environment variable'
+      };
+    } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+      errorResponse = {
+        error: 'Network connection error',
+        code: 'NETWORK_ERROR',
+        details: 'Please check your internet connection and try again'
+      };
+    } else if (error.status === 429) {
+      errorResponse = {
+        error: 'Rate limit exceeded',
+        code: 'RATE_LIMIT',
+        details: 'Too many requests. Please wait a moment and try again'
+      };
+    } else if (error.status === 401) {
+      errorResponse = {
+        error: 'Invalid API key',
+        code: 'INVALID_API_KEY',
+        details: 'The OpenAI API key is invalid or expired'
+      };
     }
     
     return new Response(
-      JSON.stringify({ error: 'Failed to process AI request' }),
+      JSON.stringify(errorResponse),
       { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }
@@ -308,7 +434,6 @@ async function handleStructuredReflection(data: {
         max_tokens: 500, // OPTIMIZED: Reduced for faster response
         temperature: 0.7,
         response_format: { type: 'json_object' },
-        timeout: 45000, // ADDED: 45 second timeout per request
       });
     });
 

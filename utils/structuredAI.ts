@@ -141,7 +141,7 @@ export const getStructuredReflection = async (
     
     // FIXED: Increased timeout to accommodate OpenAI processing time + network latency
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 75000); // INCREASED: 75 second timeout
+      setTimeout(() => reject(new Error('Request timeout')), 130000); // INCREASED: 130 second timeout (10s buffer over server)
     });
     
     // FIXED: Added retry mechanism for network resilience

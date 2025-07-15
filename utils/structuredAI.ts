@@ -76,7 +76,7 @@ Return a structured 4-part reflection output as a JSON object with these exact f
 
 2. "tarotReflection" (1 sentence): ${isReversed ? 'Use Neutral with subtle influence from Distorted.' : 'Draw from Empowered or Neutral descriptions.'} Summarize the energetic insight of the card's state clearly. Use the Spectrum fields to guide tone and theme.
 
-3. "synthesis" (short paragraph): Weave both the I Ching and Tarot insights into a cohesive, meaningful reflection. Use the Energetic Theme "${hexagram.energeticTheme}" as the main thread of synthesis. Reference both systems equally, with presence and clarity. Avoid fluff or abstract spiritual jargon—speak directly to the human experience.
+3. "synthesis" (short paragraph): Weave both the I Ching and Tarot insights into a cohesive, meaningful reflection. Use the Energetic Theme "${hexagram.energeticTheme}
 
 4. "reflectionPrompt" (1 sentence): Generate a fresh, actionable self-reflection question. Draw inspiration from: "${hexagram.introspectivePrompt}" and "${hexagram.actionOrientedPrompt}". Do not copy word-for-word. Rephrase and simplify.
 
@@ -89,19 +89,19 @@ TONE & VOICE:
 Return ONLY a valid JSON object with the four fields above.`;
 };
 
-// Create a fallback response when AI is unavailable
+// Enhanced fallback response generator
 const createFallbackResponse = (
-  card: TarotCardData, 
-  hexagram: IChingHexagramData, 
-  isReversed: boolean = false
+  card: TarotCardData,
+  hexagram: IChingHexagramData,
+  isReversed: boolean
 ): StructuredReflectionResponse => {
-  const tarotText = getTarotReflectionText(card, isReversed);
+  const orientation = isReversed ? 'shadow' : 'empowered';
   
   return {
-    iChingReflection: `${hexagram.name} invites you to embrace ${hexagram.energeticTheme.toLowerCase()}.`,
-    tarotReflection: `${card.name} ${isReversed ? 'reversed' : ''} speaks to ${tarotText.substring(0, 100)}...`,
-    synthesis: `Together, ${card.name} and ${hexagram.name} create a powerful reflection on ${hexagram.energeticTheme.toLowerCase()}. This combination invites you to explore how ${card.name.toLowerCase()} energy can guide your current journey. The wisdom of ${hexagram.name} provides a foundation for understanding your present moment.`,
-    reflectionPrompt: `How might you honor both the energy of ${card.name.toLowerCase()} and the wisdom of ${hexagram.name.toLowerCase()} in your life today?`
+    iChingReflection: `${hexagram.name} speaks to the energy of ${hexagram.energeticTheme.toLowerCase()}, inviting you to embrace its wisdom in your current situation.`,
+    tarotReflection: `${card.name} in its ${orientation} state encourages you to explore themes of ${card.empowered?.split(',')[0]?.toLowerCase() || 'growth'} and inner transformation.`,
+    synthesis: `The convergence of ${card.name} and ${hexagram.name} creates a powerful reflection on your current journey. This combination invites you to explore how the energy of ${hexagram.energeticTheme.toLowerCase()} can guide your understanding of ${card.empowered?.split(',')[0]?.toLowerCase() || 'your path'}. Together, they offer insight into where you are and where you're being called to grow.`,
+    reflectionPrompt: `How might you honor both the energy of ${card.name.replace('The ', '').toLowerCase()} and the wisdom of ${hexagram.name.toLowerCase()} in your life today?`
   };
 };
 
@@ -169,7 +169,30 @@ export const getStructuredReflection = async (
       throw new Error(`HTTP ${response.status}: Failed to get structured reflection from AI`);
     }
 
-    const result = await response.json();
+    // FIXED: Enhanced response parsing with better error handling
+    let result;
+    try {
+      const responseText = await response.text();
+      console.log('🔍 Raw API response:', responseText);
+      
+      // Check if response is empty or not JSON
+      if (!responseText || responseText.trim() === '') {
+        throw new Error('Empty response from AI service');
+      }
+      
+      // Check if response contains HTML error page (common cause of unexpected token '<')
+      if (responseText.trim().startsWith('<')) {
+        console.error('❌ Received HTML response instead of JSON:', responseText.substring(0, 200));
+        throw new Error('AI service returned HTML error page instead of JSON');
+      }
+      
+      // Try to parse JSON
+      result = JSON.parse(responseText);
+    } catch (parseError: any) {
+      console.error('❌ JSON parsing error:', parseError);
+      console.error('❌ Response that failed to parse:', responseText?.substring(0, 200));
+      throw new Error(`Failed to parse AI response: ${parseError.message}`);
+    }
     
     // Validate the response structure
     if (!result.iChingReflection || !result.tarotReflection || !result.synthesis || !result.reflectionPrompt) {

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Sparkles } from 'lucide-react-native';
+import { getArchetypeInfo } from '@/data/archetypes';
 
 export function ProfileHeader() {
   const { user } = useAuth();
@@ -14,6 +15,8 @@ export function ProfileHeader() {
     return 'Good evening';
   };
 
+  const archetypeInfo = getArchetypeInfo(user?.archetype);
+
   return (
     <View style={styles.container}>
       <View style={styles.card}>
@@ -24,13 +27,30 @@ export function ProfileHeader() {
           <View style={styles.content}>
             <View style={styles.textContainer}>
               <Text style={styles.greeting}>{getGreeting()},</Text>
-              <Text style={styles.userName}>{user?.name || 'Explorer'}</Text>
-              {user?.archetype && (
-                <View style={styles.archetypeContainer}>
-                  <View style={styles.archetypeIcon}>
-                    <Sparkles size={12} color="#fbbf24" />
+              
+              {/* Enhanced name display with archetype icon */}
+              <View style={styles.nameContainer}>
+                {archetypeInfo && (
+                  <Text style={[styles.archetypeIcon, { color: archetypeInfo.color }]}>
+                    {archetypeInfo.icon}
+                  </Text>
+                )}
+                <Text style={styles.userName}>{user?.name || 'Explorer'}</Text>
+              </View>
+              
+              {user?.archetype && archetypeInfo && (
+                <View style={[styles.archetypeContainer, { borderColor: `${archetypeInfo.color}40` }]}>
+                  <View style={[styles.archetypeIconSmall, { backgroundColor: `${archetypeInfo.color}20` }]}>
+                    <Text style={[styles.archetypeIconText, { color: archetypeInfo.color }]}>
+                      {archetypeInfo.icon}
+                    </Text>
                   </View>
-                  <Text style={styles.archetypeText}>{user.archetype}</Text>
+                  <Text style={[styles.archetypeText, { color: archetypeInfo.color }]}>
+                    {user.archetype}
+                  </Text>
+                  <Text style={styles.archetypeElement}>
+                    {archetypeInfo.element}
+                  </Text>
                 </View>
               )}
             </View>
@@ -65,7 +85,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     fontSize: 16,
     color: '#94a3b8',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  archetypeIcon: {
+    fontSize: 32,
+    marginRight: 12,
   },
   userName: {
     fontFamily: 'Inter-Bold',
@@ -73,26 +102,38 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
     textAlign: 'center',
     lineHeight: 34,
-    marginBottom: 12,
   },
   archetypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(251,191,36,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.05)',
     borderRadius: 16,
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 8,
     borderWidth: 1,
-    borderColor: 'rgba(251,191,36,0.2)',
+    gap: 8,
   },
-  archetypeIcon: {
-    marginRight: 6,
+  archetypeIconSmall: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  archetypeIconText: {
+    fontSize: 12,
   },
   archetypeText: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 12,
-    color: '#fbbf24',
+    fontSize: 13,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+  archetypeElement: {
+    fontFamily: 'Inter-Medium',
+    fontSize: 11,
+    color: '#64748b',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
 }); 

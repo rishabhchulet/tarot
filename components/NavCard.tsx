@@ -26,17 +26,15 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
             <View style={styles.textContainer}>
               <Text 
                 style={styles.title}
-                numberOfLines={1}
-                adjustsFontSizeToFit={true}
-                minimumFontScale={0.8}
+                numberOfLines={2}
+                adjustsFontSizeToFit={false}
               >
                 {title}
               </Text>
               <Text 
                 style={styles.subtitle}
-                numberOfLines={1}
-                adjustsFontSizeToFit={true}
-                minimumFontScale={0.7}
+                numberOfLines={2}
+                adjustsFontSizeToFit={false}
               >
                 {subtitle}
               </Text>
@@ -54,7 +52,7 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minWidth: 140, // Ensure minimum width for text
+    minWidth: 150, // Increased minimum width for better text display
   },
   card: {
     borderRadius: 16,
@@ -62,12 +60,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     backgroundColor: 'rgba(255,255,255,0.02)',
-    height: 80, // Fixed height to prevent variable sizing
+    minHeight: 90, // Increased height to accommodate better text
   },
   cardGradient: {
     flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 14, // Slightly reduced padding
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   content: {
     flexDirection: 'row',
@@ -75,34 +73,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 36, // Slightly smaller icon container
-    height: 36,
-    borderRadius: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10, // Reduced margin
-    flexShrink: 0, // Prevent shrinking
+    marginRight: 12,
+    flexShrink: 0,
   },
   textContainer: {
     flex: 1,
-    minWidth: 0, // Allow text to shrink properly
-    marginRight: 8, // Add margin before arrow
+    minWidth: 0,
+    marginRight: 10,
   },
   title: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 15, // Slightly smaller font
+    fontSize: 16, // Increased from 15px for better readability
     color: '#f8fafc',
-    marginBottom: 2,
-    lineHeight: 18,
+    marginBottom: 4,
+    lineHeight: 20,
   },
   subtitle: {
     fontFamily: 'Inter-Medium',
-    fontSize: 12, // Slightly smaller font
-    color: '#64748b',
-    lineHeight: 14,
+    fontSize: 14, // Increased from 12px for better readability
+    color: '#94a3b8', // Improved color contrast from #64748b
+    lineHeight: 18,
   },
   arrowContainer: {
-    flexShrink: 0, // Prevent shrinking
+    flexShrink: 0,
   },
 }); 

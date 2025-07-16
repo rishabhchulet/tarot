@@ -161,7 +161,7 @@ export default function AuthWelcomeScreen() {
               colors={['#1e40af', '#3b82f6']}
               style={styles.iconGradient}
             >
-              <MandalaIcon size={100} color="#FFFFFF" strokeWidth={1.2} />
+              <MandalaIcon size={130} color="#FFFFFF" strokeWidth={1.2} />
             </LinearGradient>
           </Animated.View>
         </View>
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
     height: 120,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 30,
+    borderRadius: 60,
     shadowColor: '#3b82f6',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   iconGradient: {
     width: '100%',
     height: '100%',
-    borderRadius: 30,
+    borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ChevronLeft, Heart, Users } from 'lucide-react-native';
 import { BirthProfileInput, BirthProfile } from '@/components/BirthProfileInput';
 import { useAuth } from '@/contexts/AuthContext';
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 
 const initialProfileState: BirthProfile = {
   name: '',
@@ -99,21 +98,27 @@ export default function CompatibilityScreen() {
           onProfileChange={setPersonB}
         />
 
-        {/* Enhanced selector */}
+        {/* Enhanced selector - Fixed for React Native compatibility */}
         <View style={styles.selectorContainer}>
           <Text style={styles.selectorLabel}>Select Report Type</Text>
-          <View style={styles.segmentWrapper}>
-            <SegmentedControl
-              values={reportTypes}
-              selectedIndex={reportType}
-              onChange={(event) => {
-                setReportType(event.nativeEvent.selectedSegmentIndex);
-              }}
-              backgroundColor={'rgba(139, 92, 246, 0.1)'}
-              tintColor={'#8b5cf6'}
-              fontStyle={{ color: '#d1d5db', fontFamily: 'Inter-Medium', fontSize: 14 }}
-              activeFontStyle={{ color: '#ffffff', fontFamily: 'Inter-Bold', fontSize: 14 }}
-            />
+          <View style={styles.customSegmentedControl}>
+            {reportTypes.map((type, index) => (
+              <Pressable
+                key={type}
+                style={[
+                  styles.segmentButton,
+                  reportType === index && styles.segmentButtonActive
+                ]}
+                onPress={() => setReportType(index)}
+              >
+                <Text style={[
+                  styles.segmentText,
+                  reportType === index && styles.segmentTextActive
+                ]}>
+                  {type}
+                </Text>
+              </Pressable>
+            ))}
           </View>
         </View>
         
@@ -222,9 +227,30 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  segmentWrapper: {
+  customSegmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
     borderRadius: 12,
     overflow: 'hidden',
+  },
+  segmentButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  segmentButtonActive: {
+    backgroundColor: '#8b5cf6',
+  },
+  segmentText: {
+    color: '#d1d5db',
+    fontFamily: 'Inter-Medium',
+    fontSize: 14,
+  },
+  segmentTextActive: {
+    color: '#ffffff',
+    fontFamily: 'Inter-Bold',
+    fontSize: 14,
   },
   primaryButton: {
     marginTop: 24,

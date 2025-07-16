@@ -207,8 +207,6 @@ export default function CompatibilityResultsScreen() {
               <Text 
                 style={styles.personName}
                 numberOfLines={1}
-                adjustsFontSizeToFit={true}
-                minimumFontScale={0.8}
               >
                 {report.personAName}
               </Text>
@@ -222,8 +220,6 @@ export default function CompatibilityResultsScreen() {
               <Text 
                 style={styles.personName}
                 numberOfLines={1}
-                adjustsFontSizeToFit={true}
-                minimumFontScale={0.8}
               >
                 {report.personBName}
               </Text>

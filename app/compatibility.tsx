@@ -63,7 +63,7 @@ export default function CompatibilityScreen() {
 
       {/* Enhanced Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={() => router.replace('/(tabs)')} style={styles.backButton}>
           <ChevronLeft size={28} color="#F9FAFB" />
         </Pressable>
         <View style={styles.headerCenter}>

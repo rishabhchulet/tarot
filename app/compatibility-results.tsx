@@ -176,7 +176,7 @@ export default function CompatibilityResultsScreen() {
             <AlertCircle size={48} color="#fda4af" />
             <Text style={styles.errorTitle}>Unable to Generate Report</Text>
             <Text style={styles.errorText}>{error}</Text>
-            <Pressable onPress={() => router.back()} style={styles.retryButton}>
+            <Pressable onPress={() => router.replace('/compatibility')} style={styles.retryButton}>
               <LinearGradient
                 colors={['#374151', '#4b5563']}
                 style={styles.retryButtonGradient}
@@ -194,7 +194,7 @@ export default function CompatibilityResultsScreen() {
         <>
           {/* Enhanced Header */}
           <View style={[styles.header, { paddingTop: insets.top }]}>
-            <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <Pressable style={styles.backButton} onPress={() => router.replace('/compatibility')}>
               <ChevronLeft size={24} color="#f8fafc" />
             </Pressable>
             <Text style={styles.headerTitle}>Compatibility Report</Text>
@@ -214,7 +214,9 @@ export default function CompatibilityResultsScreen() {
             </View>
             <View style={styles.heartContainer}>
               <Heart size={28} color="#f87171" fill="#f87171" />
-              <Sparkles size={18} color="#fbbf24" style={styles.sparkleIcon} />
+              <View style={styles.sparkleWrapper}>
+                <Sparkles size={18} color="#fbbf24" />
+              </View>
             </View>
             <View style={styles.nameContainer}>
               <Text 
@@ -627,7 +629,7 @@ const styles = StyleSheet.create({
   headerSpacer: {
     width: 40,
   },
-  sparkleIcon: {
+  sparkleWrapper: {
     marginLeft: -4,
   },
 }); 

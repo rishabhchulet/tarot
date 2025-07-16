@@ -14,6 +14,7 @@ import Animated, {
 import { MessageCircle, RefreshCw, Sparkles, Star, Zap } from 'lucide-react-native';
 import { PlanetaryLoadingAnimation } from '@/components/PlanetaryLoadingAnimation';
 import { getStructuredReflection } from '@/utils/structuredAI';
+import { StructuredReflectionResponse } from '@/data/structuredData';
 
 const { width } = Dimensions.get('window');
 
@@ -30,7 +31,7 @@ export function StructuredReflection({
   isReversed = false, 
   onReflectionGenerated 
 }: StructuredReflectionProps) {
-  const [reflection, setReflection] = useState<string>('');
+  const [reflection, setReflection] = useState<StructuredReflectionResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,9 +66,8 @@ export function StructuredReflection({
       }
 
       if (structuredReflection) {
-        // Create a formatted reflection string
-        const formattedReflection = `${structuredReflection.synthesis}\n\n${structuredReflection.reflectionPrompt}`;
-        setReflection(formattedReflection);
+        // Store the complete structured reflection
+        setReflection(structuredReflection);
         
         // Trigger the callback with the reflection prompt
         if (onReflectionGenerated) {
@@ -214,23 +214,47 @@ How might you embody the essence of ${keywords.split(', ')[0]} while honoring th
       />
       
       <View style={styles.content}>
-        {/* Enhanced Header */}
-        <Animated.View style={[styles.header, fade1Style]}>
-          <Sparkles size={20} color="#fbbf24" />
-          <Text style={styles.headerTitle}>Your Daily Reflection</Text>
-          <Sparkles size={20} color="#fbbf24" />
-        </Animated.View>
-
         {/* Card and Hexagram Info */}
-        <Animated.View style={[styles.sourceInfo, fade2Style]}>
+        <Animated.View style={[styles.sourceInfo, fade1Style]}>
           <Text style={styles.sourceText}>
             {cardName} {isReversed ? '(reversed)' : ''} • {hexagramName}
           </Text>
         </Animated.View>
 
-        {/* Main Reflection Question */}
-        <Animated.View style={[styles.reflectionContainer, fade3Style]}>
-          <Text style={styles.reflectionQuestion}>{reflection}</Text>
+        {/* I Ching Reflection */}
+        <Animated.View style={[styles.sectionContainer, fade2Style]}>
+          <View style={styles.sectionHeader}>
+            <Star size={16} color="#60a5fa" />
+            <Text style={styles.sectionTitle}>I Ching Wisdom</Text>
+          </View>
+          <Text style={styles.sectionText}>{reflection.iChingReflection}</Text>
+        </Animated.View>
+
+        {/* Tarot Reflection */}
+        <Animated.View style={[styles.sectionContainer, fade2Style]}>
+          <View style={styles.sectionHeader}>
+            <Sparkles size={16} color="#fbbf24" />
+            <Text style={styles.sectionTitle}>Tarot Insight</Text>
+          </View>
+          <Text style={styles.sectionText}>{reflection.tarotReflection}</Text>
+        </Animated.View>
+
+        {/* Synthesis */}
+        <Animated.View style={[styles.sectionContainer, fade3Style]}>
+          <View style={styles.sectionHeader}>
+            <Zap size={16} color="#a855f7" />
+            <Text style={styles.sectionTitle}>Combined Wisdom</Text>
+          </View>
+          <Text style={styles.sectionText}>{reflection.synthesis}</Text>
+        </Animated.View>
+
+        {/* Daily Question - Highlighted */}
+        <Animated.View style={[styles.questionContainer, fade4Style]}>
+          <View style={styles.questionHeader}>
+            <MessageCircle size={16} color="#fbbf24" />
+            <Text style={styles.questionTitle}>Your Question for Today</Text>
+          </View>
+          <Text style={styles.questionText}>{reflection.reflectionPrompt}</Text>
         </Animated.View>
 
         {/* Guidance Text */}
@@ -252,58 +276,81 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 16, // Reduced from 24 for more width
-    paddingVertical: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    gap: 12,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontFamily: 'Inter-Bold',
-    color: '#f8fafc',
-    textAlign: 'center',
+    paddingHorizontal: 8, // Further reduced padding for maximum text width
+    paddingVertical: 20, // Reduced from 32
   },
   sourceInfo: {
-    marginBottom: 32,
+    marginBottom: 20, // Reduced from 32
     alignItems: 'center',
   },
   sourceText: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Inter-Medium',
     color: '#94a3b8',
     textAlign: 'center',
   },
-  reflectionContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 16,
-    padding: 20, // Reduced from 24 for more text width
-    marginBottom: 32,
+  sectionContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    padding: 16, // Reduced padding
+    marginBottom: 16, // Reduced spacing between sections
     borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.2)',
-    marginHorizontal: 4, // Minimal horizontal margin for maximum width
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    marginHorizontal: 2, // Minimal horizontal margin
   },
-  reflectionQuestion: {
-    fontSize: 18, // Increased from 20 for better fit
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter-SemiBold',
+    color: '#f8fafc',
+  },
+  sectionText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#d1d5db',
+    lineHeight: 22,
+  },
+  questionContainer: {
+    backgroundColor: 'rgba(251, 191, 36, 0.1)',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    marginHorizontal: 2,
+  },
+  questionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  questionTitle: {
+    fontSize: 15,
+    fontFamily: 'Inter-Bold',
+    color: '#fbbf24',
+  },
+  questionText: {
+    fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: '#f8fafc',
-    textAlign: 'left', // Changed from center for better readability
-    lineHeight: 26, // Reduced for better spacing
+    lineHeight: 22,
   },
   guidanceContainer: {
     alignItems: 'center',
-    marginHorizontal: 4, // Minimal margin for width
+    marginHorizontal: 2,
   },
   guidanceText: {
-    fontSize: 15, // Increased from 16
+    fontSize: 14,
     fontFamily: 'Inter-Regular',
     color: '#64748b',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   errorContainer: {
     flex: 1,

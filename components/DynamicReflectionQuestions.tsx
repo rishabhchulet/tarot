@@ -41,12 +41,7 @@ export function DynamicReflectionQuestions({
 
   return (
     <View style={styles.container}>
-      {/* Enhanced Header with beautiful styling */}
-      <View style={styles.header}>
-        <Sparkles size={20} color="#60a5fa" />
-        <Text style={styles.title}>Your Reflection Today</Text>
-        <Sparkles size={20} color="#60a5fa" />
-      </View>
+
 
       {/* Enhanced Structured Reflection Component */}
       <StructuredReflection

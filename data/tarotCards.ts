@@ -180,9 +180,9 @@ export const MAJOR_ARCANA = [
     number: 19
   },
   {
-    name: "Judgement",
-    keywords: ["Judgement", "Rebirth", "Inner Calling", "Absolution"],
-    description: "Judgement represents rebirth, inner calling, and spiritual awakening. This card calls us to rise to a higher level of consciousness and answer our true calling.",
+    name: "Judgment",
+    keywords: ["Judgment", "Rebirth", "Inner Calling", "Absolution"],
+    description: "Judgment represents rebirth, inner calling, and spiritual awakening. This card calls us to rise to a higher level of consciousness and answer our true calling.",
     imageUrl: "https://upload.wikimedia.org/wikipedia/commons/d/dd/RWS_Tarot_20_Judgement.jpg",
     reflectionQuestion: "What is your soul calling you to awaken to or transform?",
     suit: "Major Arcana",

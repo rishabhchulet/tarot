@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   description: {
     color: '#94a3b8',
     fontFamily: 'Inter-Regular',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 24,
   },
 }); 

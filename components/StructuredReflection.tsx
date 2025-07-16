@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: 500,
-    paddingHorizontal: 20, // Direct padding on main container
+    paddingHorizontal: 6, // Minimal padding for maximum text width
     paddingVertical: 20,
     justifyContent: 'center',
   },

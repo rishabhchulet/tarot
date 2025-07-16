@@ -267,28 +267,45 @@ const createFallbackCompatibilityReport = (data: CompatibilityReportRequest) => 
     score: baseScore,
     title: `${personAName} & ${personBName}: A Cosmic Connection`,
     summary: `The stars have woven an intricate pattern between ${personAName} and ${personBName}. Their connection transcends the ordinary, offering a beautiful balance of challenge and harmony. This ${reportType.toLowerCase()} holds the potential for deep understanding, mutual growth, and shared adventures. Together, they create a unique cosmic signature that speaks to both individual strength and collective potential.`,
-    stats: [
-      {
-        label: "Emotional Harmony",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `${personAName} and ${personBName} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
-      },
-      {
-        label: "Communication Flow",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
-      },
-      {
-        label: "Creative Synergy",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `Together, ${personAName} and ${personBName} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
-      },
-      {
-        label: "Long-term Potential",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
-      }
-    ],
+    stats: (() => {
+      // Include karmic/North Node aspects in fallback reports
+      const possibleStats = [
+        {
+          label: "Emotional Harmony",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `${personAName} and ${personBName} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
+        },
+        {
+          label: "Communication Flow",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
+        },
+        {
+          label: "Creative Synergy",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `Together, ${personAName} and ${personBName} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
+        },
+        {
+          label: "Long-term Potential",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
+        },
+        {
+          label: "Karmic Connection",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `${personAName} and ${personBName} share profound karmic bonds that feel both familiar and destined. Their souls recognize each other across time and space.`
+        },
+        {
+          label: "Soul Growth Alignment",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `Their individual journeys of spiritual evolution beautifully support each other. Together, they accelerate their soul's growth and purpose fulfillment.`
+        }
+      ];
+      
+      // Randomly select 4 stats, with a preference for including at least one karmic aspect
+      const shuffled = possibleStats.sort(() => 0.5 - Math.random());
+      return shuffled.slice(0, 4);
+    })(),
     generatedAt: new Date().toISOString(),
     reportType: reportType,
     personAName: personAName,

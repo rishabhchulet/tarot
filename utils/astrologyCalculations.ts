@@ -74,7 +74,8 @@ const calculatePlanetPosition = (planetName: string, julianDay: number): number 
     'Saturn': { meanLongitude: 50.08, meanMotion: 0.0335 },
     'Uranus': { meanLongitude: 314.05, meanMotion: 0.0117 },
     'Neptune': { meanLongitude: 304.35, meanMotion: 0.0060 },
-    'Pluto': { meanLongitude: 238.93, meanMotion: 0.0040 }
+    'Pluto': { meanLongitude: 238.93, meanMotion: 0.0040 },
+    'North Node': { meanLongitude: 125.04, meanMotion: -0.0529 } // North Node moves backwards
   };
   
   const planet = basePositions[planetName];
@@ -105,7 +106,7 @@ export const getPlanetaryPositions = (
   try {
     const julianDay = dateToJulianDay(year, month, day, hour, minute);
     
-    const planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
+    const planets = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto', 'North Node'];
     
     const positions: PlanetPosition[] = planets.map(planetName => ({
       name: planetName,
@@ -126,7 +127,8 @@ export const getPlanetaryPositions = (
       { name: 'Saturn', longitude: 180 },
       { name: 'Uranus', longitude: 210 },
       { name: 'Neptune', longitude: 240 },
-      { name: 'Pluto', longitude: 270 }
+      { name: 'Pluto', longitude: 270 },
+      { name: 'North Node', longitude: 300 }
     ];
   }
 }; 

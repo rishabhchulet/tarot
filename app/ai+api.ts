@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import { getPlanetaryPositions, getZodiacSign } from '@/utils/astrologyCalculations';
 
 // Lazy initialization of OpenAI client
 let openaiClient: OpenAI | null = null;
@@ -475,12 +476,45 @@ async function handleCompatibilityReport(data: {
     const birthDate = person.date ? new Date(person.date) : null;
     const birthTime = person.time ? new Date(person.time) : null;
     
+    let northNodeSign = 'Not available';
+    let southNodeSign = 'Not available';
+    
+    // Calculate North Node if we have complete birth data
+    if (birthDate && birthTime && person.coordinates) {
+      try {
+        const year = birthDate.getFullYear();
+        const month = birthDate.getMonth() + 1;
+        const day = birthDate.getDate();
+        const hour = birthTime.getHours();
+        const minute = birthTime.getMinutes();
+        
+        const positions = getPlanetaryPositions(
+          year, month, day, hour, minute,
+          person.coordinates.latitude,
+          person.coordinates.longitude
+        );
+        
+        // Find North Node position (South Node is opposite)
+        const northNodePosition = positions.find(p => p.name === 'North Node');
+        if (northNodePosition) {
+          northNodeSign = getZodiacSign(northNodePosition.longitude);
+          // South Node is exactly opposite (180 degrees)
+          const southNodeLongitude = (northNodePosition.longitude + 180) % 360;
+          southNodeSign = getZodiacSign(southNodeLongitude);
+        }
+      } catch (error) {
+        console.log('Could not calculate North Node for', person.name);
+      }
+    }
+    
     return {
       name: person.name || 'Unknown',
       birthDate: birthDate ? birthDate.toLocaleDateString() : 'Not provided',
       birthTime: birthTime ? birthTime.toLocaleTimeString() : 'Not provided',
       location: person.location || 'Not provided',
       coordinates: person.coordinates || null,
+      northNodeSign,
+      southNodeSign,
     };
   };
 
@@ -494,11 +528,15 @@ You are a highly skilled relationship astrologer with deep knowledge of synastry
 - Birth Date: ${formattedPersonA.birthDate}
 - Birth Time: ${formattedPersonA.birthTime}
 - Birth Location: ${formattedPersonA.location}
+- North Node: ${formattedPersonA.northNodeSign}
+- South Node: ${formattedPersonA.southNodeSign}
 
 **Person B (${formattedPersonB.name}):**
 - Birth Date: ${formattedPersonB.birthDate}
 - Birth Time: ${formattedPersonB.birthTime}
 - Birth Location: ${formattedPersonB.location}
+- North Node: ${formattedPersonB.northNodeSign}
+- South Node: ${formattedPersonB.southNodeSign}
 
 **Report Type:** ${reportType}
 
@@ -510,6 +548,9 @@ Create a comprehensive compatibility analysis that feels deeply personal and mea
 - Communication styles and intellectual connection
 - Long-term potential and growth areas
 - Seasonal and elemental influences from birth timing
+- North Node and South Node synastry (karmic connections and soul purpose alignment)
+- Nodal axis compatibility (complementary life lessons and spiritual growth paths)
+- Past life connections and karmic patterns indicated by the nodes
 
 Provide your analysis as a JSON object with these exact fields:
 
@@ -520,9 +561,9 @@ Provide your analysis as a JSON object with these exact fields:
 3. **"summary"**: A beautifully written 4-5 sentence summary that feels personally crafted for this couple. Include specific details about their birth timing, seasons, or astrological elements. Make it feel like destiny.
 
 4. **"stats"**: An array of exactly 4 relationship aspects, each with:
-   - "label": The aspect name (choose from: "Emotional Harmony", "Communication Flow", "Passion & Romance", "Long-term Potential", "Spiritual Connection", "Adventure Compatibility", "Home & Security", "Creative Synergy")
+   - "label": The aspect name (choose from: "Emotional Harmony", "Communication Flow", "Passion & Romance", "Long-term Potential", "Spiritual Connection", "Adventure Compatibility", "Home & Security", "Creative Synergy", "Karmic Connection", "Soul Growth Alignment", "Past Life Bonds", "Destiny Partnership")
    - "score": Individual score (0-100) for this aspect
-   - "description": 2-3 sentences explaining this dynamic with specific astrological insights
+   - "description": 2-3 sentences explaining this dynamic with specific astrological insights, including North Node synastry when relevant
 
 **Tone Guidelines:**
 - Write as if you personally know this couple
@@ -614,28 +655,65 @@ function createEnhancedFallbackReport(personA: any, personB: any, reportType: st
     score: baseScore,
     title: `${personA.name} & ${personB.name}: A Cosmic Connection`,
     summary: `The stars have woven an intricate pattern between ${personA.name} and ${personB.name}. Their connection transcends the ordinary, offering a beautiful balance of challenge and harmony. This ${reportType.toLowerCase()} holds the potential for deep understanding, mutual growth, and shared adventures. Together, they create a unique cosmic signature that speaks to both individual strength and collective potential.`,
-    stats: [
-      {
-        label: "Emotional Harmony",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `${personA.name} and ${personB.name} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
-      },
-      {
-        label: "Communication Flow",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
-      },
-      {
-        label: "Creative Synergy",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `Together, ${personA.name} and ${personB.name} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
-      },
-      {
-        label: "Long-term Potential",
-        score: baseScore + Math.floor(Math.random() * 10) - 5,
-        description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
+    stats: (() => {
+      // Create a mix of traditional and North Node-based compatibility aspects
+      const allStats = [
+        {
+          label: "Emotional Harmony",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `${personA.name} and ${personB.name} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
+        },
+        {
+          label: "Communication Flow",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
+        },
+        {
+          label: "Creative Synergy",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `Together, ${personA.name} and ${personB.name} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
+        },
+        {
+          label: "Long-term Potential",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
+        },
+        {
+          label: "Karmic Connection",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `${personA.name} and ${personB.name} share deep karmic bonds that transcend this lifetime. Their connection feels destined, with lessons and growth opportunities woven into their relationship.`
+        },
+        {
+          label: "Soul Growth Alignment",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `Their individual paths of spiritual evolution beautifully complement each other. Together, they support each other's highest growth and soul purpose fulfillment.`
+        },
+        {
+          label: "Destiny Partnership",
+          score: baseScore + Math.floor(Math.random() * 10) - 5,
+          description: `This connection carries the signature of destiny. ${personA.name} and ${personB.name} are meant to walk significant parts of their journey together, supporting each other's cosmic evolution.`
+        }
+      ];
+      
+      // Randomly select 4 stats, ensuring at least one North Node-based stat if possible
+      const shuffled = allStats.sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 4);
+      
+      // Ensure at least one karmic/North Node stat is included (50% chance)
+      const hasKarmicStat = selected.some(stat => 
+        ["Karmic Connection", "Soul Growth Alignment", "Destiny Partnership"].includes(stat.label)
+      );
+      
+      if (!hasKarmicStat && Math.random() > 0.5) {
+        // Replace the last stat with a karmic one
+        const karmicStats = allStats.filter(stat => 
+          ["Karmic Connection", "Soul Growth Alignment", "Destiny Partnership"].includes(stat.label)
+        );
+        selected[3] = karmicStats[Math.floor(Math.random() * karmicStats.length)];
       }
-    ],
+      
+      return selected;
+    })(),
     generatedAt: new Date().toISOString(),
     reportType: reportType,
     personAName: personA.name,

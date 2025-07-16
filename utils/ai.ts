@@ -210,7 +210,7 @@ export const getAICompatibilityReport = async (data: CompatibilityReportRequest)
     
     // Create a timeout wrapper for the fetch request
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 20000); // 20 second timeout for compatibility reports
+      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout (standardized with gpt-4o-mini)
     });
     
     const fetchPromise = fetch(`${baseUrl}/ai`, {

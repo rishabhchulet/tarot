@@ -139,9 +139,9 @@ export const getStructuredReflection = async (
     
     const baseUrl = getApiBaseUrl();
     
-    // FIXED: Increased timeout to accommodate OpenAI processing time + network latency
+    // Standardized timeout for gpt-4o-mini (fast model)
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 130000); // INCREASED: 130 second timeout (10s buffer over server)
+      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout (standardized)
     });
     
     const fetchPromise = fetch(`${baseUrl}/ai`, {

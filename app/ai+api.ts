@@ -583,35 +583,65 @@ For each area, give it a score (0-100) and write 2-3 sentences explaining what t
 `;
 
   try {
+    console.log(`💕 Processing compatibility report: ${formattedPersonA.name} + ${formattedPersonB.name} (${reportType})`);
+    
     const completion = await retryOperation(async () => {
       return await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini', // OPTIMIZED: Use faster gpt-4o-mini for consistent performance
         messages: [
           {
             role: 'system',
-            content: 'You are a caring relationship guide who helps couples understand their connection through astrology. You speak directly to them in warm, friendly language like a wise friend. Always use "you" and "your" when talking about their relationship. Keep your language simple, personal, and encouraging.'
+            content: 'You are a caring relationship guide who helps couples understand their connection through astrology. You speak directly to them in warm, friendly language like a wise friend. Always use "you" and "your" when talking about their relationship. Keep your language simple, personal, and encouraging. Always respond with valid JSON containing exactly these fields: score, title, summary, stats.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 1200,
+        max_tokens: 800, // OPTIMIZED: Reduced for faster response while maintaining quality
         temperature: 0.8,
         response_format: { type: 'json_object' },
       });
     });
 
-    const report = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    console.log('✅ AI compatibility response received, parsing...');
 
-    // Validate and enhance the report
-    if (!report.score || !report.title || !report.summary || !report.stats) {
-      throw new Error('Invalid report structure received from AI');
+    let report;
+    try {
+      report = JSON.parse(completion.choices[0]?.message?.content || '{}');
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError);
+      throw new Error('AI returned invalid JSON response');
     }
 
-    // Ensure stats array has exactly 4 items
+    // Comprehensive validation (matching structured reflection pattern)
+    const requiredFields = ['score', 'title', 'summary', 'stats'];
+    const missingFields = requiredFields.filter(field => !report[field]);
+    
+    if (missingFields.length > 0) {
+      console.warn('⚠️ AI response missing fields:', missingFields);
+      throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+    }
+
+    // Validate score is a number
+    if (typeof report.score !== 'number' || report.score < 0 || report.score > 100) {
+      console.warn('⚠️ Invalid score value:', report.score);
+      throw new Error('Score must be a number between 0-100');
+    }
+
+    // Ensure stats array has exactly 4 items with proper structure
     if (!Array.isArray(report.stats) || report.stats.length !== 4) {
+      console.warn('⚠️ Invalid stats array length:', report.stats?.length);
       throw new Error('Report must contain exactly 4 compatibility aspects');
+    }
+
+    // Validate each stat has required fields
+    for (let i = 0; i < report.stats.length; i++) {
+      const stat = report.stats[i];
+      if (!stat.label || !stat.description || typeof stat.score !== 'number') {
+        console.warn(`⚠️ Invalid stat at index ${i}:`, stat);
+        throw new Error(`Stat ${i + 1} missing required fields: label, score, description`);
+      }
     }
 
     // Add metadata for enhanced user experience
@@ -624,12 +654,14 @@ For each area, give it a score (0-100) and write 2-3 sentences explaining what t
       insight: generatePersonalizedInsight(formattedPersonA, formattedPersonB, report.score),
     };
 
+    console.log('✅ Compatibility report completed successfully');
     return Response.json(enhancedReport);
   } catch (error) {
-    console.error('OpenAI Compatibility Error:', error);
+    console.error('❌ OpenAI Compatibility Error:', error);
     
     // Enhanced fallback report with personalized elements
     const fallbackReport = createEnhancedFallbackReport(formattedPersonA, formattedPersonB, reportType);
+    console.log('🔄 Using fallback compatibility report due to error');
     return Response.json(fallbackReport);
   }
 }

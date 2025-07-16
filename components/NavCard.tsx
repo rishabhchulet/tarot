@@ -26,8 +26,9 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
             <View style={styles.textContainer}>
               <Text 
                 style={styles.title}
-                numberOfLines={2}
-                adjustsFontSizeToFit={false}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.85}
               >
                 {title}
               </Text>
@@ -52,7 +53,7 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minWidth: 150, // Increased minimum width for better text display
+    minWidth: 165, // Increased minimum width to accommodate "Compatibility"
   },
   card: {
     borderRadius: 16,
@@ -79,13 +80,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
     flexShrink: 0,
   },
   textContainer: {
     flex: 1,
     minWidth: 0,
-    marginRight: 10,
+    marginRight: 6,
   },
   title: {
     fontFamily: 'Inter-SemiBold',

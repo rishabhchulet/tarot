@@ -213,57 +213,55 @@ How might you embody the essence of ${keywords.split(', ')[0]} while honoring th
         style={StyleSheet.absoluteFill}
       />
       
-      <View style={styles.content}>
-        {/* Card and Hexagram Info */}
-        <Animated.View style={[styles.sourceInfo, fade1Style]}>
-          <Text style={styles.sourceText}>
-            {cardName} {isReversed ? '(reversed)' : ''} • {hexagramName}
-          </Text>
-        </Animated.View>
+      {/* Card and Hexagram Info */}
+      <Animated.View style={[styles.sourceInfo, fade1Style]}>
+        <Text style={styles.sourceText}>
+          {cardName} {isReversed ? '(reversed)' : ''} • {hexagramName}
+        </Text>
+      </Animated.View>
 
-        {/* I Ching Reflection */}
-        <Animated.View style={[styles.sectionContainer, fade2Style]}>
-          <View style={styles.sectionHeader}>
-            <Star size={16} color="#60a5fa" />
-            <Text style={styles.sectionTitle}>I Ching Wisdom</Text>
-          </View>
-          <Text style={styles.sectionText}>{reflection.iChingReflection}</Text>
-        </Animated.View>
+      {/* I Ching Reflection */}
+      <Animated.View style={[styles.section, fade2Style]}>
+        <View style={styles.sectionHeader}>
+          <Star size={16} color="#60a5fa" />
+          <Text style={styles.sectionTitle}>I Ching Wisdom</Text>
+        </View>
+        <Text style={styles.sectionText}>{reflection.iChingReflection}</Text>
+      </Animated.View>
 
-        {/* Tarot Reflection */}
-        <Animated.View style={[styles.sectionContainer, fade2Style]}>
-          <View style={styles.sectionHeader}>
-            <Sparkles size={16} color="#fbbf24" />
-            <Text style={styles.sectionTitle}>Tarot Insight</Text>
-          </View>
-          <Text style={styles.sectionText}>{reflection.tarotReflection}</Text>
-        </Animated.View>
+      {/* Tarot Reflection */}
+      <Animated.View style={[styles.section, fade2Style]}>
+        <View style={styles.sectionHeader}>
+          <Sparkles size={16} color="#fbbf24" />
+          <Text style={styles.sectionTitle}>Tarot Insight</Text>
+        </View>
+        <Text style={styles.sectionText}>{reflection.tarotReflection}</Text>
+      </Animated.View>
 
-        {/* Synthesis */}
-        <Animated.View style={[styles.sectionContainer, fade3Style]}>
-          <View style={styles.sectionHeader}>
-            <Zap size={16} color="#a855f7" />
-            <Text style={styles.sectionTitle}>Combined Wisdom</Text>
-          </View>
-          <Text style={styles.sectionText}>{reflection.synthesis}</Text>
-        </Animated.View>
+      {/* Synthesis */}
+      <Animated.View style={[styles.section, fade3Style]}>
+        <View style={styles.sectionHeader}>
+          <Zap size={16} color="#a855f7" />
+          <Text style={styles.sectionTitle}>Combined Wisdom</Text>
+        </View>
+        <Text style={styles.sectionText}>{reflection.synthesis}</Text>
+      </Animated.View>
 
-        {/* Daily Question - Highlighted */}
-        <Animated.View style={[styles.questionContainer, fade4Style]}>
-          <View style={styles.questionHeader}>
-            <MessageCircle size={16} color="#fbbf24" />
-            <Text style={styles.questionTitle}>Your Question for Today</Text>
-          </View>
-          <Text style={styles.questionText}>{reflection.reflectionPrompt}</Text>
-        </Animated.View>
+      {/* Daily Question - Highlighted */}
+      <Animated.View style={[styles.questionSection, fade4Style]}>
+        <View style={styles.sectionHeader}>
+          <MessageCircle size={16} color="#fbbf24" />
+          <Text style={styles.questionTitle}>Your Question for Today</Text>
+        </View>
+        <Text style={styles.questionText}>{reflection.reflectionPrompt}</Text>
+      </Animated.View>
 
-        {/* Guidance Text */}
-        <Animated.View style={[styles.guidanceContainer, fade4Style]}>
-          <Text style={styles.guidanceText}>
-            Take a moment to sit with this question. Let it guide your awareness throughout the day.
-          </Text>
-        </Animated.View>
-      </View>
+      {/* Guidance Text */}
+      <Animated.View style={[styles.guidance, fade4Style]}>
+        <Text style={styles.guidanceText}>
+          Take a moment to sit with this question. Let it guide your awareness throughout the day.
+        </Text>
+      </Animated.View>
     </View>
   );
 }
@@ -272,15 +270,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: 500,
-  },
-  content: {
-    flex: 1,
+    paddingHorizontal: 20, // Direct padding on main container
+    paddingVertical: 20,
     justifyContent: 'center',
-    paddingHorizontal: 8, // Further reduced padding for maximum text width
-    paddingVertical: 20, // Reduced from 32
   },
   sourceInfo: {
-    marginBottom: 20, // Reduced from 32
+    marginBottom: 24,
     alignItems: 'center',
   },
   sourceText: {
@@ -289,14 +284,8 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     textAlign: 'center',
   },
-  sectionContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 12,
-    padding: 16, // Reduced padding
-    marginBottom: 16, // Reduced spacing between sections
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-    marginHorizontal: 2, // Minimal horizontal margin
+  section: {
+    marginBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -313,22 +302,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Regular',
     color: '#d1d5db',
-    lineHeight: 22,
+    lineHeight: 24,
   },
-  questionContainer: {
+  questionSection: {
     backgroundColor: 'rgba(251, 191, 36, 0.1)',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 20,
+    marginBottom: 24,
     borderWidth: 1,
     borderColor: 'rgba(251, 191, 36, 0.3)',
-    marginHorizontal: 2,
-  },
-  questionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
   },
   questionTitle: {
     fontSize: 15,
@@ -339,11 +321,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: '#f8fafc',
-    lineHeight: 22,
+    lineHeight: 24,
   },
-  guidanceContainer: {
+  guidance: {
     alignItems: 'center',
-    marginHorizontal: 2,
   },
   guidanceText: {
     fontSize: 14,

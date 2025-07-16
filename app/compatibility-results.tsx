@@ -594,7 +594,7 @@ const styles = StyleSheet.create({
   },
   guidanceCards: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     gap: 12,
   },
   guidanceCard: {
@@ -604,7 +604,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
     alignItems: 'center',
-    width: '45%', // Adjust as needed for spacing
+    flex: 1,
+    marginHorizontal: 4,
   },
   guidanceCardTitle: {
     fontFamily: 'Inter-SemiBold',

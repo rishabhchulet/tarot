@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   messageName: {
     fontSize: 12,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
     textAlign: 'center',
   },
   

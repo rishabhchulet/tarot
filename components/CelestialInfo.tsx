@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     color: '#d1d5db',
   },
   phaseName: {
-    fontFamily: 'CormorantGaramond-Bold',
+    fontFamily: 'Inter-Bold',
     fontSize: 22,
     color: '#f9fafb',
     marginTop: -2,

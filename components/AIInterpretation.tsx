@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 16,
-    fontFamily: 'CormorantGaramond-SemiBold',
+    fontFamily: 'Inter-SemiBold',
   },
   loadingContainer: {
     flexDirection: 'row',

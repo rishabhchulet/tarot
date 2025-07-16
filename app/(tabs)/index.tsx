@@ -223,11 +223,14 @@ const styles = StyleSheet.create({
   },
   exploreGrid: {
     flexDirection: 'row',
-    gap: 16,
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
     marginBottom: 8,
+    gap: 16,
   },
   gridItem: {
     flex: 1,
+    maxWidth: '48%', // Ensure proper width distribution
   },
   universeContainer: {
     marginBottom: 8,

@@ -1,3 +1,5 @@
+// CRITICAL FIX: Import polyfills before anything else
+import '@/utils/polyfills';
 import 'react-native-get-random-values';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';

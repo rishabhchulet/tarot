@@ -1,5 +1,23 @@
-// CRITICAL FIX: Import polyfills before Supabase
-import './polyfills';
+// CRITICAL FIX: Apply structuredClone polyfill DIRECTLY before any Supabase imports
+// This ensures it's available before Supabase tries to use it
+if (typeof global.structuredClone === 'undefined') {
+  global.structuredClone = function structuredClone(obj: any): any {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj instanceof Date) return new Date(obj.getTime());
+    if (Array.isArray(obj)) return obj.map((item) => structuredClone(item));
+    if (typeof obj === 'object') {
+      const cloned: any = {};
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          cloned[key] = structuredClone(obj[key]);
+        }
+      }
+      return cloned;
+    }
+    return obj;
+  };
+  console.log('✅ structuredClone polyfill applied for React Native compatibility');
+}
 
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';

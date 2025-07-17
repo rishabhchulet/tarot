@@ -191,9 +191,9 @@ export const getAICompatibilityReport = async (data: CompatibilityReportRequest)
   try {
     const baseUrl = getApiBaseUrl();
     
-    // Create a timeout wrapper for the fetch request
+    // Create a timeout wrapper for the fetch request with longer timeout for compatibility reports
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 15000); // 15 second timeout (standardized with gpt-4o-mini)
+      setTimeout(() => reject(new Error('Request timeout')), 25000); // INCREASED: 25 second timeout for compatibility
     });
     
     const fetchPromise = fetch(`${baseUrl}/ai`, {
@@ -223,6 +223,7 @@ export const getAICompatibilityReport = async (data: CompatibilityReportRequest)
     
     // Enhanced error handling with fallback
     const enhancedError = handleNetworkError(error, 'compatibility report');
+    console.log('🔄 Using fallback compatibility report due to:', enhancedError);
     
     // Create a fallback report if the AI fails
     const fallbackReport = createFallbackCompatibilityReport(data);
@@ -240,11 +241,13 @@ const createFallbackCompatibilityReport = (data: CompatibilityReportRequest) => 
   const personB = data.personB as any; // Type assertion for fallback
   const reportType = data.reportType;
   
-  // Generate a realistic score between 65-85 for better believability
-  const baseScore = Math.floor(Math.random() * 20) + 65;
+  // Generate a realistic score between 70-88 for better believability
+  const baseScore = Math.floor(Math.random() * 18) + 70;
   
-  const personAName = personA.name || 'Person A';
-  const personBName = personB.name || 'Person B';
+  const personAName = personA?.name || 'Person A';
+  const personBName = personB?.name || 'Person B';
+  
+  console.log('🔮 Creating fallback compatibility report for:', personAName, 'and', personBName);
   
   return {
     score: baseScore,

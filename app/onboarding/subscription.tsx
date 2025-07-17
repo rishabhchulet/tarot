@@ -216,7 +216,13 @@ export default function SubscriptionScreen() {
       }
       
       console.log('✅ Subscription processed successfully');
-      router.replace('/(tabs)');
+      
+      // Force refresh subscription status from database
+      setTimeout(() => {
+        // Small delay to ensure database write has completed
+        window.location.href = '/(tabs)';
+      }, 1000);
+      
     } catch (error) {
       console.error('❌ Error processing subscription:', error);
       // For now, continue anyway since we're not doing real payments

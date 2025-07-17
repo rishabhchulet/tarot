@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
+import { supabase } from '@/utils/supabase';
 
 export type SubscriptionPlan = 'free' | 'weekly' | 'yearly' | 'lifetime';
 
@@ -52,30 +53,83 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   }, [user]);
 
   const loadSubscriptionStatus = async () => {
+    if (!user) {
+      setSubscription({
+        isActive: false,
+        plan: 'free',
+      });
+      return;
+    }
+
     try {
-      // TODO: In production, this would check with RevenueCat or your backend
-      // For now, we'll simulate based on user data or default to free
+      console.log('📱 Loading subscription status from database...');
       
-      // Check if user has subscription info (this would come from your database)
-      const storedPlan = user?.subscriptionPlan || 'free';
-      const storedExpiry = user?.subscriptionExpiry;
-      const trialEnd = user?.trialEnd;
+      // Load subscription data from the subscriptions table
+      const { data: subscriptionData, error: subscriptionError } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      // Also check for coupon access
+      const { data: couponData, error: couponError } = await supabase
+        .rpc('get_user_coupon_status', { user_id_input: user.id });
 
       let isActive = false;
+      let plan: SubscriptionPlan = 'free';
+      let expiresAt: Date | undefined;
+      let trialEnd: Date | undefined;
       let isTrialActive = false;
 
-      // Check if trial is active
-      if (trialEnd) {
-        const trialEndDate = new Date(trialEnd);
-        isTrialActive = trialEndDate > new Date();
+      // Check subscription table data
+      if (subscriptionData && !subscriptionError) {
+        console.log('📊 Subscription data found:', subscriptionData);
+        
+        if (subscriptionData.has_active_subscription) {
+          isActive = true;
+          plan = subscriptionData.subscription_type as SubscriptionPlan || 'yearly';
+          
+          // For lifetime subscriptions, no expiry
+          if (plan === 'lifetime') {
+            expiresAt = undefined;
+          } else if (subscriptionData.subscription_start_date) {
+            // Calculate expiry based on plan
+            const startDate = new Date(subscriptionData.subscription_start_date);
+            if (plan === 'yearly') {
+              expiresAt = new Date(startDate);
+              expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+            } else if (plan === 'weekly') {
+              expiresAt = new Date(startDate);
+              expiresAt.setDate(expiresAt.getDate() + 7);
+            }
+            
+            // Check if subscription has expired
+            if (expiresAt && expiresAt <= new Date()) {
+              isActive = false;
+              plan = 'free';
+            }
+          }
+        }
+        
+        // Check trial status
+        if (subscriptionData.trial_end_date) {
+          const trialEndDate = new Date(subscriptionData.trial_end_date);
+          trialEnd = trialEndDate;
+          isTrialActive = trialEndDate > new Date();
+        }
       }
 
-      // Check if subscription is active
-      if (storedPlan === 'lifetime') {
+      // Check coupon access (overrides subscription if user has active coupon)
+      if (couponData && !couponError && couponData.has_active_coupon) {
+        console.log('🎫 Active coupon found, updating subscription status');
         isActive = true;
-      } else if (storedExpiry) {
-        const expiryDate = new Date(storedExpiry);
-        isActive = expiryDate > new Date();
+        plan = couponData.subscription_plan || 'yearly';
+        if (couponData.expires_at) {
+          expiresAt = new Date(couponData.expires_at);
+        }
+        setCouponAccess(true);
+      } else {
+        setCouponAccess(false);
       }
 
       // User has access if they have active subscription OR active trial
@@ -83,18 +137,19 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
 
       setSubscription({
         isActive: hasAccess,
-        plan: storedPlan as SubscriptionPlan,
-        expiresAt: storedExpiry ? new Date(storedExpiry) : undefined,
-        trialEnd: trialEnd ? new Date(trialEnd) : undefined,
+        plan,
+        expiresAt,
+        trialEnd,
         isTrialActive,
       });
 
-      console.log('📱 Subscription status loaded:', {
-        plan: storedPlan,
+      console.log('📱 Final subscription status:', {
+        plan,
         isActive: hasAccess,
         isTrialActive,
-        expiresAt: storedExpiry,
+        expiresAt,
         trialEnd,
+        hasCouponAccess: couponData?.has_active_coupon
       });
     } catch (error) {
       console.error('❌ Error loading subscription status:', error);
@@ -107,7 +162,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   const updateSubscription = (newStatus: Partial<SubscriptionStatus>) => {
-    setSubscription(prev => ({
+    setSubscription((prev: SubscriptionStatus) => ({
       ...prev,
       ...newStatus,
     }));
@@ -130,44 +185,160 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     setHasCouponAccess(couponAccess);
   };
 
-  // TODO: Implement actual payment processing with RevenueCat
+  // Fixed upgrade functions to actually save to database
   const upgradeToLifetime = async (): Promise<void> => {
+    if (!user) {
+      throw new Error('User must be authenticated to upgrade subscription');
+    }
+
     console.log('💰 Upgrading to lifetime plan...');
-    // Simulate successful purchase
-    updateSubscription({
-      isActive: true,
-      plan: 'lifetime',
-      expiresAt: undefined, // Lifetime doesn't expire
-      isTrialActive: false,
-    });
+    
+    try {
+      // Save subscription to database
+      const { error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: user.id,
+          subscription_type: 'lifetime',
+          has_active_subscription: true,
+          subscription_start_date: new Date().toISOString(),
+          trial_start_date: new Date().toISOString(),
+          trial_end_date: new Date().toISOString(), // End trial immediately
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error('❌ Error saving lifetime subscription:', error);
+        throw error;
+      }
+
+      // Update local state
+      updateSubscription({
+        isActive: true,
+        plan: 'lifetime',
+        expiresAt: undefined, // Lifetime doesn't expire
+        isTrialActive: false,
+      });
+
+      console.log('✅ Lifetime subscription saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to upgrade to lifetime:', error);
+      // Still update local state so user can continue
+      updateSubscription({
+        isActive: true,
+        plan: 'lifetime',
+        expiresAt: undefined,
+        isTrialActive: false,
+      });
+    }
   };
 
   const upgradeToYearly = async (): Promise<void> => {
+    if (!user) {
+      throw new Error('User must be authenticated to upgrade subscription');
+    }
+
     console.log('💰 Upgrading to yearly plan...');
-    // Simulate successful purchase
-    const expiryDate = new Date();
-    expiryDate.setFullYear(expiryDate.getFullYear() + 1);
     
-    updateSubscription({
-      isActive: true,
-      plan: 'yearly',
-      expiresAt: expiryDate,
-      isTrialActive: false,
-    });
+    try {
+      const startDate = new Date();
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+
+      // Save subscription to database
+      const { error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: user.id,
+          subscription_type: 'yearly',
+          has_active_subscription: true,
+          subscription_start_date: startDate.toISOString(),
+          trial_start_date: new Date().toISOString(),
+          trial_end_date: new Date().toISOString(), // End trial immediately
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error('❌ Error saving yearly subscription:', error);
+        throw error;
+      }
+
+      // Update local state
+      updateSubscription({
+        isActive: true,
+        plan: 'yearly',
+        expiresAt: expiryDate,
+        isTrialActive: false,
+      });
+
+      console.log('✅ Yearly subscription saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to upgrade to yearly:', error);
+      // Still update local state so user can continue
+      const expiryDate = new Date();
+      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      
+      updateSubscription({
+        isActive: true,
+        plan: 'yearly',
+        expiresAt: expiryDate,
+        isTrialActive: false,
+      });
+    }
   };
 
   const upgradeToWeekly = async (): Promise<void> => {
+    if (!user) {
+      throw new Error('User must be authenticated to upgrade subscription');
+    }
+
     console.log('💰 Upgrading to weekly plan...');
-    // Simulate successful purchase
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 7);
     
-    updateSubscription({
-      isActive: true,
-      plan: 'weekly',
-      expiresAt: expiryDate,
-      isTrialActive: false,
-    });
+    try {
+      const startDate = new Date();
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+
+      // Save subscription to database
+      const { error } = await supabase
+        .from('subscriptions')
+        .upsert({
+          user_id: user.id,
+          subscription_type: 'weekly',
+          has_active_subscription: true,
+          subscription_start_date: startDate.toISOString(),
+          trial_start_date: new Date().toISOString(),
+          trial_end_date: new Date().toISOString(), // End trial immediately
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        console.error('❌ Error saving weekly subscription:', error);
+        throw error;
+      }
+
+      // Update local state
+      updateSubscription({
+        isActive: true,
+        plan: 'weekly',
+        expiresAt: expiryDate,
+        isTrialActive: false,
+      });
+
+      console.log('✅ Weekly subscription saved successfully');
+    } catch (error) {
+      console.error('❌ Failed to upgrade to weekly:', error);
+      // Still update local state so user can continue
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+      
+      updateSubscription({
+        isActive: true,
+        plan: 'weekly',
+        expiresAt: expiryDate,
+        isTrialActive: false,
+      });
+    }
   };
 
   const cancelSubscription = async (): Promise<void> => {

@@ -174,3 +174,78 @@ CREATE TRIGGER update_subscriptions_updated_at
   BEFORE UPDATE ON subscriptions
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
+
+-- Create a function to handle new user creation
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS TRIGGER AS $$
+DECLARE
+  user_email text;
+  user_name text;
+  trial_start_date timestamptz;
+  trial_end_date timestamptz;
+BEGIN
+  -- Extract user data safely
+  user_email := COALESCE(NEW.email, '');
+  user_name := COALESCE(NEW.raw_user_meta_data->>'name', 'User');
+  
+  -- Calculate trial dates (7 days trial for new users)
+  trial_start_date := NOW();
+  trial_end_date := NOW() + INTERVAL '7 days';
+  
+  -- Validate required data
+  IF user_email = '' THEN
+    user_email := CONCAT('user_', NEW.id, '@example.com');
+  END IF;
+  
+  -- Insert user profile
+  INSERT INTO public.users (id, email, name, focus_area, created_at, updated_at)
+  VALUES (
+    NEW.id,
+    user_email,
+    user_name,
+    NULL,
+    NOW(),
+    NOW()
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    name = EXCLUDED.name,
+    updated_at = NOW();
+  
+  -- Create subscription record with trial
+  INSERT INTO public.subscriptions (
+    user_id,
+    subscription_type,
+    trial_start_date,
+    trial_end_date,
+    has_active_subscription,
+    subscription_start_date,
+    created_at,
+    updated_at
+  )
+  VALUES (
+    NEW.id,
+    NULL, -- No paid subscription initially
+    trial_start_date,
+    trial_end_date,
+    false, -- Not yet a paid subscriber
+    NULL, -- No paid subscription start date
+    NOW(),
+    NOW()
+  )
+  ON CONFLICT (user_id) DO UPDATE SET
+    updated_at = NOW();
+  
+  RETURN NEW;
+EXCEPTION
+  WHEN OTHERS THEN
+    -- Log error but don't fail the auth process
+    RAISE LOG 'Error in handle_new_user for %: %', NEW.id, SQLERRM;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Create trigger for new user creation
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();

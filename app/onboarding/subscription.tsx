@@ -342,6 +342,16 @@ export default function SubscriptionScreen() {
             </LinearGradient>
           </Pressable>
 
+          <Pressable 
+            style={styles.couponButton} 
+            onPress={() => router.push('/coupon-code')}
+          >
+            <Text style={styles.couponButtonText}>
+              <Text>Have a coupon code? </Text>
+              <Text style={styles.couponButtonLink}>Redeem here</Text>
+            </Text>
+          </Pressable>
+
           <Pressable style={styles.skipButton} onPress={handleSkipForNow}>
             <Text style={styles.skipButtonText}>Continue with limited access</Text>
           </Pressable>
@@ -540,6 +550,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Inter-Medium',
     color: '#64748B',
+  },
+  couponButton: {
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginBottom: 12,
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  couponButtonText: {
+    fontSize: 15,
+    fontFamily: 'Inter-Medium',
+    color: '#D1D5DB',
+    textAlign: 'center',
+  },
+  couponButtonLink: {
+    color: '#8B5CF6',
+    fontFamily: 'Inter-SemiBold',
   },
   footer: {
     alignItems: 'center',

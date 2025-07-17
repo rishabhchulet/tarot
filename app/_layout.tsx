@@ -13,6 +13,7 @@ import {
 } from '@/utils/notifications';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
+import { CouponProvider } from '@/contexts/CouponContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useFonts } from 'expo-font';
 import {
@@ -103,16 +104,19 @@ export default function RootLayout() {
     <ErrorBoundary>
       <AuthProvider>
         <SubscriptionProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="auth" />
-            <Stack.Screen name="onboarding" />
-            <Stack.Screen name="breathing" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="profile" />
-            <Stack.Screen name="daily-question" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="light" backgroundColor="#1F2937" />
+          <CouponProvider>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="auth" />
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="breathing" />
+              <Stack.Screen name="(tabs)" />
+              <Stack.Screen name="profile" />
+              <Stack.Screen name="daily-question" />
+              <Stack.Screen name="coupon-code" />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="light" backgroundColor="#1F2937" />
+          </CouponProvider>
         </SubscriptionProvider>
       </AuthProvider>
     </ErrorBoundary>

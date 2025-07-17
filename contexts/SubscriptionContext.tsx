@@ -21,6 +21,7 @@ interface SubscriptionContextType {
   upgradeToYearly: () => Promise<void>;
   upgradeToWeekly: () => Promise<void>;
   cancelSubscription: () => Promise<void>;
+  setCouponAccess: (hasCouponAccess: boolean) => void;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
@@ -35,6 +36,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     isActive: false,
     plan: 'free',
   });
+  const [hasCouponAccess, setHasCouponAccess] = useState(false);
 
   // Initialize subscription status based on user data
   useEffect(() => {
@@ -120,8 +122,12 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   const canAccessPremiumFeatures = (): boolean => {
-    // User can access premium features if they have active subscription OR trial
-    return subscription.isActive || isOnTrial();
+    // User can access premium features if they have active subscription OR trial OR coupon access
+    return subscription.isActive || isOnTrial() || hasCouponAccess;
+  };
+
+  const setCouponAccess = (couponAccess: boolean): void => {
+    setHasCouponAccess(couponAccess);
   };
 
   // TODO: Implement actual payment processing with RevenueCat
@@ -185,6 +191,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     upgradeToYearly,
     upgradeToWeekly,
     cancelSubscription,
+    setCouponAccess,
   };
 
   return (

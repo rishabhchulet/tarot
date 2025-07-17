@@ -299,8 +299,8 @@ export default function SubscriptionScreen() {
               key={plan.id}
               style={[
                 styles.planCard,
-                plan.popular && selectedPlan !== plan.id && styles.planCardPopular, // Only apply popular style if not selected
-                selectedPlan === plan.id && styles.planCardSelected, // Selected style takes priority
+                plan.popular && styles.planCardPopular, // Always apply popular style for popular plans
+                selectedPlan === plan.id && styles.planCardSelected, // Selected style overrides everything
               ]}
               onPress={() => setSelectedPlan(plan.id)}
             >
@@ -468,12 +468,18 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   planCardSelected: {
-    borderColor: '#6366f1',
-    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+    borderColor: '#10b981',
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderWidth: 3,
+    shadowColor: '#10b981',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   planCardPopular: {
     borderColor: '#6366f1',
-    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    backgroundColor: 'rgba(99, 102, 241, 0.1)',
   },
   popularBadge: {
     position: 'absolute',

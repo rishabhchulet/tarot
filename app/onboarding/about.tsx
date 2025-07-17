@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withSequence, withTiming, Easing } from 'react-native-reanimated';
-import { Eye } from 'lucide-react-native';
+import { CustomEyeIcon } from '@/components/CustomEyeIcon';
 
 export default function AboutScreen() {
   const glowScale = useSharedValue(1);
@@ -41,7 +41,7 @@ export default function AboutScreen() {
       <View style={styles.content}>
         <Animated.View style={[styles.iconContainer, animatedIconStyle]}>
           <LinearGradient colors={['#8b5cf6', '#a855f7']} style={styles.iconGradient}>
-            <Eye size={70} color="#FFFFFF" strokeWidth={1.5} fill="#FFFFFF" />
+            <CustomEyeIcon size={70} color="#FFFFFF" />
           </LinearGradient>
         </Animated.View>
         

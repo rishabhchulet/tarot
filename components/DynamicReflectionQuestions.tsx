@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { MessageCircle, Sparkles, Edit3 } from 'lucide-react-native';
 import { StructuredReflection } from '@/components/StructuredReflection';
+import { SubscriptionGate, FreemiumPreview } from '@/components/SubscriptionGate';
 
 interface DynamicReflectionQuestionsProps {
   card: {
@@ -43,12 +44,29 @@ export function DynamicReflectionQuestions({
     <View style={styles.container}>
 
 
-      {/* Enhanced Structured Reflection Component */}
-      <StructuredReflection
-        cardName={card.name}
-        hexagramName={hexagram.name}
-        onReflectionGenerated={handleReflectionGenerated}
-      />
+      {/* Enhanced Structured Reflection Component - Premium Feature */}
+      <SubscriptionGate
+        feature="AI Wisdom Synthesis"
+        description="Get personalized insights combining Tarot and I Ching wisdom, crafted specifically for your journey."
+        requiredPlan="trial"
+        fallbackContent={
+          <View style={styles.basicReflection}>
+            <Text style={styles.basicTitle}>Basic Card Information</Text>
+            <Text style={styles.basicText}>
+              Today's card is {card.name}. Take time to reflect on its meaning and how it relates to your current situation.
+            </Text>
+            <Text style={styles.basicKeywords}>
+              Key themes: {card.keywords.slice(0, 3).join(', ')}
+            </Text>
+          </View>
+        }
+      >
+        <StructuredReflection
+          cardName={card.name}
+          hexagramName={hexagram.name}
+          onReflectionGenerated={handleReflectionGenerated}
+        />
+      </SubscriptionGate>
 
       {/* Enhanced Reflection Input Areas with better styling */}
       <View style={styles.inputSection}>
@@ -164,5 +182,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     lineHeight: 22,
+  },
+  basicReflection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  basicTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F9FAFB',
+    marginBottom: 8,
+  },
+  basicText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#D1D5DB',
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+  basicKeywords: {
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    color: '#94A3B8',
+    fontStyle: 'italic',
   },
 });

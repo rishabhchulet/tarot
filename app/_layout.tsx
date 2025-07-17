@@ -12,6 +12,7 @@ import {
   updateNotificationsWithFreshContent 
 } from '@/utils/notifications';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useFonts } from 'expo-font';
 import {
@@ -101,16 +102,18 @@ export default function RootLayout() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="auth" />
-          <Stack.Screen name="onboarding" />
-          <Stack.Screen name="breathing" />
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="profile" />
-          <Stack.Screen name="daily-question" />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="light" backgroundColor="#1F2937" />
+        <SubscriptionProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="auth" />
+            <Stack.Screen name="onboarding" />
+            <Stack.Screen name="breathing" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="profile" />
+            <Stack.Screen name="daily-question" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="light" backgroundColor="#1F2937" />
+        </SubscriptionProvider>
       </AuthProvider>
     </ErrorBoundary>
   );

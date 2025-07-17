@@ -103,7 +103,7 @@ export default function TutorialScreen() {
   };
 
   const handleComplete = async () => {
-    console.log('🎉 Tutorial complete, starting trial and navigating to breathing exercise...');
+    console.log('🎉 Tutorial complete, starting trial and navigating to subscription screen...');
     setLoading(true);
     
     try {
@@ -116,13 +116,13 @@ export default function TutorialScreen() {
       // Continue anyway - don't block the user flow
     }
     
-    // Navigate to breathing exercise
-    console.log('🫁 Navigating to breathing exercise...');
-    router.replace('/breathing');
+    // Navigate to subscription screen
+    console.log('💰 Navigating to subscription screen...');
+    router.push('/onboarding/subscription');
   };
 
   const handleSkip = async () => {
-    console.log('⏭️ Tutorial skipped, starting trial and going to breathing exercise...');
+    console.log('⏭️ Tutorial skipped, starting trial and going to subscription screen...');
     setLoading(true);
     
     try {
@@ -131,7 +131,7 @@ export default function TutorialScreen() {
       console.error('❌ Error starting free trial:', error);
     }
     
-    router.replace('/breathing');
+    router.push('/onboarding/subscription');
   };
 
   const currentTutorial = TUTORIAL_STEPS[currentStep];

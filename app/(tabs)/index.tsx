@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Text, Dimensions } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { GeneratingPlacements } from '@/components/GeneratingPlacements';
 import { ProfileHeader } from '@/components/ProfileHeader';
+import { TrialBanner } from '@/components/TrialBanner';
 import { DailyReflectionCard } from '@/components/DailyReflectionCard';
 import { NavCard } from '@/components/NavCard';
 import { Users, Star } from 'lucide-react-native';
@@ -101,6 +102,9 @@ export default function HomeScreen() {
           <View style={styles.headerSection}>
             <ProfileHeader />
           </View>
+
+          {/* Subscription Status Banner */}
+          <TrialBanner />
 
           {/* Daily Reading Section with enhanced styling */}
           <View style={styles.section}>

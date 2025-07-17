@@ -8,6 +8,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AstrologyChart from '@/components/AstrologyChart';
 import { NorthNodeInsight } from '@/components/NorthNodeInsight';
+import { SubscriptionGate } from '@/components/SubscriptionGate';
 import { getPlanetaryPositions, getZodiacSign, PlanetPosition } from '@/utils/astrologyCalculations';
 
 // Detailed interpretations for each planet in each sign
@@ -214,12 +215,27 @@ export default function AstrologyChartScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.chartContainer}>
-          <AstrologyChart positions={positions} />
-        </View>
-        
-        <PersonalizedInsights />
-        <NorthNodeInsight />
+        <SubscriptionGate
+          feature="Complete Astrology Chart"
+          description="Unlock your full cosmic blueprint with detailed planetary positions, aspects, and personalized insights."
+          requiredPlan="trial"
+          fallbackContent={
+            <View style={styles.basicChart}>
+              <Text style={styles.basicChartTitle}>Basic Sun & Moon Information</Text>
+              <Text style={styles.basicChartText}>
+                Your Sun is in {sunSign} and your Moon is in {moonSign}. 
+                Upgrade to see your complete planetary chart with detailed insights.
+              </Text>
+            </View>
+          }
+        >
+          <View style={styles.chartContainer}>
+            <AstrologyChart positions={positions} />
+          </View>
+          
+          <PersonalizedInsights />
+          <NorthNodeInsight />
+        </SubscriptionGate>
       </ScrollView>
     </SafeAreaView>
   );
@@ -398,5 +414,27 @@ const styles = StyleSheet.create({
     color: '#e2e8f0',
     fontFamily: 'Inter-Regular',
     lineHeight: 22,
+  },
+  basicChart: {
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+  },
+  basicChartTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  basicChartText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Regular',
+    color: '#D1D5DB',
+    lineHeight: 20,
+    textAlign: 'center',
   },
 }); 

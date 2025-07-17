@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, Dimensions } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Dimensions } from 'react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { GeneratingPlacements } from '@/components/GeneratingPlacements';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import { TrialBanner } from '@/components/TrialBanner';
 import { DailyReflectionCard } from '@/components/DailyReflectionCard';
 import { NavCard } from '@/components/NavCard';
-import { Users, Star } from 'lucide-react-native';
 import { FreeReadingCard } from '@/components/FreeReadingCard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CelestialInfo } from '@/components/CelestialInfo';
@@ -131,7 +130,6 @@ export default function HomeScreen() {
                   title="My Chart"
                   subtitle="Your astrology"
                   href="/astrology-chart"
-                  icon={<Star size={24} color="#fbbf24" />}
                 />
               </View>
               <View style={styles.gridItem}>
@@ -139,7 +137,6 @@ export default function HomeScreen() {
                   title="Compatibility"
                   subtitle="Cosmic connections"
                   href="/compatibility"
-                  icon={<Users size={24} color="#8b5cf6" />}
                 />
               </View>
             </View>
@@ -227,14 +224,16 @@ const styles = StyleSheet.create({
   },
   exploreGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center', // Changed from space-between to center
     alignItems: 'stretch',
     marginBottom: 8,
-    gap: 16,
+    gap: 20, // Increased gap for better spacing
+    paddingHorizontal: 8, // Add some padding to prevent edge touching
   },
   gridItem: {
     flex: 1,
-    maxWidth: '48%', // Ensure proper width distribution
+    maxWidth: '45%', // Reduced from 48% to ensure better spacing
+    minWidth: 140, // Add minimum width to prevent too much shrinking
   },
   universeContainer: {
     marginBottom: 8,

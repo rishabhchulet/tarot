@@ -8,7 +8,7 @@ interface NavCardProps {
   title: string;
   subtitle: string;
   href: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode; // Make icon optional
 }
 
 export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
@@ -20,10 +20,12 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
           style={styles.cardGradient}
         >
           <View style={styles.content}>
-            <View style={styles.iconContainer}>
-              {icon}
-            </View>
-            <View style={styles.textContainer}>
+            {icon && (
+              <View style={styles.iconContainer}>
+                {icon}
+              </View>
+            )}
+            <View style={[styles.textContainer, !icon && styles.textContainerFullWidth]}>
               <Text 
                 style={styles.title}
                 numberOfLines={1}
@@ -52,7 +54,7 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minWidth: 180, // Further increased to ensure "Compatibility" fits on one line
+    minWidth: 160, // Reduced from 180 to allow better spacing
   },
   card: {
     borderRadius: 16,
@@ -60,12 +62,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
     backgroundColor: 'rgba(255,255,255,0.02)',
-    minHeight: 90, // Increased height to accommodate better text
+    minHeight: 85, // Slightly reduced height
   },
   cardGradient: {
     flex: 1,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
   },
   content: {
     flexDirection: 'row',
@@ -73,31 +75,34 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     backgroundColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 12,
     flexShrink: 0,
   },
   textContainer: {
     flex: 1,
     minWidth: 0,
-    marginRight: 6,
+    marginRight: 8,
+  },
+  textContainerFullWidth: {
+    marginRight: 12, // More space when no icon
   },
   title: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 15, // Optimized size to fit "Compatibility" while remaining readable
+    fontSize: 16, // Slightly larger since we have more space
     color: '#f8fafc',
     marginBottom: 4,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   subtitle: {
     fontFamily: 'Inter-Medium',
-    fontSize: 14, // Increased from 12px for better readability
-    color: '#94a3b8', // Improved color contrast from #64748b
+    fontSize: 14,
+    color: '#94a3b8',
     lineHeight: 18,
   },
   arrowContainer: {

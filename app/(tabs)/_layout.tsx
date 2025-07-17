@@ -7,6 +7,9 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Smooth tab transitions
+        animationEnabled: true,
+        lazy: false, // Pre-load tabs for smoother switching
         tabBarStyle: {
           backgroundColor: '#0f172a',
           borderTopColor: 'rgba(251, 191, 36, 0.2)',

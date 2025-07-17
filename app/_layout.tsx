@@ -1,10 +1,13 @@
 // CRITICAL FIX: Import polyfills before anything else
 import '@/utils/polyfills';
 import 'react-native-get-random-values';
+// Import performance optimizations
+import '@/utils/performanceConfig';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState, Platform } from 'react-native';
+import { TransitionPresets } from '@react-navigation/stack';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { 
   registerForPushNotificationsAsync, 
@@ -105,7 +108,54 @@ export default function RootLayout() {
       <AuthProvider>
         <SubscriptionProvider>
           <CouponProvider>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack 
+              screenOptions={{ 
+                headerShown: false,
+                // Smooth transitions optimized for mobile
+                animationEnabled: true,
+                animationTypeForReplace: 'push',
+                gestureEnabled: Platform.OS === 'ios',
+                ...(Platform.OS === 'android' 
+                  ? {
+                      // Android-optimized transitions
+                      transitionSpec: {
+                        open: {
+                          animation: 'timing',
+                          config: {
+                            duration: 300,
+                            easing: 'ease-out',
+                          },
+                        },
+                        close: {
+                          animation: 'timing',
+                          config: {
+                            duration: 250,
+                            easing: 'ease-in',
+                          },
+                        },
+                      },
+                      cardStyleInterpolator: ({ current, layouts }) => {
+                        return {
+                          cardStyle: {
+                            transform: [
+                              {
+                                translateX: current.progress.interpolate({
+                                  inputRange: [0, 1],
+                                  outputRange: [layouts.screen.width, 0],
+                                }),
+                              },
+                            ],
+                            opacity: current.progress.interpolate({
+                              inputRange: [0, 0.5, 1],
+                              outputRange: [0, 0.8, 1],
+                            }),
+                          },
+                        };
+                      },
+                    }
+                  : TransitionPresets.SlideFromRightIOS),
+              }}
+            >
               <Stack.Screen name="auth" />
               <Stack.Screen name="onboarding" />
               <Stack.Screen name="breathing" />

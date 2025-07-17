@@ -270,8 +270,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: 500,
-    paddingHorizontal: 6, // Minimal padding for maximum text width
-    paddingVertical: 20,
+    paddingHorizontal: 0, // Remove all horizontal padding for maximum text width
+    paddingVertical: 12,
     justifyContent: 'center',
   },
   sourceInfo: {

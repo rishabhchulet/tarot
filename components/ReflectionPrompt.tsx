@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     paddingBottom: 40, // Extra padding at bottom for save button
   },

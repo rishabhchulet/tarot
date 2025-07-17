@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { FlaskConical, Eye, PenTool, User, Sparkles, Shuffle } from 'lucide-react-native';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
+import { DETAILED_ARCHETYPES } from '@/data/archetypes';
+import { ArchetypeDetailModal } from '@/components/ArchetypeDetailModal';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -13,15 +14,6 @@ import Animated, {
   Easing,
   withDelay
 } from 'react-native-reanimated';
-
-const ARCHETYPES = [
-  { id: 'alchemist', name: 'The Alchemist', icon: FlaskConical, colors: ['#3b82f6', '#2563eb'], description: 'You walk the path of transformation and depth. Turning challenges into your power.' },
-  { id: 'seer', name: 'The Seer', icon: Eye, colors: ['#8b5cf6', '#7c3aed'], description: 'You navigate with intuition, relying on inner knowing to guide your decisions.' },
-  { id: 'creator', name: 'The Creator', icon: PenTool, colors: ['#10b981', '#059669'], description: 'You are dedicated to creating something enduring, whether a home, a business, or art.' },
-  { id: 'mirror', name: 'The Mirror', icon: User, colors: ['#ef4444', '#dc2626'], description: 'You have a gift for sensing the emotions and energies of those around you.' },
-  { id: 'trickster', name: 'The Trickster', icon: Sparkles, colors: ['#f59e0b', '#d97706'], description: 'You challenge norms with humor and adaptability, pushing others to grow.' },
-  { id: 'shapeshifter', name: 'The Shapeshifter', icon: Shuffle, colors: ['#6366f1', '#4f46e5'], description: 'You move between roles, but may wonder: "Which form is truly me?"' },
-];
 
 // Animated Icon Component with gentle spinning
 const AnimatedIcon = ({ IconComponent, index, isSelected }: { 
@@ -79,6 +71,29 @@ export default function ArchetypeQuiz() {
   const { refreshUser } = useAuth();
   const [selected, setSelected] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedArchetype, setSelectedArchetype] = useState<typeof DETAILED_ARCHETYPES[0] | null>(null);
+
+  const handleArchetypeSelect = (archetypeId: string) => {
+    const archetype = DETAILED_ARCHETYPES.find(a => a.id === archetypeId);
+    if (archetype) {
+      setSelectedArchetype(archetype);
+      setModalVisible(true);
+    }
+  };
+
+  const handleModalConfirm = async () => {
+    if (selectedArchetype) {
+      setSelected(selectedArchetype.id);
+      setModalVisible(false);
+      await handleContinue();
+    }
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
+    setSelectedArchetype(null);
+  };
 
   const handleContinue = async () => {
     if (!selected) return;
@@ -113,11 +128,15 @@ export default function ArchetypeQuiz() {
         </View>
 
         <View style={styles.cardsSection}>
-          {ARCHETYPES.map((archetype, index) => {
+          {DETAILED_ARCHETYPES.map((archetype, index) => {
             const IconComponent = archetype.icon;
             const isSelected = selected === archetype.id;
             return (
-              <Pressable key={archetype.id} onPress={() => setSelected(archetype.id)} style={[styles.archetypeCard, isSelected && styles.selectedCard]}>
+              <Pressable 
+                key={archetype.id} 
+                onPress={() => handleArchetypeSelect(archetype.id)} 
+                style={[styles.archetypeCard, isSelected && styles.selectedCard]}
+              >
                 <View style={styles.cardContent}>
                   <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
                     <AnimatedIcon IconComponent={IconComponent} index={index} isSelected={isSelected} />
@@ -125,6 +144,7 @@ export default function ArchetypeQuiz() {
                   <View style={styles.cardText}>
                     <Text style={styles.cardTitle}>{archetype.name}</Text>
                     <Text style={styles.cardDescription}>{archetype.description}</Text>
+                    <Text style={styles.tapToLearnMore}>Tap to learn more →</Text>
                   </View>
                 </View>
               </Pressable>
@@ -133,19 +153,12 @@ export default function ArchetypeQuiz() {
         </View>
       </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Pressable onPress={handleContinue} disabled={!selected || loading}>
-          <LinearGradient
-            colors={!selected || loading ? ['#2D2D2F', '#4A4A4A'] : ['#3b82f6', '#8b5cf6']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={styles.continueButton}
-          >
-            <Text style={[styles.buttonText, (!selected || loading) && styles.buttonTextDisabled]}>
-              {loading ? 'Saving...' : 'Continue'}
-            </Text>
-          </LinearGradient>
-        </Pressable>
-      </View>
+      <ArchetypeDetailModal
+        visible={modalVisible}
+        archetype={selectedArchetype}
+        onClose={handleModalClose}
+        onConfirm={handleModalConfirm}
+      />
     </SafeAreaView>
   );
 }
@@ -179,7 +192,8 @@ const styles = StyleSheet.create({
   },
   cardText: { flex: 1 },
   cardTitle: { fontSize: 17, fontFamily: 'Inter-SemiBold', color: '#FFFFFF', marginBottom: 4 },
-  cardDescription: { fontSize: 16, fontFamily: 'Inter-Regular', color: '#A1A1AA', lineHeight: 24 },
+  cardDescription: { fontSize: 16, fontFamily: 'Inter-Regular', color: '#A1A1AA', lineHeight: 24, marginBottom: 8 },
+  tapToLearnMore: { fontSize: 12, fontFamily: 'Inter-Medium', color: '#6366F1', opacity: 0.8 },
   buttonContainer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
     paddingHorizontal: 20, paddingBottom: 40, paddingTop: 20,

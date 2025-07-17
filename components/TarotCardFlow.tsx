@@ -234,17 +234,6 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
         <Animated.View style={[styles.expandableContent, animatedExpandStyle]}>
           <View style={styles.detailedInfo}>
             <Text style={styles.cardDescription}>{selectedCard.description}</Text>
-            
-            <View style={styles.allKeywordsContainer}>
-              <Text style={styles.sectionTitle}>All Tarot Keywords:</Text>
-              <View style={styles.allKeywordsList}>
-                {selectedCard.keywords.map((keyword, index) => (
-                  <View key={index} style={styles.detailedKeywordChip}>
-                    <Text style={styles.detailedKeywordText}>{keyword}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
           </View>
         </Animated.View>
       </Animated.View>
@@ -495,35 +484,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   cardDescription: {
-    fontSize: 14,
+    fontSize: 17, // Increased from 14 for better readability
     fontFamily: 'Inter-Regular',
     color: '#cbd5e1',
-    lineHeight: 20,
+    lineHeight: 24, // Increased line height to match larger font
     textAlign: 'center',
     marginBottom: 16,
-  },
-  allKeywordsContainer: {
-    marginTop: 16,
-  },
-  allKeywordsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 8,
-    marginTop: 8,
-  },
-  detailedKeywordChip: {
-    backgroundColor: 'rgba(251, 191, 36, 0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(251, 191, 36, 0.3)',
-  },
-  detailedKeywordText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Medium',
-    color: '#fbbf24',
   },
   buttonContainer: {
     marginTop: 20,

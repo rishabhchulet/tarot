@@ -21,9 +21,9 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
         >
           <View style={styles.content}>
             {icon && (
-              <View style={styles.iconContainer}>
-                {icon}
-              </View>
+            <View style={styles.iconContainer}>
+              {icon}
+            </View>
             )}
             <View style={[styles.textContainer, !icon && styles.textContainerFullWidth]}>
               <Text 

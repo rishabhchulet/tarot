@@ -696,25 +696,25 @@ function createEnhancedFallbackReport(personA: any, personB: any, reportType: st
     stats: (() => {
       // Create a mix of traditional and North Node-based compatibility aspects
       const allStats = [
-        {
-          label: "Emotional Harmony",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `${personA.name} and ${personB.name} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
-        },
-        {
-          label: "Communication Flow",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
-        },
-        {
-          label: "Creative Synergy",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `Together, ${personA.name} and ${personB.name} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
-        },
-        {
-          label: "Long-term Potential",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
+      {
+        label: "Emotional Harmony",
+        score: baseScore + Math.floor(Math.random() * 10) - 5,
+        description: `${personA.name} and ${personB.name} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
+      },
+      {
+        label: "Communication Flow",
+        score: baseScore + Math.floor(Math.random() * 10) - 5,
+        description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
+      },
+      {
+        label: "Creative Synergy",
+        score: baseScore + Math.floor(Math.random() * 10) - 5,
+        description: `Together, ${personA.name} and ${personB.name} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
+      },
+      {
+        label: "Long-term Potential",
+        score: baseScore + Math.floor(Math.random() * 10) - 5,
+        description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
         },
         {
           label: "Karmic Connection",

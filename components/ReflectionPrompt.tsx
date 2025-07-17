@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions, ScrollView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Save, Mic, Square, Play, Pause } from 'lucide-react-native';
 import { saveJournalEntry, saveDailyQuestion } from '@/utils/database';
@@ -289,12 +289,15 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
           onPress={handleSave}
           disabled={saving}
         >
-          <View style={[styles.saveButtonSolid, saving && styles.saveButtonSolidDisabled]}>
-            <Save size={16} color="#F9FAFB" />
+          <LinearGradient
+            colors={saving ? ['#4B5563', '#4B5563'] : ['#3b82f6', '#2563eb']}
+            style={[styles.saveButtonSolid, saving && styles.saveButtonSolidDisabled]}
+          >
+            <Save size={Platform.OS === 'android' ? 18 : 16} color="#F9FAFB" />
             <Text style={styles.saveButtonText}>
               {saving ? 'Saving...' : 'Save Reflection'}
             </Text>
-          </View>
+          </LinearGradient>
         </Pressable>
       </View>
     </ScrollView>
@@ -444,29 +447,32 @@ const styles = StyleSheet.create({
   // Action Buttons Container
   actionsContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
+    gap: Platform.OS === 'android' ? 16 : 12,
+    marginTop: 20,
+    paddingHorizontal: 4,
   },
   
   // Skip Button
   skipButton: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    borderRadius: Platform.OS === 'android' ? 14 : 12,
+    paddingVertical: Platform.OS === 'android' ? 16 : 12,
+    paddingHorizontal: Platform.OS === 'android' ? 20 : 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    minHeight: Platform.OS === 'android' ? 52 : 48,
   },
   skipButtonDisabled: {
     opacity: 0.6,
   },
   skipButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-Medium',
+    fontSize: Platform.OS === 'android' ? 15 : 14,
+    fontFamily: 'Inter-SemiBold',
     color: '#9CA3AF',
+    letterSpacing: 0.2,
   },
   skipButtonTextDisabled: {
     color: '#6B7280',
@@ -475,28 +481,38 @@ const styles = StyleSheet.create({
   // Save Button
   saveButton: {
     flex: 2,
-    borderRadius: 12,
+    borderRadius: Platform.OS === 'android' ? 14 : 12,
     overflow: 'hidden',
+    shadowColor: '#3b82f6',
+    shadowOffset: { width: 0, height: Platform.OS === 'android' ? 4 : 2 },
+    shadowOpacity: Platform.OS === 'android' ? 0.4 : 0.2,
+    shadowRadius: Platform.OS === 'android' ? 8 : 4,
+    elevation: Platform.OS === 'android' ? 6 : 2,
   },
   saveButtonDisabled: {
     opacity: 0.6,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   saveButtonSolid: {
-    backgroundColor: '#3b82f6',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    gap: 6,
+    paddingVertical: Platform.OS === 'android' ? 16 : 12,
+    paddingHorizontal: Platform.OS === 'android' ? 28 : 24,
+    gap: 8,
+    minHeight: Platform.OS === 'android' ? 52 : 48,
   },
   saveButtonSolidDisabled: {
     backgroundColor: '#4B5563',
   },
   saveButtonText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
+    fontSize: Platform.OS === 'android' ? 16 : 14,
+    fontFamily: 'Inter-Bold',
     color: '#F9FAFB',
-    marginLeft: 6,
+    letterSpacing: 0.3,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ActivityIndicator, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ActivityIndicator, Dimensions, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -270,8 +270,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     minHeight: 500,
-    paddingHorizontal: 0, // Remove all horizontal padding for maximum text width
-    paddingVertical: 12,
+    paddingHorizontal: Platform.OS === 'android' ? 20 : 16,
+    paddingVertical: 16,
     justifyContent: 'center',
   },
   sourceInfo: {
@@ -285,7 +285,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   section: {
-    marginBottom: 20,
+    marginBottom: Platform.OS === 'android' ? 24 : 20,
+    paddingHorizontal: 4,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -299,16 +300,19 @@ const styles = StyleSheet.create({
     color: '#f8fafc',
   },
   sectionText: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'android' ? 15 : 16,
     fontFamily: 'Inter-Regular',
     color: '#d1d5db',
-    lineHeight: 24,
+    lineHeight: Platform.OS === 'android' ? 22 : 24,
+    paddingLeft: 4,
+    paddingRight: 4,
   },
   questionSection: {
     backgroundColor: 'rgba(251, 191, 36, 0.1)',
     borderRadius: 12,
-    padding: 16,
+    padding: Platform.OS === 'android' ? 20 : 16,
     marginBottom: 24,
+    marginHorizontal: 4,
     borderWidth: 1,
     borderColor: 'rgba(251, 191, 36, 0.3)',
   },
@@ -318,10 +322,11 @@ const styles = StyleSheet.create({
     color: '#fbbf24',
   },
   questionText: {
-    fontSize: 16,
+    fontSize: Platform.OS === 'android' ? 15 : 16,
     fontFamily: 'Inter-Medium',
     color: '#f8fafc',
-    lineHeight: 24,
+    lineHeight: Platform.OS === 'android' ? 22 : 24,
+    paddingTop: 4,
   },
   guidance: {
     alignItems: 'center',

@@ -60,15 +60,8 @@ const styles = StyleSheet.create({
   card: {
     borderRadius: 16,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)', // Slightly more visible border
-    backgroundColor: 'rgba(255,255,255,0.05)', // Slightly more visible background
-    minHeight: 90, // Increased for better touch target and content fit
-    shadowColor: 'rgba(255,255,255,0.1)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    minHeight: 90,
   },
   cardGradient: {
     flex: 1,

@@ -83,14 +83,118 @@ export function ArchetypeDetailModal({
 
   const IconComponent = archetype.icon;
 
+  if (!visible) return null;
+
+  // For Android, use a simpler approach without Modal component
+  if (Platform.OS === 'android') {
+    return (
+      <View style={styles.androidModalContainer}>
+        <Animated.View style={[styles.backdrop, animatedBackdropStyle]} />
+        
+        <Animated.View style={[styles.modalContent, animatedModalStyle]}>
+          <LinearGradient
+            colors={['#0a0a0a', '#1a1a1a', '#0f0f0f']}
+            style={styles.modalGradient}
+          >
+            {/* Close Button */}
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <X size={24} color="#94A3B8" />
+            </Pressable>
+
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.scrollContent}
+            >
+              {/* Header with Icon */}
+              <View style={styles.header}>
+                <LinearGradient
+                  colors={archetype.colors}
+                  style={styles.iconContainer}
+                >
+                  <IconComponent size={40} color="#FFFFFF" strokeWidth={2} />
+                </LinearGradient>
+                
+                <Text style={styles.archetypeName}>{archetype.name}</Text>
+                <Text style={styles.shortDescription}>{archetype.description}</Text>
+              </View>
+
+              {/* Keywords */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>✨ Keywords</Text>
+                <View style={styles.keywordsContainer}>
+                  {archetype.keywords.map((keyword, index) => (
+                    <View key={index} style={styles.keywordTag}>
+                      <Text style={styles.keywordText}>{keyword}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* Detailed Description */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>🌟 Your Journey</Text>
+                <Text style={styles.detailedText}>{archetype.detailedDescription}</Text>
+              </View>
+
+              {/* Strengths */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>💪 Your Strengths</Text>
+                {archetype.strengths.map((strength, index) => (
+                  <View key={index} style={styles.listItem}>
+                    <View style={styles.bullet} />
+                    <Text style={styles.listText}>{strength}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Challenges */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>⚡ Growth Areas</Text>
+                {archetype.challenges.map((challenge, index) => (
+                  <View key={index} style={styles.listItem}>
+                    <View style={styles.bullet} />
+                    <Text style={styles.listText}>{challenge}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Guidance */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>🧭 Your Guidance</Text>
+                <Text style={styles.guidanceText}>{archetype.guidance}</Text>
+              </View>
+            </ScrollView>
+
+            {/* Action Buttons */}
+            <View style={styles.buttonContainer}>
+              <Pressable style={styles.backButton} onPress={onClose}>
+                <Text style={styles.backButtonText}>Choose Different</Text>
+              </Pressable>
+              
+              <Pressable onPress={onConfirm}>
+                <LinearGradient
+                  colors={archetype.colors}
+                  style={styles.confirmButton}
+                >
+                  <Check size={20} color="#FFFFFF" strokeWidth={2} />
+                  <Text style={styles.confirmButtonText}>This Is Me</Text>
+                </LinearGradient>
+              </Pressable>
+            </View>
+          </LinearGradient>
+        </Animated.View>
+      </View>
+    );
+  }
+
+  // For iOS, use the Modal component
   return (
     <Modal
       visible={visible}
-      transparent
+      transparent={true}
       animationType="slide"
-      presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
+      presentationStyle="overFullScreen"
       onRequestClose={onClose}
-      statusBarTranslucent={Platform.OS === 'android'}
     >
       <View style={styles.modalContainer}>
         <Animated.View style={[styles.backdrop, animatedBackdropStyle]} />
@@ -200,6 +304,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: Platform.OS === 'ios' ? 50 : 20,
     paddingBottom: Platform.OS === 'ios' ? 50 : 20,
+  },
+  androidModalContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    zIndex: 9999,
+    elevation: 20,
   },
   backdrop: {
     position: 'absolute',

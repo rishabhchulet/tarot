@@ -78,6 +78,11 @@ export default function ArchetypeQuiz() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedArchetype, setSelectedArchetype] = useState<typeof DETAILED_ARCHETYPES[0] | null>(null);
 
+  // Debug modal state
+  React.useEffect(() => {
+    console.log('🎭 Quiz modal state changed:', modalVisible, selectedArchetype?.name);
+  }, [modalVisible, selectedArchetype]);
+
   const handleArchetypeSelect = async (archetypeId: string) => {
     console.log('🎯 Archetype selected:', archetypeId);
     
@@ -138,6 +143,13 @@ export default function ArchetypeQuiz() {
   const handleSkipModal = async () => {
     console.log('⏭️ Skipping modal, continuing with first archetype...');
     setSelected('alchemist'); // Default to first archetype
+    setModalVisible(false); // Ensure modal is closed
+    await handleContinue();
+  };
+
+  const handleDirectArchetypeSelection = async (archetypeId: string) => {
+    console.log('🎯 Direct archetype selection (bypass modal):', archetypeId);
+    setSelected(archetypeId);
     await handleContinue();
   };
 
@@ -178,22 +190,35 @@ export default function ArchetypeQuiz() {
             const IconComponent = archetype.icon;
             const isSelected = selected === archetype.id;
             return (
-              <Pressable 
-                key={archetype.id} 
-                onPress={() => handleArchetypeSelect(archetype.id)} 
-                style={[styles.archetypeCard, isSelected && styles.selectedCard]}
-              >
-                <View style={styles.cardContent}>
-                  <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
-                    <AnimatedIcon IconComponent={IconComponent} index={index} isSelected={isSelected} />
-                  </LinearGradient>
-                  <View style={styles.cardText}>
-                    <Text style={styles.cardTitle}>{archetype.name}</Text>
-                    <Text style={styles.cardDescription}>{archetype.description}</Text>
-                    <Text style={styles.tapToLearnMore}>Tap to learn more →</Text>
+              <View key={archetype.id}>
+                <Pressable 
+                  onPress={() => handleArchetypeSelect(archetype.id)} 
+                  style={[styles.archetypeCard, isSelected && styles.selectedCard]}
+                >
+                  <View style={styles.cardContent}>
+                    <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
+                      <AnimatedIcon IconComponent={IconComponent} index={index} isSelected={isSelected} />
+                    </LinearGradient>
+                    <View style={styles.cardText}>
+                      <Text style={styles.cardTitle}>{archetype.name}</Text>
+                      <Text style={styles.cardDescription}>{archetype.description}</Text>
+                      <Text style={styles.tapToLearnMore}>Tap to learn more →</Text>
+                    </View>
                   </View>
-                </View>
-              </Pressable>
+                </Pressable>
+                
+                {/* Direct selection button for Android users having modal issues */}
+                {Platform.OS === 'android' && (
+                  <Pressable 
+                    onPress={() => handleDirectArchetypeSelection(archetype.id)}
+                    style={styles.directSelectButton}
+                  >
+                    <Text style={styles.directSelectButtonText}>
+                      Choose {archetype.name} ✓
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
             );
           })}
         </View>
@@ -210,7 +235,7 @@ export default function ArchetypeQuiz() {
       <View style={styles.fallbackContainer}>
         <Pressable style={styles.fallbackButton} onPress={handleSkipModal}>
           <Text style={styles.fallbackButtonText}>
-            Having trouble? Tap here to continue
+            {Platform.OS === 'android' ? 'Continue with The Alchemist' : 'Having trouble? Tap here to continue'}
           </Text>
         </Pressable>
       </View>
@@ -286,5 +311,21 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter-Medium',
     color: '#FFFFFF',
     textAlign: 'center',
+  },
+  directSelectButton: {
+    backgroundColor: 'rgba(16, 185, 129, 0.9)',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginTop: 8,
+    marginHorizontal: 16,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.5)',
+  },
+  directSelectButtonText: {
+    fontSize: 12,
+    fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
   },
 });

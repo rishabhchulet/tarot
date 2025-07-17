@@ -23,26 +23,19 @@ export function TrialBanner() {
   const sparkleAnimation = useSharedValue(0);
 
   useEffect(() => {
-    // Continuous glow animation
+    // Subtle glow animation (reduced intensity)
     glowAnimation.value = withRepeat(
-      withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
 
-    // Subtle pulse animation
-    pulseAnimation.value = withRepeat(
-      withSequence(
-        withTiming(1.02, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
-        withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.ease) })
-      ),
-      -1,
-      true
-    );
+    // Remove pulse animation for cleaner look
+    pulseAnimation.value = 1;
 
-    // Sparkle animation
+    // Sparkle animation (slower and more subtle)
     sparkleAnimation.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.linear }),
+      withTiming(1, { duration: 4000, easing: Easing.linear }),
       -1,
       false
     );
@@ -55,17 +48,16 @@ export function TrialBanner() {
 
   // Animated styles
   const animatedGlowStyle = useAnimatedStyle(() => {
-    const glowOpacity = interpolate(glowAnimation.value, [0, 1], [0.3, 0.8]);
-    const glowScale = interpolate(glowAnimation.value, [0, 1], [1, 1.05]);
+    const glowOpacity = interpolate(glowAnimation.value, [0, 1], [0.4, 0.7]);
     
     return {
       opacity: glowOpacity,
-      transform: [{ scale: glowScale }],
     };
   });
 
   const animatedPulseStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pulseAnimation.value }],
+    // Remove scaling for cleaner appearance
+    opacity: 1,
   }));
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
@@ -278,13 +270,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: 'rgba(139, 92, 246, 0.4)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(139, 92, 246, 0.6)',
     shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 16,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
   innerBorder: {
     position: 'absolute',

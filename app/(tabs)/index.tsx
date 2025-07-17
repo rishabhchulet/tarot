@@ -224,16 +224,16 @@ const styles = StyleSheet.create({
   },
   exploreGrid: {
     flexDirection: 'row',
-    justifyContent: 'center', // Changed from space-between to center
+    justifyContent: 'space-evenly', // Changed to space-evenly for better distribution
     alignItems: 'stretch',
     marginBottom: 8,
-    gap: 20, // Increased gap for better spacing
-    paddingHorizontal: 8, // Add some padding to prevent edge touching
+    gap: 16, // Proper gap between cards
+    paddingHorizontal: 12, // More padding to prevent edge touching
   },
   gridItem: {
     flex: 1,
-    maxWidth: '45%', // Reduced from 48% to ensure better spacing
-    minWidth: 140, // Add minimum width to prevent too much shrinking
+    maxWidth: '42%', // Reduced further to ensure proper spacing
+    minWidth: 150, // Increased minimum width for better readability
   },
   universeContainer: {
     marginBottom: 8,

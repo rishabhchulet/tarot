@@ -54,25 +54,32 @@ export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    minWidth: 160, // Reduced from 180 to allow better spacing
+    minWidth: 150, // Optimized for better spacing
+    marginHorizontal: 4, // Add slight margin for separation
   },
   card: {
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: 'rgba(255,255,255,0.02)',
-    minHeight: 85, // Slightly reduced height
+    borderColor: 'rgba(255,255,255,0.15)', // Slightly more visible border
+    backgroundColor: 'rgba(255,255,255,0.05)', // Slightly more visible background
+    minHeight: 90, // Increased for better touch target and content fit
+    shadowColor: 'rgba(255,255,255,0.1)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   cardGradient: {
     flex: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingVertical: 18, // Increased padding for better spacing
+    paddingHorizontal: 18, // Increased padding for better spacing
   },
   content: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    justifyContent: 'space-between', // Better distribution of content
   },
   iconContainer: {
     width: 36,
@@ -87,16 +94,17 @@ const styles = StyleSheet.create({
   textContainer: {
     flex: 1,
     minWidth: 0,
-    marginRight: 8,
+    marginRight: 12, // Consistent spacing
+    justifyContent: 'center', // Center text vertically
   },
   textContainerFullWidth: {
-    marginRight: 12, // More space when no icon
+    marginRight: 16, // More space when no icon
   },
   title: {
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16, // Slightly larger since we have more space
+    fontSize: 15, // Optimized for mobile readability
     color: '#f8fafc',
-    marginBottom: 4,
+    marginBottom: 6, // Increased spacing between title and subtitle
     lineHeight: 20,
   },
   subtitle: {

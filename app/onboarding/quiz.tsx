@@ -6,7 +6,6 @@ import * as Haptics from 'expo-haptics';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { DETAILED_ARCHETYPES } from '@/data/archetypes';
-import { ArchetypeDetailModal } from '@/components/ArchetypeDetailModal';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -140,18 +139,7 @@ export default function ArchetypeQuiz() {
     setSelectedArchetype(null);
   };
 
-  const handleSkipModal = async () => {
-    console.log('⏭️ Skipping modal, continuing with first archetype...');
-    setSelected('alchemist'); // Default to first archetype
-    setModalVisible(false); // Ensure modal is closed
-    await handleContinue();
-  };
 
-  const handleDirectArchetypeSelection = async (archetypeId: string) => {
-    console.log('🎯 Direct archetype selection (bypass modal):', archetypeId);
-    setSelected(archetypeId);
-    await handleContinue();
-  };
 
   const handleContinue = async () => {
     if (!selected) return;
@@ -190,55 +178,120 @@ export default function ArchetypeQuiz() {
             const IconComponent = archetype.icon;
             const isSelected = selected === archetype.id;
             return (
-              <View key={archetype.id}>
-                <Pressable 
-                  onPress={() => handleArchetypeSelect(archetype.id)} 
-                  style={[styles.archetypeCard, isSelected && styles.selectedCard]}
-                >
-                  <View style={styles.cardContent}>
-                    <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
-                      <AnimatedIcon IconComponent={IconComponent} index={index} isSelected={isSelected} />
-                    </LinearGradient>
-                    <View style={styles.cardText}>
-                      <Text style={styles.cardTitle}>{archetype.name}</Text>
-                      <Text style={styles.cardDescription}>{archetype.description}</Text>
-                      <Text style={styles.tapToLearnMore}>Tap to learn more →</Text>
-                    </View>
+              <Pressable 
+                key={archetype.id}
+                onPress={() => handleArchetypeSelect(archetype.id)} 
+                style={[styles.archetypeCard, isSelected && styles.selectedCard]}
+              >
+                <View style={styles.cardContent}>
+                  <LinearGradient colors={archetype.colors} style={styles.iconContainer}>
+                    <AnimatedIcon IconComponent={IconComponent} index={index} isSelected={isSelected} />
+                  </LinearGradient>
+                  <View style={styles.cardText}>
+                    <Text style={styles.cardTitle}>{archetype.name}</Text>
+                    <Text style={styles.cardDescription}>{archetype.description}</Text>
+                    <Text style={styles.tapToLearnMore}>Tap to learn more →</Text>
                   </View>
-                </Pressable>
-                
-                {/* Direct selection button for Android users having modal issues */}
-                {Platform.OS === 'android' && (
-                  <Pressable 
-                    onPress={() => handleDirectArchetypeSelection(archetype.id)}
-                    style={styles.directSelectButton}
-                  >
-                    <Text style={styles.directSelectButtonText}>
-                      Choose {archetype.name} ✓
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
+                </View>
+              </Pressable>
             );
           })}
         </View>
       </ScrollView>
 
-      <ArchetypeDetailModal
-        visible={modalVisible}
-        archetype={selectedArchetype}
-        onClose={handleModalClose}
-        onConfirm={handleModalConfirm}
-      />
+      {/* Inline modal for better Android compatibility */}
+      {modalVisible && selectedArchetype && (
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBackdrop} />
+          <View style={styles.inlineModalContent}>
+            <ScrollView 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+            >
+              {/* Close Button */}
+              <Pressable style={styles.modalCloseButton} onPress={handleModalClose}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </Pressable>
 
-      {/* Emergency fallback button */}
-      <View style={styles.fallbackContainer}>
-        <Pressable style={styles.fallbackButton} onPress={handleSkipModal}>
-          <Text style={styles.fallbackButtonText}>
-            {Platform.OS === 'android' ? 'Continue with The Alchemist' : 'Having trouble? Tap here to continue'}
-          </Text>
-        </Pressable>
-      </View>
+              {/* Header with Icon */}
+              <View style={styles.modalHeader}>
+                <LinearGradient
+                  colors={selectedArchetype.colors}
+                  style={styles.modalIconContainer}
+                >
+                  <selectedArchetype.icon size={40} color="#FFFFFF" strokeWidth={2} />
+                </LinearGradient>
+                
+                <Text style={styles.modalArchetypeName}>{selectedArchetype.name}</Text>
+                <Text style={styles.modalShortDescription}>{selectedArchetype.description}</Text>
+              </View>
+
+              {/* Keywords */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>✨ Keywords</Text>
+                <View style={styles.modalKeywordsContainer}>
+                  {selectedArchetype.keywords.map((keyword, index) => (
+                    <View key={index} style={styles.modalKeywordTag}>
+                      <Text style={styles.modalKeywordText}>{keyword}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* Detailed Description */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>🌟 Your Journey</Text>
+                <Text style={styles.modalDetailedText}>{selectedArchetype.detailedDescription}</Text>
+              </View>
+
+              {/* Strengths */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>💪 Your Strengths</Text>
+                {selectedArchetype.strengths.map((strength, index) => (
+                  <View key={index} style={styles.modalListItem}>
+                    <View style={styles.modalBullet} />
+                    <Text style={styles.modalListText}>{strength}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Challenges */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>⚡ Growth Areas</Text>
+                {selectedArchetype.challenges.map((challenge, index) => (
+                  <View key={index} style={styles.modalListItem}>
+                    <View style={styles.modalBullet} />
+                    <Text style={styles.modalListText}>{challenge}</Text>
+                  </View>
+                ))}
+              </View>
+
+              {/* Guidance */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>🧭 Your Guidance</Text>
+                <Text style={styles.modalGuidanceText}>{selectedArchetype.guidance}</Text>
+              </View>
+            </ScrollView>
+
+            {/* Action Buttons */}
+            <View style={styles.modalButtonContainer}>
+              <Pressable style={styles.modalBackButton} onPress={handleModalClose}>
+                <Text style={styles.modalBackButtonText}>Choose Different</Text>
+              </Pressable>
+              
+              <Pressable onPress={handleModalConfirm} style={styles.modalConfirmButtonWrapper}>
+                <LinearGradient
+                  colors={selectedArchetype.colors}
+                  style={styles.modalConfirmButton}
+                >
+                  <Text style={styles.modalConfirmButtonText}>✓ This Is Me</Text>
+                </LinearGradient>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      )}
+
     </SafeAreaView>
   );
 }
@@ -286,45 +339,180 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 17, fontFamily: 'Inter-Bold', color: '#FFFFFF' },
   buttonTextDisabled: { color: '#666' },
-  fallbackContainer: {
+  // Inline modal styles
+  modalOverlay: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 120 : 100,
-    left: 20,
-    right: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  fallbackButton: {
-    backgroundColor: 'rgba(99, 102, 241, 0.8)',
-    borderRadius: Platform.OS === 'ios' ? 12 : 8,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
     paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.5)',
-    shadowColor: Platform.OS === 'ios' ? '#6366f1' : undefined,
-    shadowOffset: Platform.OS === 'ios' ? { width: 0, height: 2 } : undefined,
-    shadowOpacity: Platform.OS === 'ios' ? 0.3 : undefined,
-    shadowRadius: Platform.OS === 'ios' ? 4 : undefined,
-    elevation: Platform.OS === 'android' ? 4 : undefined,
+    zIndex: 1000,
   },
-  fallbackButtonText: {
+  modalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+  },
+  inlineModalContent: {
+    width: '100%',
+    maxHeight: '85%',
+    backgroundColor: '#0f0f0f',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    overflow: 'hidden',
+  },
+  modalScrollContent: {
+    padding: 24,
+    paddingTop: 40,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  modalCloseText: {
+    fontSize: 18,
+    color: '#94A3B8',
+    fontFamily: 'Inter-Medium',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  modalIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalArchetypeName: {
+    fontSize: 28,
+    fontFamily: 'Inter-Bold',
+    color: '#F9FAFB',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  modalShortDescription: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#D1D5DB',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  modalSection: {
+    marginBottom: 24,
+  },
+  modalSectionTitle: {
+    fontSize: 18,
+    fontFamily: 'Inter-SemiBold',
+    color: '#F9FAFB',
+    marginBottom: 12,
+  },
+  modalKeywordsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  modalKeywordTag: {
+    backgroundColor: 'rgba(139, 92, 246, 0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 92, 246, 0.3)',
+  },
+  modalKeywordText: {
     fontSize: 14,
     fontFamily: 'Inter-Medium',
-    color: '#FFFFFF',
-    textAlign: 'center',
+    color: '#A855F7',
   },
-  directSelectButton: {
-    backgroundColor: 'rgba(16, 185, 129, 0.9)',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  modalDetailedText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Regular',
+    color: '#E5E7EB',
+    lineHeight: 24,
+  },
+  modalListItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  modalBullet: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#8B5CF6',
     marginTop: 8,
-    marginHorizontal: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.5)',
+    marginRight: 12,
   },
-  directSelectButtonText: {
-    fontSize: 12,
+  modalListText: {
+    flex: 1,
+    fontSize: 15,
+    fontFamily: 'Inter-Regular',
+    color: '#D1D5DB',
+    lineHeight: 22,
+  },
+  modalGuidanceText: {
+    fontSize: 16,
+    fontFamily: 'Inter-Medium',
+    color: '#F3F4F6',
+    lineHeight: 24,
+    fontStyle: 'italic',
+    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+    padding: 16,
+    borderRadius: 12,
+    borderLeftWidth: 3,
+    borderLeftColor: '#8B5CF6',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    gap: 12,
+  },
+  modalBackButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#374151',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBackButtonText: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    color: '#9CA3AF',
+  },
+  modalConfirmButtonWrapper: {
+    flex: 1,
+  },
+  modalConfirmButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalConfirmButtonText: {
+    fontSize: 16,
     fontFamily: 'Inter-SemiBold',
     color: '#FFFFFF',
   },

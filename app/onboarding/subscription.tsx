@@ -302,7 +302,10 @@ export default function SubscriptionScreen() {
                 plan.popular && styles.planCardPopular, // Always apply popular style for popular plans
                 selectedPlan === plan.id && styles.planCardSelected, // Selected style overrides everything
               ]}
-              onPress={() => setSelectedPlan(plan.id)}
+              onPress={() => {
+                console.log(`🎯 Selected plan: ${plan.id}`);
+                setSelectedPlan(plan.id);
+              }}
             >
               {plan.popular && (
                 <View style={styles.popularBadge}>
@@ -312,6 +315,13 @@ export default function SubscriptionScreen() {
               {plan.savings && !plan.popular && (
                 <View style={styles.dealBadge}>
                   <Text style={styles.dealText}>{plan.savings}</Text>
+                </View>
+              )}
+              
+              {/* Selection indicator */}
+              {selectedPlan === plan.id && (
+                <View style={styles.selectedIndicator}>
+                  <Text style={styles.selectedText}>✓ SELECTED</Text>
                 </View>
               )}
               
@@ -507,6 +517,21 @@ const styles = StyleSheet.create({
   dealText: {
     fontSize: 12,
     fontFamily: 'Inter-SemiBold',
+    color: '#FFFFFF',
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: -8,
+    right: 20,
+    backgroundColor: '#10b981',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 10,
+  },
+  selectedText: {
+    fontSize: 12,
+    fontFamily: 'Inter-Bold',
     color: '#FFFFFF',
   },
   planTitle: {

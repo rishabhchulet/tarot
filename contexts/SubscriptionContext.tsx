@@ -194,7 +194,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     console.log('💰 Upgrading to lifetime plan...');
     
     try {
-      // Save subscription to database
+      // Save subscription to database using upsert with proper conflict resolution
       const { error } = await supabase
         .from('subscriptions')
         .upsert({
@@ -205,6 +205,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           trial_start_date: new Date().toISOString(),
           trial_end_date: new Date().toISOString(), // End trial immediately
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) {
@@ -245,7 +247,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       const expiryDate = new Date();
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
 
-      // Save subscription to database
+      // Save subscription to database using upsert with proper conflict resolution
       const { error } = await supabase
         .from('subscriptions')
         .upsert({
@@ -256,6 +258,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           trial_start_date: new Date().toISOString(),
           trial_end_date: new Date().toISOString(), // End trial immediately
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) {
@@ -299,7 +303,7 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 7);
 
-      // Save subscription to database
+      // Save subscription to database using upsert with proper conflict resolution
       const { error } = await supabase
         .from('subscriptions')
         .upsert({
@@ -310,6 +314,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           trial_start_date: new Date().toISOString(),
           trial_end_date: new Date().toISOString(), // End trial immediately
           updated_at: new Date().toISOString(),
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) {

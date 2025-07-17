@@ -152,4 +152,52 @@ export const DETAILED_ARCHETYPES: ArchetypeData[] = [
     guidance: 'All your shapes are real—they are different facets of your beautiful, complex self. Your challenge is not to choose one identity but to find the thread that connects them all. Your adaptability is a superpower when guided by clear values and self-awareness.',
     keywords: ['Adaptability', 'Fluidity', 'Transformation', 'Versatility', 'Integration', 'Authenticity']
   }
-]; 
+];
+
+// Helper function to get archetype info by name or id
+export const getArchetypeInfo = (archetypeNameOrId?: string) => {
+  if (!archetypeNameOrId) return null;
+  
+  // Find archetype by name or id (case insensitive)
+  const archetype = DETAILED_ARCHETYPES.find(a => 
+    a.id.toLowerCase() === archetypeNameOrId.toLowerCase() ||
+    a.name.toLowerCase() === archetypeNameOrId.toLowerCase() ||
+    a.name.toLowerCase().replace('the ', '') === archetypeNameOrId.toLowerCase()
+  );
+  
+  if (!archetype) return null;
+  
+  return {
+    icon: archetype.icon === FlaskConical ? '🧪' : 
+          archetype.icon === Eye ? '👁️' : 
+          archetype.icon === PenTool ? '✍️' : 
+          archetype.icon === User ? '👤' : 
+          archetype.icon === Sparkles ? '✨' : 
+          archetype.icon === Shuffle ? '🔀' : '✨',
+    color: archetype.colors[0],
+    element: getArchetypeElement(archetype.id),
+    name: archetype.name,
+    description: archetype.description,
+    keywords: archetype.keywords
+  };
+};
+
+// Helper function to get archetype element
+const getArchetypeElement = (archetypeId: string): string => {
+  switch (archetypeId) {
+    case 'alchemist':
+      return 'Water';
+    case 'seer':
+      return 'Air';
+    case 'creator':
+      return 'Fire';
+    case 'sage':
+      return 'Earth';
+    case 'mystic':
+      return 'Spirit';
+    case 'wanderer':
+      return 'Air';
+    default:
+      return 'Spirit';
+  }
+}; 

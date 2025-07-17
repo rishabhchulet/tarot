@@ -129,7 +129,9 @@ export default function ArchetypeQuiz() {
       
       setSelected(selectedArchetype.id);
       setModalVisible(false);
-      await handleContinue();
+      
+      // Pass the archetype ID directly to avoid race condition
+      await handleContinue(selectedArchetype.id);
     }
   };
 
@@ -141,20 +143,31 @@ export default function ArchetypeQuiz() {
 
 
 
-  const handleContinue = async () => {
-    if (!selected) return;
+  const handleContinue = async (archetypeId?: string) => {
+    const selectedId = archetypeId || selected;
+    if (!selectedId) {
+      console.warn('❌ No archetype selected');
+      return;
+    }
+    
+    console.log('🚀 Continuing with archetype:', selectedId);
     setLoading(true);
+    
     try {
-      const { error } = await updateUserProfile({ archetype: selected });
+      const { error } = await updateUserProfile({ archetype: selectedId });
       if (error) {
+        console.warn('⚠️ Profile update error:', error);
         Alert.alert('Update Failed', "Couldn't save your choice, but you can change it later.",
           [{ text: 'OK', onPress: () => router.push('/onboarding/about') }]
         );
       } else {
+        console.log('✅ Profile updated successfully');
         await refreshUser();
+        console.log('📱 Navigating to about screen...');
         router.push('/onboarding/about');
       }
     } catch (error) {
+      console.error('❌ Error in handleContinue:', error);
       router.push('/onboarding/about');
     } finally {
       setLoading(false);
@@ -230,7 +243,7 @@ export default function ArchetypeQuiz() {
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>✨ Keywords</Text>
                 <View style={styles.modalKeywordsContainer}>
-                  {selectedArchetype.keywords.map((keyword, index) => (
+                  {selectedArchetype.keywords.map((keyword: string, index: number) => (
                     <View key={index} style={styles.modalKeywordTag}>
                       <Text style={styles.modalKeywordText}>{keyword}</Text>
                     </View>
@@ -247,7 +260,7 @@ export default function ArchetypeQuiz() {
               {/* Strengths */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>💪 Your Strengths</Text>
-                {selectedArchetype.strengths.map((strength, index) => (
+                {selectedArchetype.strengths.map((strength: string, index: number) => (
                   <View key={index} style={styles.modalListItem}>
                     <View style={styles.modalBullet} />
                     <Text style={styles.modalListText}>{strength}</Text>
@@ -258,7 +271,7 @@ export default function ArchetypeQuiz() {
               {/* Challenges */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>⚡ Growth Areas</Text>
-                {selectedArchetype.challenges.map((challenge, index) => (
+                {selectedArchetype.challenges.map((challenge: string, index: number) => (
                   <View key={index} style={styles.modalListItem}>
                     <View style={styles.modalBullet} />
                     <Text style={styles.modalListText}>{challenge}</Text>

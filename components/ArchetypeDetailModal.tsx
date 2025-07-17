@@ -6,7 +6,9 @@ import {
   Pressable, 
   ScrollView, 
   Dimensions,
-  Modal
+  Modal,
+  Platform,
+  StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { X, Check, Sparkles } from 'lucide-react-native';
@@ -47,13 +49,24 @@ export function ArchetypeDetailModal({
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🎭 Modal visibility changed:', visible, archetype?.name);
+  }, [visible, archetype]);
+
   React.useEffect(() => {
     if (visible) {
-      scale.value = withSpring(1, { damping: 15, stiffness: 100 });
-      opacity.value = withTiming(1, { duration: 300 });
+      // iOS prefers spring animations, Android prefers timing
+      if (Platform.OS === 'ios') {
+        scale.value = withTiming(1, { duration: 300 });
+        opacity.value = withTiming(1, { duration: 250 });
+      } else {
+        scale.value = withTiming(1, { duration: 250 });
+        opacity.value = withTiming(1, { duration: 200 });
+      }
     } else {
-      scale.value = withTiming(0, { duration: 200 });
-      opacity.value = withTiming(0, { duration: 200 });
+      scale.value = withTiming(0.9, { duration: 200 });
+      opacity.value = withTiming(0, { duration: 150 });
     }
   }, [visible]);
 
@@ -74,8 +87,10 @@ export function ArchetypeDetailModal({
     <Modal
       visible={visible}
       transparent
-      animationType="none"
-      statusBarTranslucent
+      animationType="slide"
+      presentationStyle={Platform.OS === 'ios' ? 'overFullScreen' : undefined}
+      onRequestClose={onClose}
+      statusBarTranslucent={Platform.OS === 'android'}
     >
       <View style={styles.modalContainer}>
         <Animated.View style={[styles.backdrop, animatedBackdropStyle]} />
@@ -183,6 +198,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingBottom: Platform.OS === 'ios' ? 50 : 20,
   },
   backdrop: {
     position: 'absolute',
@@ -194,9 +211,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     width: width - 40,
-    maxHeight: height * 0.85,
-    borderRadius: 20,
+    maxHeight: Platform.OS === 'ios' ? height * 0.82 : height * 0.85,
+    borderRadius: Platform.OS === 'ios' ? 24 : 20,
     overflow: 'hidden',
+    marginTop: Platform.OS === 'ios' ? 0 : StatusBar.currentHeight || 0,
   },
   modalGradient: {
     flex: 1,
@@ -317,7 +335,7 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     paddingHorizontal: 24,
-    paddingBottom: 24,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 24,
     gap: 12,
   },
   backButton: {
@@ -338,17 +356,17 @@ const styles = StyleSheet.create({
   confirmButton: {
     flex: 1,
     flexDirection: 'row',
-    paddingVertical: 14,
+    paddingVertical: Platform.OS === 'ios' ? 16 : 14,
     paddingHorizontal: 20,
-    borderRadius: 12,
+    borderRadius: Platform.OS === 'ios' ? 14 : 12,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
-    shadowColor: '#8B5CF6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowColor: Platform.OS === 'ios' ? '#8B5CF6' : undefined,
+    shadowOffset: Platform.OS === 'ios' ? { width: 0, height: 4 } : undefined,
+    shadowOpacity: Platform.OS === 'ios' ? 0.3 : undefined,
+    shadowRadius: Platform.OS === 'ios' ? 8 : undefined,
+    elevation: Platform.OS === 'android' ? 8 : undefined,
   },
   confirmButtonText: {
     fontSize: 16,

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { DETAILED_ARCHETYPES } from '@/data/archetypes';
@@ -26,11 +27,14 @@ const AnimatedIcon = ({ IconComponent, index, isSelected }: {
 
   useEffect(() => {
     // Staggered animation start for each icon
+    // Reduce animation complexity on Android for better performance
+    const animationDuration = Platform.OS === 'ios' ? 8000 + (index * 1000) : 10000;
+    
     rotation.value = withDelay(
       index * 200, // 200ms delay between each icon
       withRepeat(
         withTiming(360, { 
-          duration: 8000 + (index * 1000), // Different speeds for variety
+          duration: animationDuration, // Different speeds for variety
           easing: Easing.linear 
         }),
         -1,
@@ -74,16 +78,51 @@ export default function ArchetypeQuiz() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedArchetype, setSelectedArchetype] = useState<typeof DETAILED_ARCHETYPES[0] | null>(null);
 
-  const handleArchetypeSelect = (archetypeId: string) => {
+  const handleArchetypeSelect = async (archetypeId: string) => {
+    console.log('🎯 Archetype selected:', archetypeId);
+    
+    // Add haptic feedback on iOS
+    if (Platform.OS === 'ios') {
+      try {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        console.log('Haptic feedback not available');
+      }
+    }
+    
     const archetype = DETAILED_ARCHETYPES.find(a => a.id === archetypeId);
+    console.log('🎭 Found archetype:', archetype?.name);
     if (archetype) {
       setSelectedArchetype(archetype);
-      setModalVisible(true);
+      
+      // Add slight delay for better UX on Android
+      if (Platform.OS === 'android') {
+        setTimeout(() => {
+          setModalVisible(true);
+        }, 100);
+      } else {
+        setModalVisible(true);
+      }
+      
+      console.log('✅ Modal should be visible now');
+    } else {
+      console.error('❌ Archetype not found:', archetypeId);
     }
   };
 
   const handleModalConfirm = async () => {
     if (selectedArchetype) {
+      console.log('✅ User confirmed archetype:', selectedArchetype.name);
+      
+      // Add haptic feedback on iOS for confirmation
+      if (Platform.OS === 'ios') {
+        try {
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch (error) {
+          console.log('Haptic feedback not available');
+        }
+      }
+      
       setSelected(selectedArchetype.id);
       setModalVisible(false);
       await handleContinue();
@@ -91,8 +130,15 @@ export default function ArchetypeQuiz() {
   };
 
   const handleModalClose = () => {
+    console.log('🚪 Modal closing');
     setModalVisible(false);
     setSelectedArchetype(null);
+  };
+
+  const handleSkipModal = async () => {
+    console.log('⏭️ Skipping modal, continuing with first archetype...');
+    setSelected('alchemist'); // Default to first archetype
+    await handleContinue();
   };
 
   const handleContinue = async () => {
@@ -159,6 +205,15 @@ export default function ArchetypeQuiz() {
         onClose={handleModalClose}
         onConfirm={handleModalConfirm}
       />
+
+      {/* Emergency fallback button */}
+      <View style={styles.fallbackContainer}>
+        <Pressable style={styles.fallbackButton} onPress={handleSkipModal}>
+          <Text style={styles.fallbackButtonText}>
+            Having trouble? Tap here to continue
+          </Text>
+        </Pressable>
+      </View>
     </SafeAreaView>
   );
 }
@@ -206,4 +261,30 @@ const styles = StyleSheet.create({
   },
   buttonText: { fontSize: 17, fontFamily: 'Inter-Bold', color: '#FFFFFF' },
   buttonTextDisabled: { color: '#666' },
+  fallbackContainer: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 120 : 100,
+    left: 20,
+    right: 20,
+    alignItems: 'center',
+  },
+  fallbackButton: {
+    backgroundColor: 'rgba(99, 102, 241, 0.8)',
+    borderRadius: Platform.OS === 'ios' ? 12 : 8,
+    paddingVertical: Platform.OS === 'ios' ? 14 : 12,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.5)',
+    shadowColor: Platform.OS === 'ios' ? '#6366f1' : undefined,
+    shadowOffset: Platform.OS === 'ios' ? { width: 0, height: 2 } : undefined,
+    shadowOpacity: Platform.OS === 'ios' ? 0.3 : undefined,
+    shadowRadius: Platform.OS === 'ios' ? 4 : undefined,
+    elevation: Platform.OS === 'android' ? 4 : undefined,
+  },
+  fallbackButtonText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
 });

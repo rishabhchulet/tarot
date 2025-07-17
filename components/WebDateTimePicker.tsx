@@ -75,33 +75,36 @@ export function WebDateTimePicker({
             <Clock size={20} color="#94a3b8" style={styles.inputIcon} />
           )}
           
-          <input
-            type={mode}
-            value={getInputValue()}
-            onChange={handleWebInput}
-            disabled={disabled}
-            placeholder={placeholder}
-            style={{
-              flex: 1,
-              padding: '18px 0',
-              fontSize: '16px',
-              fontFamily: 'Inter-Regular',
-              color: value ? '#F8FAFC' : '#64748b',
-              backgroundColor: 'transparent',
-              border: 'none',
-              outline: 'none',
-              width: '100%',
-              ...(mode === 'date' && {
-                colorScheme: 'dark', // Makes the calendar picker dark
-              }),
-              ...(disabled && {
-                color: '#64748b',
-                cursor: 'not-allowed',
-              }),
-            }}
-            min={mode === 'date' ? '1900-01-01' : undefined}
-            max={mode === 'date' ? new Date().toISOString().split('T')[0] : undefined}
-          />
+          <View style={styles.webInputWrapper}>
+            <input
+              type={mode}
+              value={getInputValue()}
+              onChange={handleWebInput}
+              disabled={disabled}
+              placeholder={placeholder}
+              className="web-date-input"
+              style={{
+                flex: 1,
+                padding: '18px 0',
+                fontSize: '16px',
+                fontFamily: 'Inter-Regular',
+                color: value ? '#F8FAFC' : '#64748b',
+                backgroundColor: 'transparent',
+                border: 'none',
+                outline: 'none',
+                width: '100%',
+                ...(mode === 'date' && {
+                  colorScheme: 'dark',
+                }),
+                ...(disabled && {
+                  color: '#64748b',
+                  cursor: 'not-allowed',
+                }),
+              }}
+              min={mode === 'date' ? '1900-01-01' : undefined}
+              max={mode === 'date' ? new Date().toISOString().split('T')[0] : undefined}
+            />
+          </View>
           
           {!value && <Text style={styles.requiredIndicator}>*</Text>}
         </View>
@@ -395,6 +398,10 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginHorizontal: 16,
+  },
+  webInputWrapper: {
+    flex: 1,
+    justifyContent: 'center',
   },
   inputText: {
     flex: 1,

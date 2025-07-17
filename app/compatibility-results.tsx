@@ -275,7 +275,7 @@ export default function CompatibilityResultsScreen() {
           </View>
 
           {/* Additional Insights Section */}
-          <View style={styles.additionalInsights}>
+          <View style={styles.insightsSection}>
             <Text style={styles.insightsTitle}>Cosmic Guidance</Text>
             <View style={styles.guidanceCards}>
               <View style={styles.guidanceCard}>
@@ -452,65 +452,46 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   titleSection: {
-    marginBottom: 32,
-    paddingHorizontal: 20,
+    marginBottom: 24,
+    alignItems: 'center',
   },
   reportTitle: {
-    fontFamily: 'Inter-Black',
-    fontSize: 28,
-    color: '#F9FAFB',
+    fontSize: 24,
+    fontFamily: 'Inter-Bold',
+    color: '#f8fafc',
     textAlign: 'center',
-    lineHeight: 34,
-    marginBottom: 16,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 3,
+    marginBottom: 12,
+    lineHeight: 32,
   },
   reportTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
     gap: 12,
-    flexWrap: 'wrap',
-  },
-  reportType: {
-    fontFamily: 'Inter-Medium',
-    fontSize: 16,
-    color: '#a78bfa',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
   },
   reportTypeBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    backgroundColor: 'rgba(167, 139, 250, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    gap: 6,
   },
-  reportTypeBadgeText: {
+  reportType: {
+    fontSize: 14,
     fontFamily: 'Inter-SemiBold',
-    fontSize: 12,
-    color: '#fbbf24',
-    textTransform: 'uppercase',
+    color: '#a78bfa',
   },
   cosmicBadge: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(251, 191, 36, 0.2)',
     paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   cosmicBadgeText: {
-    fontFamily: 'Inter-SemiBold',
     fontSize: 12,
-    color: '#a78bfa',
-    textTransform: 'uppercase',
+    fontFamily: 'Inter-Bold',
+    color: '#fbbf24',
   },
   scoreSection: {
     marginBottom: 24,
@@ -586,41 +567,33 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   insightsTitle: {
+    fontSize: 22,
     fontFamily: 'Inter-Bold',
-    fontSize: 20,
-    color: '#F9FAFB',
+    color: '#f8fafc',
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   guidanceCards: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
+    gap: 16,
   },
   guidanceCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: 'rgba(30, 41, 59, 0.6)',
     borderRadius: 16,
     padding: 20,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    alignItems: 'center',
-    flex: 1,
-    marginHorizontal: 4,
+    gap: 8,
   },
   guidanceCardTitle: {
+    fontSize: 18,
     fontFamily: 'Inter-SemiBold',
-    fontSize: 16,
-    color: '#F9FAFB',
-    textAlign: 'center',
-    marginTop: 12,
+    color: '#f8fafc',
   },
   guidanceCardText: {
-    fontFamily: 'Inter-Regular',
     fontSize: 16,
+    fontFamily: 'Inter-Regular',
     color: '#d1d5db',
-    textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 22,
+    lineHeight: 24,
   },
   headerTitle: {
     fontFamily: 'Inter-Bold',
@@ -632,5 +605,11 @@ const styles = StyleSheet.create({
   },
   sparkleWrapper: {
     marginLeft: -4,
+  },
+  insightsSection: {
+    marginTop: 32,
+    paddingTop: 24,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.1)',
   },
 }); 

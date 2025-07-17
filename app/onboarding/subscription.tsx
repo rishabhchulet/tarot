@@ -192,8 +192,8 @@ export default function SubscriptionScreen() {
   }));
 
   const handleClose = () => {
-    // For now, skip to main app - in production this might be different
-    router.replace('/breathing');
+    // Navigate to main app home page
+    router.replace('/(tabs)');
   };
 
   const handleContinueWithPlan = async () => {
@@ -216,11 +216,11 @@ export default function SubscriptionScreen() {
       }
       
       console.log('✅ Subscription processed successfully');
-      router.replace('/breathing');
+      router.replace('/(tabs)');
     } catch (error) {
       console.error('❌ Error processing subscription:', error);
       // For now, continue anyway since we're not doing real payments
-      router.replace('/breathing');
+      router.replace('/(tabs)');
     } finally {
       setLoading(false);
     }
@@ -228,7 +228,7 @@ export default function SubscriptionScreen() {
 
   const handleSkipForNow = () => {
     // Continue to main app without subscription
-    router.replace('/breathing');
+    router.replace('/(tabs)');
   };
 
   return (
@@ -293,8 +293,8 @@ export default function SubscriptionScreen() {
               key={plan.id}
               style={[
                 styles.planCard,
-                selectedPlan === plan.id && styles.planCardSelected,
-                plan.popular && styles.planCardPopular,
+                plan.popular && selectedPlan !== plan.id && styles.planCardPopular, // Only apply popular style if not selected
+                selectedPlan === plan.id && styles.planCardSelected, // Selected style takes priority
               ]}
               onPress={() => setSelectedPlan(plan.id)}
             >

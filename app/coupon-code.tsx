@@ -69,7 +69,7 @@ export default function CouponCodeScreen() {
       Alert.alert('🎉 Coupon Redeemed!', message, [
         {
           text: 'Continue',
-          onPress: () => router.back(),
+          onPress: () => router.replace('/(tabs)'),
         },
       ]);
     } else {
@@ -162,7 +162,7 @@ export default function CouponCodeScreen() {
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => router.back()}
+              onPress={() => router.replace('/(tabs)')}
             >
               <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
             </TouchableOpacity>

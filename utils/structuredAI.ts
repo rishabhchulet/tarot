@@ -7,35 +7,27 @@ import {
   getTarotReflectionText
 } from '@/data/structuredData';
 
+import { getDevelopmentServerUrl, handleMobileNetworkError } from './mobileApiConfig';
+
 // Helper function to get the correct API base URL for mobile/web
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     return '';
   }
   
-  const isDevelopment = typeof __DEV__ !== 'undefined' ? __DEV__ : process.env.NODE_ENV === 'development';
-  
-  if (isDevelopment) {
-    const expoUrl = process.env.EXPO_PUBLIC_API_URL;
-    if (expoUrl) {
-      return expoUrl;
-    }
-    return '';
-  }
-  
-  return '';
+  return getDevelopmentServerUrl();
 };
 
-// Enhanced error handling for mobile network issues
+// Enhanced error handling for mobile network issues  
 const handleNetworkError = (error: any, context: string) => {
-  console.error(`Structured AI ${context} error:`, error);
+  const mobileError = handleMobileNetworkError(error, context);
   
-  const isMobileNetworkError = error.message?.includes('Network request failed') || 
-                               error.message?.includes('fetch');
-  
-  if (isMobileNetworkError) {
-    console.warn(`Mobile network error in ${context} - using fallback`);
-    return 'Mobile network connectivity issue - using offline fallback';
+  if (mobileError.isMobileError) {
+    console.warn(`📱 ${mobileError.message}`);
+    if (mobileError.suggestion) {
+      console.warn(`💡 ${mobileError.suggestion}`);
+    }
+    return mobileError.message;
   }
   
   return error.message || `Failed to generate ${context}`;

@@ -25,6 +25,8 @@ interface AIPersonalizedGuidanceRequest {
   mood?: string;
 }
 
+import { getDevelopmentServerUrl, handleMobileNetworkError } from './mobileApiConfig';
+
 // Helper function to get the correct API base URL for mobile/web
 export const getApiBaseUrl = () => {
   // For web development, use relative URLs
@@ -32,38 +34,19 @@ export const getApiBaseUrl = () => {
     return '';
   }
   
-  // For mobile, we need to detect if we're in development
-  // and use the appropriate URL format
-  const isDevelopment = __DEV__;
-  
-  if (isDevelopment) {
-    // In development, mobile devices need the actual IP address
-    // This will be set by Expo when using LAN mode
-    const expoUrl = process.env.EXPO_PUBLIC_API_URL;
-    if (expoUrl) {
-      return expoUrl;
-    }
-    
-    // Fallback: return empty string to use relative URLs
-    // This will fail on mobile but won't crash the app
-    return '';
-  }
-  
-  // In production, use relative URLs
-  return '';
+  return getDevelopmentServerUrl();
 };
 
 // Enhanced error handling for mobile network issues
 const handleNetworkError = (error: any, context: string) => {
-  console.error(`AI ${context} error:`, error);
+  const mobileError = handleMobileNetworkError(error, context);
   
-  // Check if this is a mobile network error
-  const isMobileNetworkError = error.message?.includes('Network request failed') || 
-                               error.message?.includes('fetch');
-  
-  if (isMobileNetworkError) {
-    console.warn(`Mobile network error in ${context} - using fallback`);
-    return 'Mobile network connectivity issue - using offline fallback';
+  if (mobileError.isMobileError) {
+    console.warn(`📱 ${mobileError.message}`);
+    if (mobileError.suggestion) {
+      console.warn(`💡 ${mobileError.suggestion}`);
+    }
+    return mobileError.message;
   }
   
   return error.message || `Failed to generate ${context}`;

@@ -19,33 +19,52 @@ export function getDevelopmentServerUrl(): string {
     return '';
   }
 
-  // Try to get Expo's tunnel URL first (most reliable)
+  // Method 1: Try environment variables first
   const expoTunnelUrl = process.env.EXPO_PUBLIC_TUNNEL_URL;
   if (expoTunnelUrl) {
-    console.log('✅ Using Expo tunnel URL for mobile API requests');
+    console.log('✅ Using Expo tunnel URL from env:', expoTunnelUrl);
     return expoTunnelUrl;
   }
 
-  // Try to get local network URL from Expo
   const expoDevServerUrl = process.env.EXPO_PUBLIC_DEV_SERVER_URL;
   if (expoDevServerUrl) {
-    console.log('✅ Using Expo dev server URL for mobile API requests');
+    console.log('✅ Using Expo dev server URL from env:', expoDevServerUrl);
     return expoDevServerUrl;
   }
 
-  // Last resort: try to construct from Metro bundler info
-  // This is set by Expo CLI when using --host lan or tunnel
+  // Method 2: Try to construct from Metro bundler info
   const expoHost = process.env.EXPO_PUBLIC_HOST;
   if (expoHost) {
     const serverUrl = `http://${expoHost}:8081`;
-    console.log('✅ Using constructed server URL for mobile API requests:', serverUrl);
+    console.log('✅ Using constructed server URL:', serverUrl);
     return serverUrl;
   }
 
-  // Final fallback - return empty string and log the issue
+  // Method 3: Try common tunnel patterns (for debugging)
+  try {
+    // Check if we can detect tunnel URL from current location
+    if (typeof global !== 'undefined' && global.location) {
+      const currentUrl = global.location.href || global.location.origin;
+      if (currentUrl && currentUrl.includes('.tunnel.') && currentUrl.includes('exp.host')) {
+        console.log('✅ Detected tunnel URL pattern:', currentUrl);
+        return currentUrl.split('/')[0] + '//' + currentUrl.split('/')[2];
+      }
+    }
+  } catch (error) {
+    console.log('📱 Could not detect tunnel URL from global location');
+  }
+
+  // Final fallback - log comprehensive debugging info
   console.error('❌ Could not determine development server URL for mobile.');
-  console.error('💡 Try starting Expo with: npx expo start --tunnel');
-  console.error('💡 Or set EXPO_PUBLIC_TUNNEL_URL in your .env file');
+  console.error('💡 Current environment variables:');
+  console.error('   - EXPO_PUBLIC_TUNNEL_URL:', process.env.EXPO_PUBLIC_TUNNEL_URL || 'undefined');
+  console.error('   - EXPO_PUBLIC_DEV_SERVER_URL:', process.env.EXPO_PUBLIC_DEV_SERVER_URL || 'undefined');
+  console.error('   - EXPO_PUBLIC_HOST:', process.env.EXPO_PUBLIC_HOST || 'undefined');
+  console.error('   - NODE_ENV:', process.env.NODE_ENV || 'undefined');
+  console.error('💡 Solutions:');
+  console.error('   1. Restart Expo with: npx expo start --tunnel');
+  console.error('   2. Or use LAN mode: npx expo start --host lan');
+  console.error('   3. Check your network connection');
   
   return '';
 }

@@ -187,15 +187,34 @@ export interface CompatibilityReportRequest {
   reportType: 'Relationship' | 'Marriage' | 'Friendship';
 }
 
-export const getAICompatibilityReport = async (data: CompatibilityReportRequest) => {
+export const getAICompatibilityReport = async (data: CompatibilityReportRequest): Promise<{ report: any; error: string | null }> => {
+  const baseUrl = getDevelopmentServerUrl();
+  
+  // Enhanced debugging for mobile network issues
+  console.log('🔍 Compatibility API Debug Info:');
+  console.log('   - Base URL:', baseUrl || 'EMPTY');
+  console.log('   - Full URL:', baseUrl ? `${baseUrl}/ai` : 'CANNOT CONSTRUCT');
+  console.log('   - Platform:', Platform.OS);
+  console.log('   - Request type: compatibility-report');
+
+  if (!baseUrl) {
+    console.warn('📱 Mobile network connectivity issue - using offline fallback');
+    console.warn('💡 Try restarting Expo with tunnel mode: npx expo start --tunnel');
+    
+    const fallbackReport = createFallbackCompatibilityReport(data);
+    return { 
+      report: fallbackReport, 
+      error: null // Don't show error since we have fallback
+    };
+  }
+
   try {
-    const baseUrl = getApiBaseUrl();
-    
-    // Create a timeout wrapper for the fetch request with longer timeout for compatibility reports
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Request timeout')), 25000); // INCREASED: 25 second timeout for compatibility
+    // Create timeout promise
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout - mobile network may be slow')), 15000);
     });
-    
+
+    // Create fetch promise with enhanced debugging
     const fetchPromise = fetch(`${baseUrl}/ai`, {
       method: 'POST',
       headers: {
@@ -207,96 +226,184 @@ export const getAICompatibilityReport = async (data: CompatibilityReportRequest)
       }),
     });
 
+    console.log('🚀 Attempting API request to:', `${baseUrl}/ai`);
+
     // Race between fetch and timeout
     const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
+    console.log('📡 API Response received:', response.status, response.statusText);
+
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error('Compatibility API Error:', errorBody);
+      console.error('🔥 Compatibility API Error:', errorBody);
       throw new Error(`HTTP ${response.status}: Failed to get AI compatibility report`);
     }
 
     const result = await response.json();
+    console.log('✅ Successfully parsed compatibility report');
     return { report: result, error: null };
+
   } catch (error: any) {
-    console.error('Compatibility report error:', error);
+    const enhancedError = handleMobileNetworkError(error, 'compatibility report');
     
-    // Enhanced error handling with fallback
-    const enhancedError = handleNetworkError(error, 'compatibility report');
-    console.log('🔄 Using fallback compatibility report due to:', enhancedError);
-    
-    // Create a fallback report if the AI fails
-    const fallbackReport = createFallbackCompatibilityReport(data);
-    
-    return { 
-      report: fallbackReport, 
-      error: null // Don't show error since we have fallback
-    };
+    if (enhancedError.isMobileError) {
+      console.log('🔄 Using fallback compatibility report due to:', enhancedError.message);
+      console.warn('📱 Mobile network connectivity issue - using offline fallback');
+      console.warn('💡 Try restarting Expo with tunnel mode: npx expo start --tunnel');
+      
+      const fallbackReport = createFallbackCompatibilityReport(data);
+      return { 
+        report: fallbackReport, 
+        error: null // Don't show error since we have fallback
+      };
+    } else {
+      console.error('❌ Non-network error in compatibility report:', error);
+      return { report: null, error: enhancedError.message };
+    }
   }
 };
 
-// Enhanced fallback compatibility report generator
+// Enhanced fallback compatibility report generator with comprehensive data
 const createFallbackCompatibilityReport = (data: CompatibilityReportRequest) => {
   const personA = data.personA as any; // Type assertion for fallback
   const personB = data.personB as any; // Type assertion for fallback
   const reportType = data.reportType;
   
-  // Generate a realistic score between 70-88 for better believability
-  const baseScore = Math.floor(Math.random() * 18) + 70;
+  // Generate more nuanced scoring based on birth dates if available
+  let baseScore = 75; // Default baseline
   
   const personAName = personA?.name || 'Person A';
   const personBName = personB?.name || 'Person B';
   
-  console.log('🔮 Creating fallback compatibility report for:', personAName, 'and', personBName);
+  // Calculate score modifiers based on available birth data
+  if (personA?.date && personB?.date) {
+    const dateA = new Date(personA.date);
+    const dateB = new Date(personB.date);
+    
+    // Simple astrological compatibility simulation
+    const monthA = dateA.getMonth();
+    const monthB = dateB.getMonth();
+    const dayA = dateA.getDate();
+    const dayB = dateB.getDate();
+    
+    // Simulate element compatibility (fire/earth/air/water)
+    const elementCompatibility = Math.abs(monthA - monthB) % 4;
+    const scoreModifier = elementCompatibility === 0 ? 10 : elementCompatibility === 2 ? -5 : 0;
+    baseScore += scoreModifier;
+    
+    // Add some randomness while keeping it realistic
+    baseScore += Math.floor(Math.random() * 20) - 10;
+  } else {
+    // Without birth data, use moderate randomization
+    baseScore += Math.floor(Math.random() * 15) - 7;
+  }
   
+  // Ensure score stays in realistic range
+  baseScore = Math.max(45, Math.min(95, baseScore));
+  
+  console.log('🔮 Creating enhanced fallback compatibility report for:', personAName, 'and', personBName, 'Score:', baseScore);
+  
+  // Generate relationship type specific content
+  const getReportTypeSpecificContent = () => {
+    switch (reportType.toLowerCase()) {
+      case 'marriage':
+        return {
+          titleSuffix: 'A Sacred Union Written in the Stars',
+          summaryContext: 'lifetime partnership',
+          focusAreas: ['Deep Commitment', 'Spiritual Union', 'Shared Values', 'Emotional Security', 'Life Path Alignment']
+        };
+      case 'friendship':
+        return {
+          titleSuffix: 'A Cosmic Friendship Destined to Flourish',
+          summaryContext: 'beautiful friendship',
+          focusAreas: ['Mutual Support', 'Adventure & Growth', 'Intellectual Connection', 'Shared Laughter', 'Soul Recognition']
+        };
+      default:
+        return {
+          titleSuffix: 'A Divine Romance Blessed by the Universe',
+          summaryContext: 'romantic connection',
+          focusAreas: ['Romantic Chemistry', 'Emotional Intimacy', 'Passion & Desire', 'Healing & Growth', 'Divine Love']
+        };
+    }
+  };
+  
+  const typeContent = getReportTypeSpecificContent();
+  
+  // Generate comprehensive insights
+  const generateInsight = () => {
+    const insights = [
+      `The cosmic tapestry reveals that ${personAName} and ${personBName} share a connection that transcends ordinary bonds. Their souls have danced together across multiple lifetimes, creating a foundation of deep recognition and understanding.`,
+      `What makes this ${reportType.toLowerCase()} truly special is the perfect balance of individuality and unity. ${personAName} brings unique gifts that perfectly complement ${personBName}'s natural strengths, creating a harmonious whole that is greater than the sum of its parts.`,
+      `The universe has orchestrated a beautiful meeting of minds and hearts. ${personAName} and ${personBName} share karmic lessons that will accelerate their spiritual growth while providing the love and support needed for their earthly journey.`,
+      `This connection carries the energy of both challenge and grace. While ${personAName} and ${personBName} may face tests that strengthen their bond, they also possess the cosmic tools necessary to transform any obstacle into an opportunity for deeper love and understanding.`
+    ];
+    return insights[Math.floor(Math.random() * insights.length)];
+  };
+
+  // Generate comprehensive stats based on relationship type
+  const generateStats = () => {
+    const baseStats = [
+      {
+        label: "Soul Connection Depth",
+        score: Math.max(60, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `${personAName} and ${personBName} share a profound soul recognition that feels both ancient and eternal. Their spirits resonate at frequencies that create instant understanding and deep emotional safety.`
+      },
+      {
+        label: "Communication Harmony",
+        score: Math.max(55, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `Their conversations flow like a sacred river, each word chosen with care and received with love. They possess the rare gift of speaking their truth while honoring each other's perspectives.`
+      },
+      {
+        label: "Life Path Alignment",
+        score: Math.max(50, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `The cosmos has woven their individual destinies into a shared tapestry of purpose. Their goals and dreams naturally support and amplify each other's highest potential.`
+      },
+      {
+        label: "Emotional Resonance",
+        score: Math.max(65, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `Their hearts beat in natural synchrony, creating an emotional sanctuary where both can be completely authentic. They understand each other's feelings without need for explanation.`
+      },
+      {
+        label: "Karmic Healing Potential",
+        score: Math.max(55, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `Together, they have the power to heal ancient wounds and release patterns that no longer serve. Their love becomes a medicine for both past and present pain.`
+      },
+      {
+        label: "Creative Collaboration",
+        score: Math.max(50, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `When ${personAName} and ${personBName} join their creative forces, magic happens. They inspire each other to explore new realms of possibility and artistic expression.`
+      },
+      {
+        label: "Spiritual Growth Catalyst",
+        score: Math.max(60, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `This connection serves as a powerful catalyst for spiritual awakening and evolution. Together, they accelerate their journey toward enlightenment and conscious living.`
+      },
+      {
+        label: "Divine Timing Perfection",
+        score: Math.max(55, baseScore + Math.floor(Math.random() * 15) - 7),
+        description: `The universe orchestrated their meeting with perfect timing. Both souls were ready to receive the gifts this connection offers, creating optimal conditions for growth and love.`
+      }
+    ];
+    
+    // Select 5 most relevant stats for the report
+    return baseStats.sort(() => 0.5 - Math.random()).slice(0, 5);
+  };
+
   return {
     score: baseScore,
-    title: `${personAName} & ${personBName}: A Cosmic Connection`,
-    summary: `The stars have woven an intricate pattern between ${personAName} and ${personBName}. Their connection transcends the ordinary, offering a beautiful balance of challenge and harmony. This ${reportType.toLowerCase()} holds the potential for deep understanding, mutual growth, and shared adventures. Together, they create a unique cosmic signature that speaks to both individual strength and collective potential.`,
-    stats: (() => {
-      // Include karmic/North Node aspects in fallback reports
-      const possibleStats = [
-        {
-          label: "Emotional Harmony",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `${personAName} and ${personBName} share a natural emotional rhythm that allows for deep understanding and mutual support. Their hearts speak a similar language, creating a foundation of trust and empathy.`
-        },
-        {
-          label: "Communication Flow",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `Their conversations flow with ease and depth, each bringing unique perspectives that enrich their shared understanding. They have the gift of truly hearing and being heard by one another.`
-        },
-        {
-          label: "Creative Synergy",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `Together, ${personAName} and ${personBName} inspire each other to explore new creative territories. Their combined energy sparks innovation and brings out hidden talents in both.`
-        },
-        {
-          label: "Long-term Potential",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `This connection has the cosmic ingredients for lasting significance. Their bond deepens with time, weathering challenges and celebrating growth together with grace and wisdom.`
-        },
-        {
-          label: "Karmic Connection",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `${personAName} and ${personBName} share profound karmic bonds that feel both familiar and destined. Their souls recognize each other across time and space.`
-        },
-        {
-          label: "Soul Growth Alignment",
-          score: baseScore + Math.floor(Math.random() * 10) - 5,
-          description: `Their individual journeys of spiritual evolution beautifully support each other. Together, they accelerate their soul's growth and purpose fulfillment.`
-        }
-      ];
-      
-      // Randomly select 4 stats, with a preference for including at least one karmic aspect
-      const shuffled = possibleStats.sort(() => 0.5 - Math.random());
-      return shuffled.slice(0, 4);
-    })(),
+    title: `${personAName} & ${personBName}: ${typeContent.titleSuffix}`,
+    summary: `The celestial bodies align to reveal a ${typeContent.summaryContext} of extraordinary depth and beauty between ${personAName} and ${personBName}. Their union represents a sacred dance of souls, each bringing unique gifts that perfectly complement the other. This connection offers profound opportunities for healing, growth, and the manifestation of their highest potential together. The cosmic forces have woven their paths together with intention, creating a bond that transcends time and space while offering practical wisdom for their earthly journey.`,
+    stats: generateStats(),
     generatedAt: new Date().toISOString(),
     reportType: reportType,
     personAName: personAName,
     personBName: personBName,
-    insight: `Born under different stars, ${personAName} and ${personBName} find their paths converging in meaningful ways. This ${reportType.toLowerCase()} offers rich opportunities for mutual growth and understanding.`,
+    insight: generateInsight(),
+    // Additional fields for enhanced compatibility
+    challenges: `While ${personAName} and ${personBName} share a beautiful connection, the stars remind them that growth often comes through gentle challenges. Areas of difference become opportunities for deeper understanding when approached with patience and love.`,
+    strengths: `Their greatest strength lies in their ability to see and honor the divine in each other. This recognition creates a foundation of respect and appreciation that can weather any storm.`,
+    advice: `The cosmos advises ${personAName} and ${personBName} to trust the journey, communicate with openness, and remember that their love is a gift not only to themselves but to the world around them.`,
+    cosmicTheme: typeContent.focusAreas[Math.floor(Math.random() * typeContent.focusAreas.length)]
   };
 };
 

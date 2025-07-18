@@ -291,6 +291,12 @@ class AmbientSoundManager {
     await this.saveSettings();
   }
 
+  getSoundsByCategory(category: string): AmbientSoundType[] {
+    return (Object.keys(AMBIENT_SOUNDS) as AmbientSoundType[]).filter(
+      (sound) => AMBIENT_SOUNDS[sound].category === category
+    );
+  }
+
   private async createSoundFromType(soundType: AmbientSoundType): Promise<Audio.Sound | null> {
     try {
       const config = AMBIENT_SOUNDS[soundType];

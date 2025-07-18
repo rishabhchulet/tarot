@@ -28,7 +28,8 @@ export default function IntentionScreen() {
   const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
 
   const handleContinue = () => {
-    router.push('/breathing');
+    console.log('📱 Navigating to onboarding breath screen...');
+    router.push('/onboarding/breath');
   };
 
   return (

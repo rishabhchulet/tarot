@@ -22,7 +22,11 @@ export default function ConfirmationScreen() {
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
   const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
 
-  const handleContinue = () => router.replace('/(tabs)');
+  const handleContinue = () => {
+    // Fixed: Direct navigation to home tab to avoid routing loop
+    console.log('🎯 Onboarding complete - navigating to home');
+    router.replace('/(tabs)/index');
+  };
 
   return (
     <View style={styles.container}>

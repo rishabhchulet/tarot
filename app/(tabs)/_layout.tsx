@@ -74,7 +74,8 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <Sparkles size={size} color={color} strokeWidth={2} />
           ),
-          href: null,
+          // Redirect to home instead of separate today screen
+          href: '/(tabs)/index',
         }}
       />
       <Tabs.Screen

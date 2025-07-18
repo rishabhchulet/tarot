@@ -46,30 +46,32 @@ export default function IndexScreen() {
               router.replace('/onboarding/welcome');
             } else {
               console.log('✅ User has completed onboarding - going to main app...');
-              router.replace('/(tabs)');
+              // Fixed: Direct navigation to home tab to avoid routing loop
+              router.replace('/(tabs)/index');
             }
-          } else if (session && !user) {
-            // If we have a session but no user profile, something is wrong.
-            // Forcing a re-auth is safest.
-            console.log('⚠️ Session exists but no user data - redirecting to auth...');
-            router.replace('/auth');
+          } else if (session) {
+            // Session exists but no user profile - redirect to name collection
+            console.log('🔑 Session found but no user profile - redirecting to onboarding...');
+            router.replace('/onboarding/welcome');
           } else {
-            // No session means new user - go to auth
-            console.log('🔐 No session found - redirecting to auth (new user)...');
+            // No session - redirect to auth
+            console.log('🔐 No session found - redirecting to auth...');
             router.replace('/auth');
           }
-        } catch (navigationError) {
-          console.error('❌ Navigation error:', navigationError);
-          // Don't navigate if there's a connection issue
-          if (connectionStatus === 'connected') {
+        } catch (routingError) {
+          console.error('❌ Routing error:', routingError);
+          // Fallback routing
+          if (session) {
+            router.replace('/(tabs)/index');
+          } else {
             router.replace('/auth');
           }
         }
       }
-    }, 1000); // 1 second delay to account for connection status
+    }, 100); // Short delay to ensure auth state is settled
 
     return () => clearTimeout(navigationTimeout);
-  }, [loading, session, user, error, connectionStatus]);
+  }, [session, user, loading, connectionStatus]);
 
   // Show enhanced loading state with connection status
   return (

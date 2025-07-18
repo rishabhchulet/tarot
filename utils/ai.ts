@@ -188,14 +188,36 @@ export interface CompatibilityReportRequest {
 }
 
 export const getAICompatibilityReport = async (data: CompatibilityReportRequest): Promise<{ report: any; error: string | null }> => {
-  const baseUrl = getDevelopmentServerUrl();
+  // FIXED: Add retry mechanism for URL detection with small delays
+  const getUrlWithRetry = async (maxRetries = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const url = getApiBaseUrl();
+      if (url) {
+        console.log(`✅ Got URL on attempt ${attempt}:`, url);
+        return url;
+      }
+      
+      if (attempt < maxRetries) {
+        console.log(`⏳ URL empty on attempt ${attempt}, retrying in 1 second...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
+    return null;
+  };
+
+  const baseUrl = await getUrlWithRetry();
   
   // Enhanced debugging for mobile network issues
   console.log('🔍 Compatibility API Debug Info:');
-  console.log('   - Base URL:', baseUrl || 'EMPTY');
+  console.log('   - getApiBaseUrl():', baseUrl || 'EMPTY');
+  console.log('   - getDevelopmentServerUrl():', getDevelopmentServerUrl() || 'EMPTY');
   console.log('   - Full URL:', baseUrl ? `${baseUrl}/ai` : 'CANNOT CONSTRUCT');
   console.log('   - Platform:', Platform.OS);
   console.log('   - Request type: compatibility-report');
+  console.log('   - Environment variables:');
+  console.log('     - EXPO_PUBLIC_TUNNEL_URL:', process.env.EXPO_PUBLIC_TUNNEL_URL || 'undefined');
+  console.log('     - EXPO_PUBLIC_DEV_SERVER_URL:', process.env.EXPO_PUBLIC_DEV_SERVER_URL || 'undefined');
+  console.log('     - EXPO_PUBLIC_HOST:', process.env.EXPO_PUBLIC_HOST || 'undefined');
 
   if (!baseUrl) {
     console.warn('📱 Mobile network connectivity issue - using offline fallback');

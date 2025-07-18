@@ -289,15 +289,6 @@ export const supabaseSignOut = async () => {
   try {
     logAuthEvent('Starting sign out process');
     
-    // CRITICAL: Clear all user cache before sign out
-    try {
-      const { clearAllUserCache } = await import('./cacheManager');
-      const cacheResult = await clearAllUserCache();
-      console.log('🧹 Cache cleared during sign out:', cacheResult);
-    } catch (cacheError) {
-      console.warn('⚠️ Cache clear failed during sign out:', cacheError);
-    }
-    
     // Step 1: Try global sign out first (all devices)
     try {
       const globalResult = await createTimeoutWrapper(

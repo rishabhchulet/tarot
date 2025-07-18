@@ -111,12 +111,16 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           }
         }
         
-        // Check trial status
-        if (subscriptionData.trial_end_date) {
+        // Check trial status - only if trial dates exist
+        if (subscriptionData.trial_start_date && subscriptionData.trial_end_date) {
           const trialEndDate = new Date(subscriptionData.trial_end_date);
           trialEnd = trialEndDate;
           isTrialActive = trialEndDate > new Date();
         }
+      } else if (subscriptionError) {
+        // If no subscription record found, this is a new user
+        // They should see upgrade options, not automatic trial access
+        console.log('📊 No subscription data found - new user should see upgrade options');
       }
 
       // Check coupon access (overrides subscription if user has active coupon)
@@ -264,40 +268,35 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     console.log('💰 Starting yearly plan with 7-day trial...');
     
     try {
-      const startDate = new Date();
-      const trialEndDate = new Date();
-      trialEndDate.setDate(trialEndDate.getDate() + 7); // 7-day trial
-
-      // Save subscription to database with trial period
-      const { error } = await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          subscription_type: 'yearly',
-          has_active_subscription: false, // Will become true after trial
-          subscription_start_date: null, // Will be set after trial
-          trial_start_date: startDate.toISOString(),
-          trial_end_date: trialEndDate.toISOString(),
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
+      // Use the new database function to start trial
+      const { data: trialResult, error } = await supabase
+        .rpc('start_user_trial', {
+          user_id_input: user.id,
+          subscription_type_input: 'yearly',
+          trial_days: 7
         });
 
       if (error) {
-        console.error('❌ Error saving yearly trial:', error);
+        console.error('❌ Error starting yearly trial:', error);
         throw error;
       }
 
-      // Update local state - user gets trial access
-      updateSubscription({
-        isActive: true, // Trial access
-        plan: 'yearly',
-        expiresAt: undefined, // No expiry during trial
-        trialEnd: trialEndDate,
-        isTrialActive: true,
-      });
+      if (trialResult && trialResult.success) {
+        const trialEndDate = new Date(trialResult.trial_end_date);
+        
+        // Update local state - user gets trial access
+        updateSubscription({
+          isActive: true, // Trial access
+          plan: 'yearly',
+          expiresAt: undefined, // No expiry during trial
+          trialEnd: trialEndDate,
+          isTrialActive: true,
+        });
 
-      console.log('✅ Yearly trial started successfully');
+        console.log('✅ Yearly trial started successfully');
+      } else {
+        throw new Error(trialResult?.error || 'Failed to start trial');
+      }
     } catch (error) {
       console.error('❌ Failed to start yearly trial:', error);
       // Still update local state so user can continue
@@ -326,35 +325,31 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       const expiryDate = new Date();
       expiryDate.setDate(expiryDate.getDate() + 7);
 
-      // Save subscription to database using upsert with proper conflict resolution
-      const { error } = await supabase
-        .from('subscriptions')
-        .upsert({
-          user_id: user.id,
-          subscription_type: 'weekly',
-          has_active_subscription: true,
-          subscription_start_date: startDate.toISOString(),
-          trial_start_date: new Date().toISOString(),
-          trial_end_date: new Date().toISOString(), // End trial immediately
-          updated_at: new Date().toISOString(),
-        }, {
-          onConflict: 'user_id'
+      // Use the existing activate_user_subscription function for immediate activation
+      const { data: activationResult, error } = await supabase
+        .rpc('activate_user_subscription', {
+          user_id_input: user.id,
+          subscription_type_input: 'weekly'
         });
 
       if (error) {
-        console.error('❌ Error saving weekly subscription:', error);
+        console.error('❌ Error activating weekly subscription:', error);
         throw error;
       }
 
-      // Update local state
-      updateSubscription({
-        isActive: true,
-        plan: 'weekly',
-        expiresAt: expiryDate,
-        isTrialActive: false,
-      });
+      if (activationResult && activationResult.success) {
+        // Update local state
+        updateSubscription({
+          isActive: true,
+          plan: 'weekly',
+          expiresAt: expiryDate,
+          isTrialActive: false,
+        });
 
-      console.log('✅ Weekly subscription saved successfully');
+        console.log('✅ Weekly subscription activated successfully');
+      } else {
+        throw new Error(activationResult?.error || 'Failed to activate subscription');
+      }
     } catch (error) {
       console.error('❌ Failed to upgrade to weekly:', error);
       // Still update local state so user can continue

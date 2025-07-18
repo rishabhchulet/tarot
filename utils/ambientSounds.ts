@@ -26,7 +26,7 @@ export interface AmbientSoundConfig {
 // Configuration for sound loading
 const SOUND_CONFIG = {
   // Set to false initially due to S3 403 errors - will auto-retry once per session
-  useRemoteFiles: false,
+  useRemoteFiles: true,
   // Base URL for your AWS S3 bucket or CDN
   remoteBaseUrl: 'https://allforonedeanxious.s3.us-east-1.amazonaws.com/Micro+Meditation/sound/',
   // Enable caching for better performance (optional)

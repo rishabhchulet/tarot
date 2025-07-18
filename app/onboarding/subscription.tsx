@@ -196,6 +196,13 @@ export default function SubscriptionScreen() {
     router.replace('/(tabs)');
   };
 
+  const handleSkipForNow = () => {
+    console.log('⏭️ User chose to continue with limited access');
+    // Continue to main app with FREE access only
+    // No trial, no premium features
+    router.replace('/(tabs)');
+  };
+
   const handleContinueWithPlan = async () => {
     setLoading(true);
     
@@ -206,7 +213,7 @@ export default function SubscriptionScreen() {
           await upgradeToLifetime();
           break;
         case 'yearly':
-          await upgradeToYearly();
+          await upgradeToYearly(); // This now starts a 7-day trial
           break;
         case 'weekly':
           await upgradeToWeekly();
@@ -217,11 +224,8 @@ export default function SubscriptionScreen() {
       
       console.log('✅ Subscription processed successfully');
       
-      // Force refresh subscription status from database
-      setTimeout(() => {
-        // Small delay to ensure database write has completed
-        window.location.href = '/(tabs)';
-      }, 1000);
+      // Navigate to main app
+      router.replace('/(tabs)');
       
     } catch (error) {
       console.error('❌ Error processing subscription:', error);
@@ -230,11 +234,6 @@ export default function SubscriptionScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSkipForNow = () => {
-    // Continue to main app without subscription
-    router.replace('/(tabs)');
   };
 
   return (

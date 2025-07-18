@@ -19,21 +19,17 @@ export function TrialBanner() {
 
   // Animation values
   const glowAnimation = useSharedValue(0);
-  const pulseAnimation = useSharedValue(1);
   const sparkleAnimation = useSharedValue(0);
 
   useEffect(() => {
-    // Subtle glow animation (reduced intensity)
+    // Subtle glow animation
     glowAnimation.value = withRepeat(
       withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
       -1,
       true
     );
 
-    // Remove pulse animation for cleaner look
-    pulseAnimation.value = 1;
-
-    // Sparkle animation (slower and more subtle)
+    // Sparkle animation
     sparkleAnimation.value = withRepeat(
       withTiming(1, { duration: 4000, easing: Easing.linear }),
       -1,
@@ -48,17 +44,11 @@ export function TrialBanner() {
 
   // Animated styles
   const animatedGlowStyle = useAnimatedStyle(() => {
-    const glowOpacity = interpolate(glowAnimation.value, [0, 1], [0.4, 0.7]);
-    
+    const glowOpacity = interpolate(glowAnimation.value, [0, 1], [0.3, 0.6]);
     return {
       opacity: glowOpacity,
     };
   });
-
-  const animatedPulseStyle = useAnimatedStyle(() => ({
-    // Remove scaling for cleaner appearance
-    opacity: 1,
-  }));
 
   const animatedSparkleStyle = useAnimatedStyle(() => {
     const rotation = interpolate(sparkleAnimation.value, [0, 1], [0, 360]);
@@ -89,24 +79,17 @@ export function TrialBanner() {
   }
 
   if (isOnTrial()) {
-    // User is on trial
+    // User is on trial - ONLY show if they actually have a trial (after choosing a plan)
     const daysLeft = subscription.trialEnd 
       ? Math.ceil((new Date(subscription.trialEnd).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
       : 0;
 
     return (
-      <Pressable style={styles.container} onPress={() => router.push('/onboarding/subscription')}>
-        <Animated.View style={[styles.trialGlowContainer, animatedGlowStyle]}>
+      <Pressable style={styles.container} onPress={() => router.push('/onboarding/subscription')}>        
+        <View style={styles.trialContainer}>
           <LinearGradient
-            colors={['rgba(251, 191, 36, 0.4)', 'rgba(251, 191, 36, 0.1)']}
-            style={styles.trialGlowEffect}
-          />
-        </Animated.View>
-        
-        <Animated.View style={[styles.fancyContainer, animatedPulseStyle]}>
-          <LinearGradient
-            colors={['rgba(251, 191, 36, 0.25)', 'rgba(251, 191, 36, 0.1)']}
-            style={styles.fancyGradient}
+            colors={['rgba(251, 191, 36, 0.2)', 'rgba(251, 191, 36, 0.05)']}
+            style={styles.trialGradient}
           >
             <View style={styles.content}>
               <Clock size={16} color="#fbbf24" />
@@ -116,26 +99,26 @@ export function TrialBanner() {
               <Text style={styles.upgradeText}>Tap to upgrade</Text>
             </View>
           </LinearGradient>
-        </Animated.View>
+        </View>
       </Pressable>
     );
   }
 
-  // User has no subscription - show fancy upgrade prompt
+  // New users or users without subscription - show AMAZING upgrade prompt
   return (
     <Pressable style={styles.container} onPress={() => router.push('/onboarding/subscription')}>
       {/* Outer glow effect */}
       <Animated.View style={[styles.outerGlowContainer, animatedGlowStyle]}>
         <LinearGradient
-          colors={['rgba(99, 102, 241, 0.6)', 'rgba(139, 92, 246, 0.4)', 'rgba(99, 102, 241, 0.6)']}
+          colors={['rgba(99, 102, 241, 0.4)', 'rgba(139, 92, 246, 0.3)', 'rgba(99, 102, 241, 0.4)']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.outerGlowEffect}
         />
       </Animated.View>
 
-      {/* Main container with pulse */}
-      <Animated.View style={[styles.fancyContainer, animatedPulseStyle]}>
+      {/* Main container */}
+      <View style={styles.upgradeContainer}>
         {/* Sparkle effects */}
         <Animated.View style={[styles.sparkleContainer, animatedSparkleStyle]}>
           <Sparkles size={12} color="#a78bfa" style={[styles.sparkle, { top: 8, right: 12 }]} />
@@ -146,33 +129,30 @@ export function TrialBanner() {
         {/* Main gradient background */}
         <LinearGradient
           colors={[
-            'rgba(99, 102, 241, 0.25)', 
-            'rgba(139, 92, 246, 0.15)', 
-            'rgba(99, 102, 241, 0.25)'
+            'rgba(99, 102, 241, 0.2)', 
+            'rgba(139, 92, 246, 0.1)', 
+            'rgba(99, 102, 241, 0.2)'
           ]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.fancyGradient}
+          style={styles.upgradeGradient}
         >
-          {/* Inner border effect */}
-          <View style={styles.innerBorder}>
-            <View style={styles.content}>
-              <View style={styles.iconContainer}>
-                <Zap size={16} color="#6366f1" />
-              </View>
-              <Text style={styles.fancyUpgradeText}>Unlock full cosmic potential</Text>
-              <View style={styles.fancyUpgradeBadge}>
-                <LinearGradient
-                  colors={['#6366f1', '#8b5cf6']}
-                  style={styles.badgeGradient}
-                >
-                  <Text style={styles.fancyBadgeText}>UPGRADE</Text>
-                </LinearGradient>
-              </View>
+          <View style={styles.content}>
+            <View style={styles.iconContainer}>
+              <Zap size={16} color="#6366f1" />
+            </View>
+            <Text style={styles.upgradePromptText}>Unlock your cosmic potential</Text>
+            <View style={styles.upgradeBadge}>
+              <LinearGradient
+                colors={['#6366f1', '#8b5cf6']}
+                style={styles.badgeGradient}
+              >
+                <Text style={styles.badgeText}>UPGRADE</Text>
+              </LinearGradient>
             </View>
           </View>
         </LinearGradient>
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
@@ -181,14 +161,14 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 16,
     marginVertical: 8,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     position: 'relative',
   },
   gradient: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   content: {
     flexDirection: 'row',
@@ -208,10 +188,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   upgradePromptText: {
-    fontSize: 14,
-    fontFamily: 'Inter-SemiBold',
-    color: '#6366f1',
+    fontSize: 15,
+    fontFamily: 'Inter-Bold',
+    color: '#8b5cf6',
     flex: 1,
+    marginLeft: 4,
   },
   upgradeText: {
     fontSize: 12,
@@ -225,10 +206,8 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   upgradeBadge: {
-    backgroundColor: 'rgba(99, 102, 241, 0.2)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   planText: {
     fontSize: 10,
@@ -236,80 +215,44 @@ const styles = StyleSheet.create({
     color: '#10b981',
   },
   badgeText: {
-    fontSize: 10,
-    fontFamily: 'Inter-Bold',
-    color: '#6366f1',
+    fontSize: 11,
+    fontFamily: 'Inter-Black',
+    color: '#ffffff',
+    letterSpacing: 0.5,
   },
-  // New animated styles
-  trialGlowContainer: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
-    right: -4,
-    bottom: -4,
-    zIndex: -1,
-  },
-  trialGlowEffect: {
-    flex: 1,
-    borderRadius: 16,
-    shadowColor: '#fbbf24',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  fancyContainer: {
-    position: 'relative',
-    zIndex: 1,
+  // Trial specific styles
+  trialContainer: {
     borderRadius: 12,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
   },
-  fancyGradient: {
+  trialGradient: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  // Upgrade specific styles  
+  upgradeContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.4)',
+  },
+  upgradeGradient: {
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 12,
   },
-  innerBorder: {
-    position: 'absolute',
-    top: 1,
-    left: 1,
-    right: 1,
-    bottom: 1,
-    borderRadius: 10,
-    zIndex: -1,
-  },
   iconContainer: {
-    padding: 10,
-    backgroundColor: 'rgba(99, 102, 241, 0.3)',
-    borderRadius: 12,
-  },
-  fancyUpgradeText: {
-    fontSize: 15,
-    fontFamily: 'Inter-Bold',
-    color: '#8b5cf6',
-    flex: 1,
-    marginLeft: 4,
-    textShadowColor: 'rgba(139, 92, 246, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 4,
-  },
-  fancyUpgradeBadge: {
-    borderRadius: 8,
-    overflow: 'hidden',
+    padding: 8,
+    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+    borderRadius: 10,
   },
   badgeGradient: {
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-  },
-  fancyBadgeText: {
-    fontSize: 11,
-    fontFamily: 'Inter-Black',
-    color: '#ffffff',
-    letterSpacing: 0.5,
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   sparkleContainer: {
     position: 'absolute',
@@ -325,19 +268,14 @@ const styles = StyleSheet.create({
   },
   outerGlowContainer: {
     position: 'absolute',
-    top: -6,
-    left: -6,
-    right: -6,
-    bottom: -6,
+    top: -4,
+    left: -4,
+    right: -4,
+    bottom: -4,
     zIndex: -2,
   },
   outerGlowEffect: {
     flex: 1,
-    borderRadius: 18,
-    shadowColor: '#6366f1',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 20,
-    elevation: 20,
+    borderRadius: 20,
   },
 });

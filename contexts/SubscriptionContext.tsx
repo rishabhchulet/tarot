@@ -177,8 +177,29 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   };
 
   const canAccessPremiumFeatures = (): boolean => {
-    // User can access premium features if they have active subscription OR trial OR coupon access
-    return subscription.isActive || isOnTrial() || hasCouponAccess;
+    // FIXED: New users should NOT get automatic access
+    // They must have either:
+    // 1. Active paid subscription
+    // 2. Active trial (only AFTER choosing a plan)
+    // 3. Coupon access
+    
+    // Check for active paid subscription
+    if (subscription.isActive && subscription.plan !== 'free') {
+      return true;
+    }
+    
+    // Check for trial access (only if they actually have a trial)
+    if (subscription.isTrialActive && subscription.trialEnd) {
+      return true;
+    }
+    
+    // Check for coupon access
+    if (hasCouponAccess) {
+      return true;
+    }
+    
+    // Default: no access for new users
+    return false;
   };
 
   const setCouponAccess = (couponAccess: boolean): void => {
@@ -240,53 +261,55 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
       throw new Error('User must be authenticated to upgrade subscription');
     }
 
-    console.log('💰 Upgrading to yearly plan...');
+    console.log('💰 Starting yearly plan with 7-day trial...');
     
     try {
       const startDate = new Date();
-      const expiryDate = new Date();
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7); // 7-day trial
 
-      // Save subscription to database using upsert with proper conflict resolution
+      // Save subscription to database with trial period
       const { error } = await supabase
         .from('subscriptions')
         .upsert({
           user_id: user.id,
           subscription_type: 'yearly',
-          has_active_subscription: true,
-          subscription_start_date: startDate.toISOString(),
-          trial_start_date: new Date().toISOString(),
-          trial_end_date: new Date().toISOString(), // End trial immediately
+          has_active_subscription: false, // Will become true after trial
+          subscription_start_date: null, // Will be set after trial
+          trial_start_date: startDate.toISOString(),
+          trial_end_date: trialEndDate.toISOString(),
           updated_at: new Date().toISOString(),
         }, {
           onConflict: 'user_id'
         });
 
       if (error) {
-        console.error('❌ Error saving yearly subscription:', error);
+        console.error('❌ Error saving yearly trial:', error);
         throw error;
       }
 
-      // Update local state
+      // Update local state - user gets trial access
       updateSubscription({
-        isActive: true,
+        isActive: true, // Trial access
         plan: 'yearly',
-        expiresAt: expiryDate,
-        isTrialActive: false,
+        expiresAt: undefined, // No expiry during trial
+        trialEnd: trialEndDate,
+        isTrialActive: true,
       });
 
-      console.log('✅ Yearly subscription saved successfully');
+      console.log('✅ Yearly trial started successfully');
     } catch (error) {
-      console.error('❌ Failed to upgrade to yearly:', error);
+      console.error('❌ Failed to start yearly trial:', error);
       // Still update local state so user can continue
-      const expiryDate = new Date();
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      const trialEndDate = new Date();
+      trialEndDate.setDate(trialEndDate.getDate() + 7);
       
       updateSubscription({
         isActive: true,
         plan: 'yearly',
-        expiresAt: expiryDate,
-        isTrialActive: false,
+        expiresAt: undefined,
+        trialEnd: trialEndDate,
+        isTrialActive: true,
       });
     }
   };

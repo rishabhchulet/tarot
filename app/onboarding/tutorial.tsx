@@ -103,34 +103,19 @@ export default function TutorialScreen() {
   };
 
   const handleComplete = async () => {
-    console.log('🎉 Tutorial complete, starting trial and navigating to subscription screen...');
+    console.log('�� Tutorial complete, navigating to subscription screen...');
     setLoading(true);
     
-    try {
-      // Start free trial
-      console.log('💾 Starting free trial...');
-      await startFreeTrial();
-      console.log('✅ Free trial started successfully');
-    } catch (error) {
-      console.error('❌ Error starting free trial:', error);
-      // Continue anyway - don't block the user flow
-    }
-    
-    // Navigate to subscription screen
+    // Navigate directly to subscription screen - NO automatic trial
     console.log('💰 Navigating to subscription screen...');
     router.push('/onboarding/subscription');
   };
 
   const handleSkip = async () => {
-    console.log('⏭️ Tutorial skipped, starting trial and going to subscription screen...');
+    console.log('⏭️ Tutorial skipped, going to subscription screen...');
     setLoading(true);
     
-    try {
-      await startFreeTrial();
-    } catch (error) {
-      console.error('❌ Error starting free trial:', error);
-    }
-    
+    // Navigate directly to subscription screen - NO automatic trial
     router.push('/onboarding/subscription');
   };
 

@@ -20,11 +20,36 @@ export interface AmbientSoundConfig {
   volume: number;
   category: 'cosmic' | 'nature' | 'meditative';
   audioFile: string;
+  remoteUrl?: string; // Remote URL for streaming
 }
 
-// Static sound file mapping for Metro bundler compatibility
-const SOUND_FILES: Record<AmbientSoundType, any> = {
-  'cosmic-ambience': null, // Will be loaded when files are available
+// Configuration for sound loading
+const SOUND_CONFIG = {
+  // Set to true to use remote URLs, false for local files
+  useRemoteFiles: true,
+  // Base URL for your AWS S3 bucket or CDN
+  remoteBaseUrl: 'https://allforonedeanxious.s3.us-east-1.amazonaws.com/Micro+Meditation/sound/',
+  // Enable caching for better performance (optional)
+  enableCaching: false,
+};
+
+// Remote URL mapping for each sound
+const REMOTE_SOUND_URLS: Record<AmbientSoundType, string> = {
+  'cosmic-ambience': `${SOUND_CONFIG.remoteBaseUrl}cosmic-ambience.wav`,
+  'gentle-rain': `${SOUND_CONFIG.remoteBaseUrl}gentle-rain.wav`,
+  'forest-whispers': `${SOUND_CONFIG.remoteBaseUrl}forest-whispers.wav`,
+  'ocean-waves': `${SOUND_CONFIG.remoteBaseUrl}ocean-waves.wav`,
+  'singing-bowls': `${SOUND_CONFIG.remoteBaseUrl}singing-bowls.wav`,
+  'celestial-chimes': `${SOUND_CONFIG.remoteBaseUrl}celestial-chimes.wav`,
+  'mountain-wind': `${SOUND_CONFIG.remoteBaseUrl}mountain-wind.wav`,
+  'deep-space': `${SOUND_CONFIG.remoteBaseUrl}deep-space.wav`,
+  'crystal-resonance': `${SOUND_CONFIG.remoteBaseUrl}crystal-resonance.wav`,
+  'earth-heartbeat': `${SOUND_CONFIG.remoteBaseUrl}earth-heartbeat.wav`,
+};
+
+// Local sound file mapping (fallback or when useRemoteFiles is false)
+const LOCAL_SOUND_FILES: Record<AmbientSoundType, any> = {
+  'cosmic-ambience': null, // Will be loaded when local files are available
   'gentle-rain': null,
   'forest-whispers': null,
   'ocean-waves': null,
@@ -36,19 +61,9 @@ const SOUND_FILES: Record<AmbientSoundType, any> = {
   'earth-heartbeat': null,
 };
 
-// Future: When you add actual sound files, uncomment these lines:
-// const SOUND_FILES: Record<AmbientSoundType, any> = {
-//   'cosmic-ambience': require('../assets/sounds/cosmic-ambience.wav'),
-//   'gentle-rain': require('../assets/sounds/gentle-rain.wav'),
-//   'forest-whispers': require('../assets/sounds/forest-whispers.wav'),
-//   'ocean-waves': require('../assets/sounds/ocean-waves.wav'),
-//   'singing-bowls': require('../assets/sounds/singing-bowls.wav'),
-//   'celestial-chimes': require('../assets/sounds/celestial-chimes.wav'),
-//   'mountain-wind': require('../assets/sounds/mountain-wind.wav'),
-//   'deep-space': require('../assets/sounds/deep-space.wav'),
-//   'crystal-resonance': require('../assets/sounds/crystal-resonance.wav'),
-//   'earth-heartbeat': require('../assets/sounds/earth-heartbeat.wav'),
-// };
+// Future: When you add actual local sound files, you can replace nulls with:
+// 'cosmic-ambience': require('../assets/sounds/cosmic-ambience.wav'),
+// etc.
 
 export const AMBIENT_SOUNDS: Record<AmbientSoundType, AmbientSoundConfig> = {
   'cosmic-ambience': {
@@ -214,25 +229,49 @@ class AmbientSoundManager {
   private async createSoundFromType(soundType: AmbientSoundType): Promise<Audio.Sound | null> {
     try {
       const config = AMBIENT_SOUNDS[soundType];
-      const soundFile = SOUND_FILES[soundType];
-
+      
       if (Platform.OS === 'web') {
         // Web implementation would use HTML5 Audio with actual files
         console.log(`🎵 Playing ambient sound: ${config.name} (web simulation)`);
         return null;
       }
 
-      // Check if we have the actual audio file
-      if (!soundFile) {
+      let soundSource;
+      let sourceType = 'unknown';
+
+      if (SOUND_CONFIG.useRemoteFiles) {
+        // Try remote URL first
+        const remoteUrl = REMOTE_SOUND_URLS[soundType];
+        if (remoteUrl && !remoteUrl.includes('your-bucket-name')) {
+          soundSource = { uri: remoteUrl };
+          sourceType = 'remote';
+          console.log(`🌐 Loading remote sound: ${config.name} from ${remoteUrl}`);
+        } else {
+          console.log(`⚠️ Remote URL not configured for ${config.name}, falling back to local`);
+          soundSource = LOCAL_SOUND_FILES[soundType];
+          sourceType = 'local';
+        }
+      } else {
+        // Use local files
+        soundSource = LOCAL_SOUND_FILES[soundType];
+        sourceType = 'local';
+      }
+
+      // Check if we have a valid sound source
+      if (!soundSource) {
         // Simulate the sound for now - will work when files are added
-        console.log(`🎵 Simulating ambient sound: ${config.name} (file not yet added)`);
-        console.log(`📝 To add real audio: Download ${config.audioFile} and uncomment the require statements`);
+        console.log(`🎵 Simulating ambient sound: ${config.name} (${sourceType} file not available)`);
+        if (sourceType === 'remote') {
+          console.log(`📝 To add real audio: Upload ${config.audioFile} to your AWS S3 bucket`);
+        } else {
+          console.log(`📝 To add real audio: Download ${config.audioFile} and update LOCAL_SOUND_FILES`);
+        }
         return null;
       }
 
-      // Create sound from static file reference
+      // Create sound from source (either remote URL or local file)
       const { sound } = await Audio.Sound.createAsync(
-        soundFile,
+        soundSource,
         { 
           shouldPlay: false, 
           isLooping: true,

@@ -149,10 +149,14 @@ export function StructuredReflection({
 
     const keywords = cardKeywords[cardName as keyof typeof cardKeywords] || 'wisdom, growth, insight';
     const reversedText = isReversed ? ' in its shadow aspect' : '';
+    const primaryKeyword = keywords.split(', ')[0];
+    const secondaryKeyword = keywords.split(', ')[1] || 'growth';
     
-    return `The energy of ${cardName}${reversedText} combines with the ancient wisdom of ${hexagramName} to offer you guidance today. ${keywords.split(', ')[0]} emerges as a key theme, inviting you to explore how this quality can serve your highest good.
+    // Enhanced fallback matching the new AI style
+    // Focus on real-life situations and personal experiences
+    return `The energy of ${cardName}${reversedText} combines with the ancient wisdom of ${hexagramName} to offer guidance for your current life situation. ${primaryKeyword} emerges as a key theme, inviting you to explore how this quality can serve you in your relationships, decisions, and daily experiences.
 
-How might you embody the essence of ${keywords.split(', ')[0]} while honoring the deeper wisdom that ${hexagramName} brings to your path?`;
+Where in your life are you being called to embrace ${primaryKeyword.toLowerCase()}, especially in situations that feel uncertain or challenging? How might you honor both the energy of ${cardName} and the wisdom of ${hexagramName} as you navigate your current path?`;
   };
 
   const handleRetry = () => {

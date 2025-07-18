@@ -50,22 +50,23 @@ export function AIReflectionPrompts({ card, hexagram, onPromptSelect }: AIReflec
 
       if (aiError) {
         setError(aiError);
-        // Fallback prompts
+        // Enhanced fallback prompts matching the new AI style
+        // Focus on real-life situations, relationships, and personal experiences
         setPrompts([
-          `How does the energy of ${card.name} guide your inner journey today?`,
-          `What wisdom from ${hexagram.name} can you apply to your current challenges?`,
-          `How can you embody the qualities of ${card.keywords[0]?.toLowerCase()} in your daily life?`
+          `Where in your life are you being called to embrace ${card.keywords[0]?.toLowerCase() || 'wisdom'}, even when it feels uncertain?`,
+          `How might the energy of ${card.name} guide you through a current relationship or situation that needs your attention?`,
+          `What would it look like to embody ${card.keywords[1]?.toLowerCase() || 'growth'} in your daily choices, inspired by ${hexagram.name}?`
         ]);
       } else {
         setPrompts(questions);
       }
     } catch (err: any) {
       setError('Unable to generate prompts at this time');
-      // Fallback prompts
+      // Enhanced fallback prompts matching the new AI style
       setPrompts([
-        `What message does ${card.name} have for you today?`,
-        `How can ${hexagram.name} guide your current path?`,
-        `What insights emerge when you reflect on today's inner combination?`
+        `Where in your life are you being called to choose what sets your heart alight, even if it's uncertain?`,
+        `How might you honor your authentic truth in a current situation or relationship?`,
+        `What would it look like to fully trust your inner guidance as you navigate today's opportunities?`
       ]);
     } finally {
       setLoading(false);

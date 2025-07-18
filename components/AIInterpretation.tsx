@@ -100,9 +100,11 @@ export function AIInterpretation({ card, hexagram, userContext }: AIInterpretati
     const primaryKeyword = card.keywords[0] || 'wisdom';
     const secondaryKeyword = card.keywords[1] || 'growth';
     const thirdKeyword = card.keywords[2] || 'insight';
-    const focusArea = user?.focusArea || 'inner journey';
+    const focusArea = user?.focusArea || 'life';
     
-    return `${card.name} speaks to ${primaryKeyword.toLowerCase()}, ${secondaryKeyword.toLowerCase()}, and ${thirdKeyword.toLowerCase()}—inviting deep reflection on your ${focusArea}. ${hexagram.name} converges with this energy, encouraging you to trust your inner guidance as you navigate this transformative moment with clarity and purpose.`;
+    // Enhanced fallback matching the new AI style
+    // Focus on real-life situations, relationships, and personal experiences
+    return `${card.name} brings together themes of ${primaryKeyword.toLowerCase()}, ${secondaryKeyword.toLowerCase()}, and ${thirdKeyword.toLowerCase()}—offering guidance for your current ${focusArea} situation. ${hexagram.name} converges with this energy to illuminate how you might navigate your relationships, decisions, and daily experiences with greater authenticity. Consider where you're being called to embody these qualities in practical, meaningful ways as you move forward.`;
   };
 
   if (loading) {

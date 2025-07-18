@@ -88,12 +88,13 @@ const createFallbackResponse = (
   isReversed: boolean
 ): StructuredReflectionResponse => {
   const orientation = isReversed ? 'shadow' : 'empowered';
+  const primaryTheme = card.empowered?.split(',')[0]?.toLowerCase() || 'growth';
   
   return {
-    iChingReflection: `${hexagram.name} speaks to the energy of ${hexagram.energeticTheme.toLowerCase()}, inviting you to embrace its wisdom in your current situation.`,
-    tarotReflection: `${card.name} in its ${orientation} state encourages you to explore themes of ${card.empowered?.split(',')[0]?.toLowerCase() || 'growth'} and inner transformation.`,
-    synthesis: `The convergence of ${card.name} and ${hexagram.name} creates a powerful reflection on your current journey. This combination invites you to explore how the energy of ${hexagram.energeticTheme.toLowerCase()} can guide your understanding of ${card.empowered?.split(',')[0]?.toLowerCase() || 'your path'}. Together, they offer insight into where you are and where you're being called to grow.`,
-    reflectionPrompt: `How might you honor both the energy of ${card.name.replace('The ', '').toLowerCase()} and the wisdom of ${hexagram.name.toLowerCase()} in your life today?`
+    iChingReflection: `${hexagram.name} speaks to the energy of ${hexagram.energeticTheme.toLowerCase()}, offering guidance for navigating your current life situations and relationships.`,
+    tarotReflection: `${card.name} in its ${orientation} state invites you to explore how ${primaryTheme} can manifest in your daily choices, relationships, and personal decisions.`,
+    synthesis: `The convergence of ${card.name} and ${hexagram.name} creates meaningful insight for your current journey. This combination asks you to consider how the practical wisdom of ${hexagram.energeticTheme.toLowerCase()} can support you in embracing ${primaryTheme} within your real-life experiences. Together, they illuminate both where you are now and how you might move forward with greater authenticity and purpose.`,
+    reflectionPrompt: `Where in your life are you being called to embody the essence of ${primaryTheme}, especially in situations or relationships that feel challenging or uncertain?`
   };
 };
 

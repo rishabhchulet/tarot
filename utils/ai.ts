@@ -419,12 +419,15 @@ const createFallbackInterpretation = (data: AICardInterpretationRequest): string
 const createFallbackReflectionPrompts = (data: AIReflectionPromptsRequest): string[] => {
   const { cardName, cardKeywords, hexagramName, focusArea } = data;
   const primaryKeyword = cardKeywords[0] || 'wisdom';
+  const secondaryKeyword = cardKeywords[1] || 'growth';
   const focusText = focusArea || 'life';
   
+  // Enhanced fallback prompts matching the new AI style
+  // Focus on real-life situations, relationships, and personal experiences
   return [
-    `Where in your ${focusText} are you being called to embody the essence of ${primaryKeyword.toLowerCase()}, as reflected in ${cardName}?`,
-    `How can the ancient wisdom of ${hexagramName} guide you through your current challenges and opportunities?`,
-    `What would it look like to fully embrace both the energy of ${cardName} and the teachings of ${hexagramName} in your daily choices?`
+    `Where in your ${focusText} are you being called to embrace ${primaryKeyword.toLowerCase()}, even when it feels uncertain or challenging?`,
+    `How might the energy of ${cardName} guide you through a current relationship or situation that needs your attention?`,
+    `What would it look like to embody the essence of ${secondaryKeyword.toLowerCase()} in your daily choices, inspired by the wisdom of ${hexagramName}?`
   ];
 };
 

@@ -1,15 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
-import { Sparkles } from 'lucide-react-native';
+import { Sparkles, LogOut } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { buttonHaptics } from '@/utils/haptics';
 import { playScreenAmbient } from '@/utils/ambientSounds';
 
 export default function WelcomeScreen() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const glowScale = useSharedValue(1);
   const iconTranslateY = useSharedValue(0);
   
@@ -58,6 +59,21 @@ export default function WelcomeScreen() {
     router.push('/onboarding/quiz');
   };
 
+  const handleLogout = async () => {
+    try {
+      // Haptic feedback for logout action (destructive action)
+      buttonHaptics.destructive();
+      setIsSigningOut(true);
+      
+      console.log('🚪 User requested logout from welcome screen...');
+      await signOut();
+      
+    } catch (error) {
+      console.error('❌ Error during logout:', error);
+      setIsSigningOut(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -65,6 +81,22 @@ export default function WelcomeScreen() {
         style={StyleSheet.absoluteFill}
       />
       <Animated.View style={[styles.glow, animatedGlowStyle]} />
+      
+      {/* "Not you?" logout button */}
+      {user?.name && (
+        <View style={styles.logoutContainer}>
+          <Pressable
+            style={styles.logoutButton}
+            onPress={handleLogout}
+            disabled={isSigningOut}
+          >
+            <LogOut size={16} color="#9CA3AF" />
+            <Text style={styles.logoutText}>
+              {isSigningOut ? 'Signing out...' : 'Not you?'}
+            </Text>
+          </Pressable>
+        </View>
+      )}
 
       <View style={styles.content}>
         <View style={styles.iconSection}>
@@ -178,5 +210,27 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'Inter-SemiBold',
     color: '#F9FAFB',
+  },
+  logoutContainer: {
+    position: 'absolute',
+    top: 60,
+    right: 32,
+    zIndex: 10,
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: 'rgba(31, 41, 55, 0.8)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(156, 163, 175, 0.3)',
+  },
+  logoutText: {
+    fontSize: 14,
+    fontFamily: 'Inter-Medium',
+    color: '#9CA3AF',
+    marginLeft: 6,
   },
 });

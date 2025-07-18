@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Inter-Black',
         color: '#F0F9FF',
         textAlign: 'center',
-        fontSize: 48,
+        fontSize: 36, // Reduced from 48 to prevent text breaking
         letterSpacing: -1,
         marginBottom: 32,
         textShadowColor: 'rgba(56, 189, 248, 0.5)',
@@ -243,6 +243,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: 'rgba(56, 189, 248, 0.2)',
         backgroundColor: 'rgba(14, 27, 56, 0.5)',
+        marginHorizontal: 8, // Added horizontal margin for better width usage
         ...Platform.select({
             android: {
                 backgroundColor: 'rgba(14, 27, 56, 0.85)',
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
         })
     },
     questionInnerContainer: {
-        padding: 28,
+        padding: 24, // Reduced from 28 to give more content space
         alignItems: 'center',
     },
     questionLabel: {
@@ -262,11 +263,11 @@ const styles = StyleSheet.create({
         letterSpacing: 1.5,
     },
     questionText: {
-        fontSize: 24,
+        fontSize: 20, // Reduced from 24 for better text flow
         fontFamily: 'Inter-Bold',
         color: '#E0F2FE',
         textAlign: 'center',
-        lineHeight: 32,
+        lineHeight: 28, // Adjusted line height to match new font size
         textShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
         marginBottom: 8,
     },

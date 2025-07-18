@@ -106,18 +106,20 @@ export function AmbientSoundSettings({ onSettingsChange }: AmbientSoundSettingsP
       {/* Main Toggle */}
       <View style={styles.section}>
         <View style={styles.toggleContainer}>
-          <View>
+          <View style={styles.toggleTextContainer}>
             <Text style={styles.toggleTitle}>Enable Ambient Sounds</Text>
             <Text style={styles.toggleSubtitle}>
               Play gentle background sounds during your practice
             </Text>
           </View>
-          <Switch
-            value={settings.enabled}
-            onValueChange={toggleEnabled}
-            trackColor={{ false: '#374151', true: '#fbbf24' }}
-            thumbColor={settings.enabled ? '#ffffff' : '#9ca3af'}
-          />
+          <View style={styles.toggleSwitchContainer}>
+            <Switch
+              value={settings.enabled}
+              onValueChange={toggleEnabled}
+              trackColor={{ false: '#374151', true: '#fbbf24' }}
+              thumbColor={settings.enabled ? '#ffffff' : '#9ca3af'}
+            />
+          </View>
         </View>
       </View>
 
@@ -221,18 +223,20 @@ export function AmbientSoundSettings({ onSettingsChange }: AmbientSoundSettingsP
           {/* Auto-fade Toggle */}
           <View style={styles.section}>
             <View style={styles.toggleContainer}>
-              <View>
+              <View style={styles.toggleTextContainer}>
                 <Text style={styles.toggleTitle}>Smooth Transitions</Text>
                 <Text style={styles.toggleSubtitle}>
                   Fade sounds in and out when changing screens
                 </Text>
               </View>
-                             <Switch
-                 value={settings.fadeEnabled}
-                 onValueChange={(enabled: boolean) => updateSettings({ fadeEnabled: enabled })}
-                 trackColor={{ false: '#374151', true: '#fbbf24' }}
-                 thumbColor={settings.fadeEnabled ? '#ffffff' : '#9ca3af'}
-               />
+              <View style={styles.toggleSwitchContainer}>
+                <Switch
+                  value={settings.fadeEnabled}
+                  onValueChange={(enabled: boolean) => updateSettings({ fadeEnabled: enabled })}
+                  trackColor={{ false: '#374151', true: '#fbbf24' }}
+                  thumbColor={settings.fadeEnabled ? '#ffffff' : '#9ca3af'}
+                />
+              </View>
             </View>
           </View>
         </>
@@ -283,6 +287,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#1f2937',
     padding: 16,
     borderRadius: 12,
+    paddingRight: 20, // Extra padding on right for Android switches
+    minHeight: 70, // Ensure consistent height
+  },
+  toggleTextContainer: {
+    flex: 1, // Allow text to take available space
+    paddingRight: 12, // Space before switch
+  },
+  toggleSwitchContainer: {
+    // Ensure switch is always visible on Android
+    minWidth: 60, 
   },
   toggleTitle: {
     fontSize: 16,

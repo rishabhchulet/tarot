@@ -387,6 +387,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: 'rgba(75, 85, 99, 0.3)',
+    paddingRight: 20, // Extra padding for Android switches
+    minHeight: 70, // Consistent height for toggle items
   },
   iconContainer: {
     width: 40,
@@ -399,6 +401,7 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     flex: 1,
+    paddingRight: 12, // Space before right element/switch
   },
   itemTitle: {
     fontSize: 16,
@@ -413,6 +416,8 @@ const styles = StyleSheet.create({
   },
   rightElement: {
     marginLeft: 12,
+    minWidth: 60, // Ensure switches have enough space on Android
+    alignItems: 'flex-end',
   },
   loadingContainer: {
     flex: 1,

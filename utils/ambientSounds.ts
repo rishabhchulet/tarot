@@ -291,10 +291,13 @@ class AmbientSoundManager {
     await this.saveSettings();
   }
 
-  getSoundsByCategory(category: string): AmbientSoundType[] {
-    return (Object.keys(AMBIENT_SOUNDS) as AmbientSoundType[]).filter(
-      (sound) => AMBIENT_SOUNDS[sound].category === category
-    );
+  getSoundsByCategory(category: string): Array<{type: AmbientSoundType, config: AmbientSoundConfig}> {
+    return (Object.keys(AMBIENT_SOUNDS) as AmbientSoundType[])
+      .filter((sound) => AMBIENT_SOUNDS[sound].category === category)
+      .map((sound) => ({
+        type: sound,
+        config: AMBIENT_SOUNDS[sound]
+      }));
   }
 
   private async createSoundFromType(soundType: AmbientSoundType): Promise<Audio.Sound | null> {

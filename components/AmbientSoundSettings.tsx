@@ -166,47 +166,55 @@ export function AmbientSoundSettings({ onSettingsChange }: AmbientSoundSettingsP
                 </View>
                 
                 <View style={styles.soundGrid}>
-                  {sounds.map(({ type, config }) => (
-                    <Pressable
-                      key={type}
-                      style={styles.soundCard}
-                      onPress={() => playPreview(type)}
-                    >
-                      <LinearGradient
-                        colors={currentlyPlaying === type 
-                          ? ['#fbbf24', '#f59e0b'] 
-                          : ['#1f2937', '#111827']
-                        }
-                        style={[
-                          styles.soundCardGradient,
-                          currentlyPlaying === type && styles.soundCardActive
-                        ]}
+                  {sounds.map(({ type, config }) => {
+                    // Defensive check to handle undefined config
+                    if (!config) {
+                      console.warn(`Missing config for sound type: ${type}`);
+                      return null;
+                    }
+                    
+                    return (
+                      <Pressable
+                        key={type}
+                        style={styles.soundCard}
+                        onPress={() => playPreview(type)}
                       >
-                        <View style={styles.soundCardContent}>
-                          <Text style={[
-                            styles.soundName,
-                            currentlyPlaying === type && styles.soundNameActive
-                          ]}>
-                            {config.name}
-                          </Text>
-                          <Text style={[
-                            styles.soundDescription,
-                            currentlyPlaying === type && styles.soundDescriptionActive
-                          ]}>
-                            {config.description}
-                          </Text>
-                          
-                          {currentlyPlaying === type && (
-                            <View style={styles.playingIndicator}>
-                              <View style={styles.waveBar} />
-                              <View style={[styles.waveBar, styles.waveBar2]} />
-                              <View style={[styles.waveBar, styles.waveBar3]} />
-                            </View>
-                          )}
-                        </View>
-                      </LinearGradient>
-                    </Pressable>
-                  ))}
+                        <LinearGradient
+                          colors={currentlyPlaying === type 
+                            ? ['#fbbf24', '#f59e0b'] 
+                            : ['#1f2937', '#111827']
+                          }
+                          style={[
+                            styles.soundCardGradient,
+                            currentlyPlaying === type && styles.soundCardActive
+                          ]}
+                        >
+                          <View style={styles.soundCardContent}>
+                            <Text style={[
+                              styles.soundName,
+                              currentlyPlaying === type && styles.soundNameActive
+                            ]}>
+                              {config?.name || 'Unknown Sound'}
+                            </Text>
+                            <Text style={[
+                              styles.soundDescription,
+                              currentlyPlaying === type && styles.soundDescriptionActive
+                            ]}>
+                              {config?.description || 'No description available'}
+                            </Text>
+                            
+                            {currentlyPlaying === type && (
+                              <View style={styles.playingIndicator}>
+                                <View style={styles.waveBar} />
+                                <View style={[styles.waveBar, styles.waveBar2]} />
+                                <View style={[styles.waveBar, styles.waveBar3]} />
+                              </View>
+                            )}
+                          </View>
+                        </LinearGradient>
+                      </Pressable>
+                    );
+                  }).filter(Boolean)}
                 </View>
               </View>
             );

@@ -28,8 +28,8 @@ export default function IntentionScreen() {
   const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
 
   const handleContinue = () => {
-    console.log('📱 Navigating to onboarding breath screen...');
-    router.push('/onboarding/breath');
+    // Use replace to avoid iOS navigation stack issues
+    router.replace('/breathing');
   };
 
   return (

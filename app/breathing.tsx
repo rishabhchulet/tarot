@@ -91,7 +91,10 @@ export default function BreathingScreen() {
   };
 
   const handleStartBreathing = () => setPhase('breathing');
-  const handleReady = () => router.push('/onboarding/astrology');
+  const handleReady = () => {
+    // Use replace to cleanly return to onboarding flow and avoid iOS stack issues
+    router.replace('/onboarding/astrology');
+  };
 
   const animatedGlowStyle = useAnimatedStyle(() => ({ transform: [{ scale: glowScale.value }] }));
   const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));

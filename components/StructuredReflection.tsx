@@ -15,6 +15,7 @@ import { MessageCircle, RefreshCw, Sparkles, Star, Zap } from 'lucide-react-nati
 import { PlanetaryLoadingAnimation } from '@/components/PlanetaryLoadingAnimation';
 import { getStructuredReflection } from '@/utils/structuredAI';
 import { StructuredReflectionResponse } from '@/data/structuredData';
+import { playScreenAmbient } from '@/utils/ambientSounds';
 
 const { width } = Dimensions.get('window');
 
@@ -43,6 +44,8 @@ export function StructuredReflection({
 
   useEffect(() => {
     generateReflection();
+    // Play forest whispers for peaceful reflection
+    playScreenAmbient('reflection');
   }, [cardName, hexagramName]);
 
   const generateReflection = async () => {

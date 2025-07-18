@@ -6,6 +6,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Eas
 import { Sparkles } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
 import { buttonHaptics } from '@/utils/haptics';
+import { playScreenAmbient } from '@/utils/ambientSounds';
 
 export default function WelcomeScreen() {
   const { user } = useAuth();
@@ -30,6 +31,11 @@ export default function WelcomeScreen() {
       -1,
       true
     );
+  }, []);
+
+  useEffect(() => {
+    // Play cosmic ambience for the mystical onboarding experience
+    playScreenAmbient('onboarding');
   }, []);
 
   const animatedGlowStyle = useAnimatedStyle(() => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, Alert, Pressable, Modal } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, User, CreditCard, CircleHelp as HelpCircle, LogOut, Settings as SettingsIcon, Clock, Sparkles, MessageCircle, Calendar } from 'lucide-react-native';
+import { Bell, User, CreditCard, CircleHelp as HelpCircle, LogOut, Settings as SettingsIcon, Clock, Sparkles, MessageCircle, Calendar, Music } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
 import { SignOutTestButton } from '@/components/SignOutTestButton';
@@ -309,6 +309,16 @@ export default function SettingsScreen() {
               />
             </>
           )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Experience</Text>
+          <SettingItem
+            icon={Music}
+            title="Ambient Sounds"
+            subtitle="Enhance your practice with nature and cosmic sounds"
+            onPress={() => router.push('/ambient-sounds')}
+          />
         </View>
         
         <View style={styles.section}>

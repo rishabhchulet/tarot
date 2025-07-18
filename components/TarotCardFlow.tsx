@@ -16,6 +16,7 @@ import { I_CHING_HEXAGRAMS } from '@/data/iChing';
 import { ReflectionPrompt } from './ReflectionPrompt';
 import { router } from 'expo-router';
 import { Star, Zap, Sparkles, ChevronDown, ChevronUp } from 'lucide-react-native';
+import { playScreenAmbient } from '@/utils/ambientSounds';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -112,6 +113,8 @@ export function TarotCardFlow({ onComplete }: { onComplete?: () => void }) {
 
   useEffect(() => {
     handleRevealCard();
+    // Play celestial chimes when card draw flow starts
+    playScreenAmbient('cardDraw');
   }, []);
 
   const handleRevealCard = () => {

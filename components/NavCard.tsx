@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronRight } from 'lucide-react-native';
+import { buttonHaptics } from '@/utils/haptics';
 
 interface NavCardProps {
   title: string;
@@ -12,8 +13,13 @@ interface NavCardProps {
 }
 
 export function NavCard({ title, subtitle, href, icon }: NavCardProps) {
+  const handlePress = () => {
+    buttonHaptics.select();
+    router.push(href);
+  };
+
   return (
-    <Pressable style={styles.container} onPress={() => router.push(href)}>
+    <Pressable style={styles.container} onPress={handlePress}>
       <View style={styles.card}>
         <LinearGradient
           colors={['rgba(255,255,255,0.08)', 'rgba(255,255,255,0.04)']}

@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, withSequence } from 'react-native-reanimated';
 import { Sparkles } from 'lucide-react-native';
 import { useAuth } from '@/contexts/AuthContext';
+import { buttonHaptics } from '@/utils/haptics';
 
 export default function WelcomeScreen() {
   const { user } = useAuth();
@@ -44,6 +45,9 @@ export default function WelcomeScreen() {
   });
 
   const handleContinue = () => {
+    // Haptic feedback for primary onboarding action
+    buttonHaptics.primary();
+    
     console.log('📱 Navigating to quiz screen...');
     router.push('/onboarding/quiz');
   };

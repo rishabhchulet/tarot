@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { ArrowRight, Sparkles } from 'lucide-react-native';
+import { buttonHaptics } from '@/utils/haptics';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -60,6 +61,9 @@ export function DailyReflectionCard() {
   }
   
   const handlePress = () => {
+    // Haptic feedback for card selection
+    buttonHaptics.select();
+    
     if (hasDrawn) {
       router.push('/daily-question');
     } else {

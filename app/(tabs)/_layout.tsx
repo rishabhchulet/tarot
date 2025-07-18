@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { BookOpen, Settings, Sparkles, Home } from 'lucide-react-native';
 import { Platform } from 'react-native';
+import { buttonHaptics } from '@/utils/haptics';
 
 export default function TabLayout() {
   return (
@@ -43,6 +44,12 @@ export default function TabLayout() {
           marginHorizontal: 4,
           borderRadius: 16,
           backgroundColor: 'transparent',
+        },
+        // Add haptic feedback on tab press
+        listeners: {
+          tabPress: () => {
+            buttonHaptics.tab();
+          },
         },
       }}>
       <Tabs.Screen

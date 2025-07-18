@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ScrollView, SafeAreaView, Alert, Pla
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { buttonHaptics, uiHaptics } from '@/utils/haptics';
 import { updateUserProfile } from '@/utils/auth';
 import { useAuth } from '@/contexts/AuthContext';
 import { DETAILED_ARCHETYPES } from '@/data/archetypes';
@@ -85,19 +86,16 @@ export default function ArchetypeQuiz() {
   const handleArchetypeSelect = async (archetypeId: string) => {
     console.log('🎯 Archetype selected:', archetypeId);
     
-    // Add haptic feedback on iOS
-    if (Platform.OS === 'ios') {
-      try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      } catch (error) {
-        console.log('Haptic feedback not available');
-      }
-    }
+    // Haptic feedback for card selection
+    buttonHaptics.select();
     
     const archetype = DETAILED_ARCHETYPES.find(a => a.id === archetypeId);
     console.log('🎭 Found archetype:', archetype?.name);
     if (archetype) {
       setSelectedArchetype(archetype);
+      
+      // Haptic feedback for modal opening
+      uiHaptics.modalOpen();
       
       // Add slight delay for better UX on Android
       if (Platform.OS === 'android') {
@@ -118,14 +116,8 @@ export default function ArchetypeQuiz() {
     if (selectedArchetype) {
       console.log('✅ User confirmed archetype:', selectedArchetype.name);
       
-      // Add haptic feedback on iOS for confirmation
-      if (Platform.OS === 'ios') {
-        try {
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        } catch (error) {
-          console.log('Haptic feedback not available');
-        }
-      }
+      // Haptic feedback for confirmation
+      buttonHaptics.confirm();
       
       setSelected(selectedArchetype.id);
       setModalVisible(false);
@@ -137,6 +129,10 @@ export default function ArchetypeQuiz() {
 
   const handleModalClose = () => {
     console.log('🚪 Modal closing');
+    
+    // Haptic feedback for modal closing
+    uiHaptics.modalClose();
+    
     setModalVisible(false);
     setSelectedArchetype(null);
   };

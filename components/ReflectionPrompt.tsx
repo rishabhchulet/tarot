@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable, Alert, Dimensions, ScrollView, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Save, Mic, Square, Play, Pause } from 'lucide-react-native';
+import { buttonHaptics, uiHaptics } from '@/utils/haptics';
 import { saveJournalEntry, saveDailyQuestion } from '@/utils/database';
 import { saveAudioToDocuments, AudioRecording, startRecording, stopRecording, playAudio } from '@/utils/audio';
 import { AIInterpretation } from './AIInterpretation';
@@ -43,6 +44,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   }, [isRecording]);
 
   const handleStartRecording = async () => {
+    // Haptic feedback for recording action
+    buttonHaptics.record();
+    
     const success = await startRecording();
     if (success) {
       setIsRecording(true);
@@ -52,6 +56,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   };
 
   const handleStopRecording = async () => {
+    // Haptic feedback for stopping recording
+    buttonHaptics.secondary();
+    
     const recording = await stopRecording();
     setIsRecording(false);
     setRecordingTime(0);
@@ -78,6 +85,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   const handlePlayRecording = async () => {
     if (!voiceRecording) return;
 
+    // Haptic feedback for playing audio
+    buttonHaptics.select();
+    
     setIsPlayingAudio(true);
     await playAudio(voiceRecording.uri);
     
@@ -104,6 +114,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   };
 
   const handleSave = async () => {
+    // Haptic feedback for primary action
+    buttonHaptics.primary();
+    
     setSaving(true);
 
     try {
@@ -139,6 +152,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
         onComplete();
       }
       
+      // Success haptic feedback
+      buttonHaptics.confirm();
+      
       // Show success message (no navigation in onPress)
       Alert.alert(
         'Reflection Saved!',
@@ -153,6 +169,9 @@ export function ReflectionPrompt({ card, hexagram, onComplete }: ReflectionPromp
   };
 
   const handleSkip = async () => {
+    // Haptic feedback for secondary action
+    buttonHaptics.secondary();
+    
     setSaving(true);
 
     try {

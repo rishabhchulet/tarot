@@ -44,30 +44,22 @@ export function AmbientSoundSettings({ onSettingsChange }: AmbientSoundSettingsP
   const playPreview = async (soundType: AmbientSoundType) => {
     buttonHaptics.select();
     
-    // Stop current preview if different sound
-    if (currentlyPlaying && currentlyPlaying !== soundType) {
-      await ambientSoundManager.stopCurrentSound();
-    }
-
-    if (currentlyPlaying === soundType) {
-      // Stop if same sound is playing
-      await ambientSoundManager.stopCurrentSound();
+    // Use the new preview method instead of full playback
+    await ambientSoundManager.previewSound(soundType);
+    
+    // Update UI to show which sound was previewed
+    setCurrentlyPlaying(soundType);
+    await updateSettings({ currentSound: soundType });
+    
+    // Clear the preview indicator after 3 seconds
+    setTimeout(() => {
       setCurrentlyPlaying(null);
-      await updateSettings({ currentSound: null });
-    } else {
-      // Play new sound
-      const success = await ambientSoundManager.playSound(soundType, true);
-      if (success) {
-        setCurrentlyPlaying(soundType);
-        await updateSettings({ currentSound: soundType });
-      }
-    }
+    }, 3000);
   };
 
   const adjustVolume = async (delta: number) => {
     hapticLight();
     const newVolume = Math.max(0, Math.min(1, settings.volume + delta));
-    await ambientSoundManager.setVolume(newVolume);
     await updateSettings({ volume: newVolume });
   };
 

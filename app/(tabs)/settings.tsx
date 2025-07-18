@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, User, CreditCard, CircleHelp as HelpCircle, LogOut, Settings as SettingsIcon, Clock, Sparkles, MessageCircle, Calendar, Music } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/contexts/AuthContext';
+import { clearAllUserCache, getCacheInfo } from '@/utils/cacheManager';
 import { SignOutTestButton } from '@/components/SignOutTestButton';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
@@ -31,10 +32,12 @@ export default function SettingsScreen() {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [showStylePicker, setShowStylePicker] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [cacheInfo, setCacheInfo] = useState<any>(null);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
     loadNotificationPreferences();
+    loadCacheInfo();
   }, []);
 
   const loadNotificationPreferences = async () => {
@@ -72,6 +75,53 @@ export default function SettingsScreen() {
       console.error('❌ Error updating notification preference:', error);
       Alert.alert('Error', 'Failed to update notification settings. Please try again.');
     }
+  };
+
+  const loadCacheInfo = async () => {
+    try {
+      const info = await getCacheInfo();
+      setCacheInfo(info);
+    } catch (error) {
+      console.error('❌ Error loading cache info:', error);
+    }
+  };
+
+  const handleClearCache = async () => {
+    Alert.alert(
+      'Clear App Cache',
+      'This will clear all cached data and may sign you out. This can help resolve iOS performance issues. Continue?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear Cache',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const result = await clearAllUserCache();
+              
+              if (result.success) {
+                Alert.alert(
+                  'Cache Cleared',
+                  `Successfully cleared: ${result.clearedItems.join(', ')}. Please restart the app for best results.`,
+                  [{ text: 'OK' }]
+                );
+              } else {
+                Alert.alert(
+                  'Partial Success',
+                  `Cleared some items but encountered errors: ${result.errors.join(', ')}`,
+                  [{ text: 'OK' }]
+                );
+              }
+              
+              // Reload cache info
+              await loadCacheInfo();
+            } catch (error) {
+              Alert.alert('Error', 'Failed to clear cache. Please try again.');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const formatTime = (time24: string) => {
@@ -323,6 +373,12 @@ export default function SettingsScreen() {
         
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Support & More</Text>
+          <SettingItem
+            icon={Settings}
+            title="Clear App Cache"
+            subtitle={cacheInfo ? `${cacheInfo.asyncStorageKeys + cacheInfo.webStorageItems} cached items (${cacheInfo.totalEstimatedSize})` : 'Clear all cached data'}
+            onPress={handleClearCache}
+          />
           <SettingItem
             icon={CreditCard}
             title="Manage Subscription"

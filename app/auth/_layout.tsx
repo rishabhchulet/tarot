@@ -1,6 +1,5 @@
 import { Stack } from 'expo-router';
 import { Platform } from 'react-native';
-import { TransitionPresets } from '@react-navigation/stack';
 
 export default function AuthLayout() {
   return (
@@ -40,7 +39,26 @@ export default function AuthLayout() {
                 };
               },
             }
-          : TransitionPresets.FadeFromBottomAndroid),
+          : {
+              // iOS fade transition
+              presentation: 'modal',
+              transitionSpec: {
+                open: {
+                  animation: 'timing',
+                  config: {
+                    duration: 300,
+                    easing: 'ease-out',
+                  },
+                },
+                close: {
+                  animation: 'timing',
+                  config: {
+                    duration: 250,
+                    easing: 'ease-in',
+                  },
+                },
+              },
+            }),
       }}
     >
       <Stack.Screen name="index" />

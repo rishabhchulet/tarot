@@ -1,6 +1,5 @@
 import { Stack } from 'expo-router';
 import { Platform } from 'react-native';
-import { TransitionPresets } from '@react-navigation/stack';
 
 export default function OnboardingLayout() {
   return (
@@ -49,8 +48,8 @@ export default function OnboardingLayout() {
               },
             }
           : {
-              // iOS smooth fade + slide transition
-              ...TransitionPresets.FadeFromBottomAndroid,
+              // iOS smooth fade transition with slide from bottom
+              presentation: 'modal',
               transitionSpec: {
                 open: {
                   animation: 'timing',

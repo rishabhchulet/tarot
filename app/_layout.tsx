@@ -7,7 +7,6 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AppState, Platform } from 'react-native';
-import { TransitionPresets } from '@react-navigation/stack';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { 
   registerForPushNotificationsAsync, 

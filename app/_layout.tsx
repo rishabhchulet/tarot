@@ -152,7 +152,26 @@ export default function RootLayout() {
                         };
                       },
                     }
-                  : TransitionPresets.SlideFromRightIOS),
+                  : {
+                      // iOS native slide transition
+                      presentation: 'card',
+                      transitionSpec: {
+                        open: {
+                          animation: 'timing',
+                          config: {
+                            duration: 350,
+                            easing: 'ease-out',
+                          },
+                        },
+                        close: {
+                          animation: 'timing',
+                          config: {
+                            duration: 300,
+                            easing: 'ease-in',
+                          },
+                        },
+                      },
+                    }),
               }}
             >
               <Stack.Screen name="auth" />

@@ -48,15 +48,17 @@ export default function BreathingScreen() {
 
   useEffect(() => {
     if (phase === 'breathing') {
-      startBreathingCycle();
+      startBreathingExercise();
     }
   }, [phase]);
 
-  const startBreathingCycle = () => {
+  const startBreathingExercise = () => {
     let currentBreath = 0;
-    
+    let intervalId: NodeJS.Timeout;
+    let timeoutId: NodeJS.Timeout;
+
     const breathingCycle = () => {
-      circleScale.value = withTiming(1.4, { duration: 4000, easing: Easing.inOut(Easing.ease) });
+      circleScale.value = withTiming(1.2, { duration: 4000, easing: Easing.inOut(Easing.ease) });
       circleOpacity.value = withTiming(0.9, { duration: 4000, easing: Easing.inOut(Easing.ease) });
       setTimeout(() => {
         circleScale.value = withTiming(0.8, { duration: 4000, easing: Easing.inOut(Easing.ease) });
@@ -68,17 +70,24 @@ export default function BreathingScreen() {
     currentBreath = 1;
     setBreathCount(1);
 
-    const interval = setInterval(() => {
+    intervalId = setInterval(() => {
       currentBreath++;
       setBreathCount(currentBreath);
       if (currentBreath <= 3) breathingCycle();
       if (currentBreath >= 3) {
-        clearInterval(interval);
-        setTimeout(() => setPhase('done'), 8000);
+        clearInterval(intervalId);
+        // Store timeout ID for cleanup
+        timeoutId = setTimeout(() => setPhase('done'), 8000);
       }
     }, 8000);
 
-    return () => clearInterval(interval);
+    // Return cleanup function that clears both interval and timeout
+    return () => {
+      clearInterval(intervalId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   };
 
   const handleStartBreathing = () => setPhase('breathing');

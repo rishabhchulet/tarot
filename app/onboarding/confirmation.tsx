@@ -23,9 +23,9 @@ export default function ConfirmationScreen() {
   const animatedIconStyle = useAnimatedStyle(() => ({ transform: [{ scale: iconScale.value }] }));
 
   const handleContinue = () => {
-    // Fixed: Direct navigation to home tab to avoid routing loop
+    // Fixed: Use correct Expo Router navigation pattern
     console.log('🎯 Onboarding complete - navigating to home');
-    router.replace('/(tabs)/index');
+    router.replace('/(tabs)');
   };
 
   return (

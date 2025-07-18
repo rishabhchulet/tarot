@@ -55,9 +55,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index" 
         options={{
-          title: 'Home',
+          title: 'Today',
           tabBarIcon: ({ size, color, focused }) => (
-            <Home 
+            <Sparkles 
               size={focused ? 26 : 24} 
               color={color} 
               strokeWidth={focused ? 2.5 : 2}
@@ -65,17 +65,6 @@ export default function TabLayout() {
             />
           ),
           headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="today"
-        options={{
-          title: 'Today',
-          tabBarIcon: ({ size, color }) => (
-            <Sparkles size={size} color={color} strokeWidth={2} />
-          ),
-          // Redirect to home instead of separate today screen
-          href: '/(tabs)/index',
         }}
       />
       <Tabs.Screen

@@ -46,8 +46,8 @@ export default function IndexScreen() {
               router.replace('/onboarding/welcome');
             } else {
               console.log('✅ User has completed onboarding - going to main app...');
-              // Fixed: Direct navigation to home tab to avoid routing loop
-              router.replace('/(tabs)/index');
+              // Fixed: Use correct Expo Router navigation pattern
+              router.replace('/(tabs)');
             }
           } else if (session) {
             // Session exists but no user profile - redirect to name collection
@@ -62,7 +62,7 @@ export default function IndexScreen() {
           console.error('❌ Routing error:', routingError);
           // Fallback routing
           if (session) {
-            router.replace('/(tabs)/index');
+            router.replace('/(tabs)');
           } else {
             router.replace('/auth');
           }

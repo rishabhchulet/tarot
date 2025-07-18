@@ -1,7 +1,6 @@
 import { Audio } from 'expo-av';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Asset } from 'expo-asset';
 
 export type AmbientSoundType = 
   | 'cosmic-ambience'
@@ -22,6 +21,34 @@ export interface AmbientSoundConfig {
   category: 'cosmic' | 'nature' | 'meditative';
   audioFile: string;
 }
+
+// Static sound file mapping for Metro bundler compatibility
+const SOUND_FILES: Record<AmbientSoundType, any> = {
+  'cosmic-ambience': null, // Will be loaded when files are available
+  'gentle-rain': null,
+  'forest-whispers': null,
+  'ocean-waves': null,
+  'singing-bowls': null,
+  'celestial-chimes': null,
+  'mountain-wind': null,
+  'deep-space': null,
+  'crystal-resonance': null,
+  'earth-heartbeat': null,
+};
+
+// Future: When you add actual sound files, uncomment these lines:
+// const SOUND_FILES: Record<AmbientSoundType, any> = {
+//   'cosmic-ambience': require('../assets/sounds/cosmic-ambience.wav'),
+//   'gentle-rain': require('../assets/sounds/gentle-rain.wav'),
+//   'forest-whispers': require('../assets/sounds/forest-whispers.wav'),
+//   'ocean-waves': require('../assets/sounds/ocean-waves.wav'),
+//   'singing-bowls': require('../assets/sounds/singing-bowls.wav'),
+//   'celestial-chimes': require('../assets/sounds/celestial-chimes.wav'),
+//   'mountain-wind': require('../assets/sounds/mountain-wind.wav'),
+//   'deep-space': require('../assets/sounds/deep-space.wav'),
+//   'crystal-resonance': require('../assets/sounds/crystal-resonance.wav'),
+//   'earth-heartbeat': require('../assets/sounds/earth-heartbeat.wav'),
+// };
 
 export const AMBIENT_SOUNDS: Record<AmbientSoundType, AmbientSoundConfig> = {
   'cosmic-ambience': {
@@ -187,40 +214,34 @@ class AmbientSoundManager {
   private async createSoundFromType(soundType: AmbientSoundType): Promise<Audio.Sound | null> {
     try {
       const config = AMBIENT_SOUNDS[soundType];
-      if (!config.audioFile) {
-        console.log(`🎵 No audio file specified for ${soundType}, simulating...`);
-        return null;
-      }
+      const soundFile = SOUND_FILES[soundType];
 
       if (Platform.OS === 'web') {
         // Web implementation would use HTML5 Audio with actual files
-        console.log(`🎵 Playing ambient sound: ${config.name} (web)`);
+        console.log(`🎵 Playing ambient sound: ${config.name} (web simulation)`);
         return null;
       }
 
-      // Try to load the actual audio file
-      try {
-        // First try to load from assets
-        const asset = Asset.fromModule(require(`../assets/sounds/${config.audioFile}`));
-        await asset.downloadAsync();
-        
-        const { sound } = await Audio.Sound.createAsync(
-          { uri: asset.localUri || asset.uri },
-          { 
-            shouldPlay: false, 
-            isLooping: true,
-            volume: config.volume * this.settings.volume
-          }
-        );
-        
-        console.log(`🎵 Loaded ambient sound: ${config.name}`);
-        return sound;
-      } catch (fileError) {
-        // Fallback: If file doesn't exist, simulate the sound
-        console.log(`🎵 Audio file not found for ${config.name}, simulating...`);
-        console.log(`📝 Please download ${config.audioFile} and place it in assets/sounds/`);
+      // Check if we have the actual audio file
+      if (!soundFile) {
+        // Simulate the sound for now - will work when files are added
+        console.log(`🎵 Simulating ambient sound: ${config.name} (file not yet added)`);
+        console.log(`📝 To add real audio: Download ${config.audioFile} and uncomment the require statements`);
         return null;
       }
+
+      // Create sound from static file reference
+      const { sound } = await Audio.Sound.createAsync(
+        soundFile,
+        { 
+          shouldPlay: false, 
+          isLooping: true,
+          volume: config.volume * this.settings.volume
+        }
+      );
+      
+      console.log(`🎵 Loaded ambient sound: ${config.name}`);
+      return sound;
     } catch (error) {
       console.error(`Failed to create sound for ${soundType}:`, error);
       return null;

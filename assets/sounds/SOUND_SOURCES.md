@@ -2,6 +2,33 @@
 
 This document lists all the ambient sounds used in the app, their sources, and download instructions.
 
+## 🚀 **Quick Start (After Download)**
+
+After downloading the sound files:
+
+1. **Place files** in `assets/sounds/` directory
+2. **Edit `utils/ambientSounds.ts`** - Find line ~28 and uncomment the static sound mapping:
+
+```typescript
+// Change this (line ~18):
+const SOUND_FILES: Record<AmbientSoundType, any> = {
+  'cosmic-ambience': null, // Will be loaded when files are available
+  // ... all set to null
+};
+
+// To this (uncomment the section around line ~28):
+const SOUND_FILES: Record<AmbientSoundType, any> = {
+  'cosmic-ambience': require('../assets/sounds/cosmic-ambience.wav'),
+  'gentle-rain': require('../assets/sounds/gentle-rain.wav'),
+  // ... etc for all sounds
+};
+```
+
+3. **Restart Expo** - Run `npx expo start` again
+4. **Enjoy real ambient sounds!**
+
+---
+
 ## 🌊 **Ocean Waves** (`ocean-waves.wav`)
 **Source:** Waves of Hawaii by florianreichelt  
 **Link:** https://freesound.org/people/florianreichelt/sounds/450755/  
@@ -105,6 +132,14 @@ This document lists all the ambient sounds used in the app, their sources, and d
 4. **Download the WAV files** (use the original quality)
 5. **Rename files** according to the names in parentheses above
 6. **Place files** in the `assets/sounds/` directory
+7. **Enable real audio** by uncommenting the require statements in `utils/ambientSounds.ts`
+
+## Current Status
+
+✅ **System fully functional** (simulating sounds until files are added)  
+✅ **Metro bundler compatible** (no dynamic requires)  
+✅ **All UI controls working**  
+🔄 **Ready for real audio files**
 
 ## Attribution Requirements
 
@@ -123,16 +158,6 @@ No attribution required, but it's nice to credit the creators.
 2. **Convert to MP3** 192kbps or higher for smaller file sizes
 3. **Create seamless loops** by crossfading the beginning and end
 4. **Test on mobile devices** for quality and performance
-
-## Backup Sources
-
-If any links are broken, search for:
-- "ocean waves meditation"
-- "rain ambient loop"
-- "forest jungle ambient"
-- "space drone ambient"
-- "singing bowl meditation"
-- "crystal resonance ambient"
 
 ## Legal Note
 

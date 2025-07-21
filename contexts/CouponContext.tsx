@@ -68,11 +68,23 @@ export function CouponProvider({ children }: CouponProviderProps) {
     try {
       console.log('🎫 Refreshing coupon status...');
       
-      // Call the database function to get user's coupon status
-      const { data, error } = await supabase
-        .rpc('get_user_coupon_status', { user_id_input: user.id });
+      // Call the database function to get user's coupon status (handle gracefully)
+      let data = null;
+      let error = null;
+      try {
+        const result = await supabase
+          .rpc('get_user_coupon_status', { user_id_input: user.id });
+        data = result.data;
+        error = result.error;
+      } catch (catchError: any) {
+        // Handle case where the RPC function doesn't exist or fails
+        console.log('ℹ️ Coupon function not available or failed:', catchError);
+        setCouponStatus({ hasActiveCoupon: false });
+        return;
+      }
 
-      if (error) {
+      if (error && error.code !== 'PGRST116') {
+        // Only log real errors, not "no rows found"
         console.error('❌ Error loading coupon status:', error);
         setCouponStatus({ hasActiveCoupon: false });
         return;

@@ -64,16 +64,27 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     try {
       console.log('📱 Loading subscription status from database...');
       
-      // Load subscription data from the subscriptions table
+      // Load subscription data from the subscriptions table (handle missing data gracefully)
       const { data: subscriptionData, error: subscriptionError } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle(); // Use maybeSingle() instead of single() to handle no rows gracefully
 
-      // Also check for coupon access
-      const { data: couponData, error: couponError } = await supabase
-        .rpc('get_user_coupon_status', { user_id_input: user.id });
+      // Also check for coupon access (handle missing data gracefully)
+      let couponData = null;
+      let couponError = null;
+      try {
+        const result = await supabase
+          .rpc('get_user_coupon_status', { user_id_input: user.id });
+        couponData = result.data;
+        couponError = result.error;
+      } catch (error) {
+        // Handle case where the RPC function doesn't exist or fails
+        console.log('ℹ️ Coupon function not available or failed:', error);
+        couponData = null;
+        couponError = null;
+      }
 
       let isActive = false;
       let plan: SubscriptionPlan = 'free';
@@ -117,8 +128,11 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           trialEnd = trialEndDate;
           isTrialActive = trialEndDate > new Date();
         }
-      } else if (subscriptionError) {
-        // If no subscription record found, this is a new user
+      } else if (subscriptionError && subscriptionError.code !== 'PGRST116') {
+        // If error is NOT "no rows found", log it as a real error
+        console.error('❌ Subscription data error:', subscriptionError);
+      } else {
+        // If no subscription record found (PGRST116) or no error, this is a new user
         // They should see upgrade options, not automatic trial access
         console.log('📊 No subscription data found - new user should see upgrade options');
       }

@@ -23,7 +23,7 @@ export const saveJournalEntry = async (entry: Omit<JournalEntryInsert, 'user_id'
           user_id: user.id,
         })
         .select()
-        .single(),
+        .maybeSingle(), // Use maybeSingle() to handle no rows gracefully
       5000 // 5 second timeout
     );
 
@@ -222,7 +222,7 @@ export const startFreeTrial = async () => {
           .from('subscriptions')
           .upsert(subscriptionData, { onConflict: 'user_id' })
           .select()
-          .single(),
+          .maybeSingle(), // Use maybeSingle() to handle no rows gracefully
         attempts === 1 ? 10000 : 6000, // Longer timeout on first attempt
         { data: subscriptionData, error: null }
       );
@@ -325,7 +325,7 @@ export const activateSubscription = async (subscriptionType: 'monthly' | 'yearly
         })
         .eq('user_id', user.id)
         .select()
-        .single(),
+        .maybeSingle(), // Use maybeSingle() to handle no rows gracefully
       5000 // 5 second timeout
     );
 

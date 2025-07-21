@@ -378,7 +378,7 @@ export const getCurrentUser = async (): Promise<AuthUser | null> => {
         .from('users')
         .select('name, archetype, birth_date, birth_time, birth_location, latitude, longitude, onboarding_step')
         .eq('id', user.id)
-        .single(),
+        .maybeSingle(), // Use maybeSingle() to handle no rows gracefully
       10000, // INCREASED: 10 second timeout
       { data: null, error: new Error('Profile fetch timeout') }
     );

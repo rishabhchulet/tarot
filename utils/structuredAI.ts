@@ -11,7 +11,18 @@ import { getDevelopmentServerUrl, handleMobileNetworkError } from './mobileApiCo
 
 // Helper function to get the correct API base URL for mobile/web
 const getApiBaseUrl = () => {
+  // For web development, check if we're in a proper web environment
   if (typeof window !== 'undefined') {
+    // In web mode, try to use the current origin for API requests
+    if (window.location && window.location.origin) {
+      // Check if this is a development environment
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return window.location.origin;
+      }
+      // For production web, use the same origin
+      return window.location.origin;
+    }
+    // Fallback to relative URLs
     return '';
   }
   
@@ -31,6 +42,39 @@ const handleNetworkError = (error: any, context: string) => {
   }
   
   return error.message || `Failed to generate ${context}`;
+};
+
+// Enhanced response parser that handles HTML error responses
+const parseApiResponse = async (response: Response, context: string) => {
+  let responseText = '';
+  try {
+    responseText = await response.text();
+    console.log(`🔍 Raw API response for ${context}:`, responseText?.substring(0, 100));
+    
+    // Check if response is empty
+    if (!responseText || responseText.trim() === '') {
+      throw new Error(`Empty response from AI service for ${context}`);
+    }
+    
+    // Check if response contains HTML error page (common cause of unexpected token '<')
+    if (responseText.trim().startsWith('<')) {
+      console.error(`❌ Received HTML response instead of JSON for ${context}:`, responseText.substring(0, 200));
+      throw new Error(`AI service returned HTML error page instead of JSON for ${context}`);
+    }
+    
+    // Check for other non-JSON responses
+    if (!responseText.trim().startsWith('{') && !responseText.trim().startsWith('[')) {
+      console.error(`❌ Received non-JSON response for ${context}:`, responseText.substring(0, 200));
+      throw new Error(`AI service returned non-JSON response for ${context}`);
+    }
+    
+    // Try to parse JSON
+    return JSON.parse(responseText);
+  } catch (parseError: any) {
+    console.error(`❌ JSON parsing error for ${context}:`, parseError);
+    console.error(`❌ Response that failed to parse:`, responseText?.substring(0, 200));
+    throw new Error(`Failed to parse AI response for ${context}: ${parseError.message}`);
+  }
 };
 
 // Create the structured prompt based on your specifications
@@ -158,34 +202,17 @@ export const getStructuredReflection = async (
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error('Structured Reflection API Error:', errorBody);
+      console.error('Structured Reflection API Error:', errorBody?.substring(0, 200));
       throw new Error(`HTTP ${response.status}: Failed to get structured reflection from AI`);
     }
 
     // FIXED: Enhanced response parsing with better error handling
     let result;
-    let responseText = '';
     try {
-      responseText = await response.text();
-      console.log('🔍 Raw API response:', responseText);
-      
-      // Check if response is empty or not JSON
-      if (!responseText || responseText.trim() === '') {
-        throw new Error('Empty response from AI service');
-      }
-      
-      // Check if response contains HTML error page (common cause of unexpected token '<')
-      if (responseText.trim().startsWith('<')) {
-        console.error('❌ Received HTML response instead of JSON:', responseText.substring(0, 200));
-        throw new Error('AI service returned HTML error page instead of JSON');
-      }
-      
-      // Try to parse JSON
-      result = JSON.parse(responseText);
+      result = await parseApiResponse(response, 'structured reflection');
     } catch (parseError: any) {
-      console.error('❌ JSON parsing error:', parseError);
-      console.error('❌ Response that failed to parse:', responseText?.substring(0, 200));
-      throw new Error(`Failed to parse AI response: ${parseError.message}`);
+      console.error('❌ Failed to parse structured reflection response:', parseError);
+      throw parseError;
     }
     
     // Validate the response structure

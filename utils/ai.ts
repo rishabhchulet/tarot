@@ -29,15 +29,25 @@ import { getDevelopmentServerUrl, handleMobileNetworkError } from './mobileApiCo
 
 // Helper function to get the correct API base URL for mobile/web
 export const getApiBaseUrl = () => {
-  // For web development, use relative URLs
+  // For web development, check if we're in a proper web environment
   if (typeof window !== 'undefined') {
+    // In web mode, try to use the current origin for API requests
+    if (window.location && window.location.origin) {
+      // Check if this is a development environment
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return window.location.origin;
+      }
+      // For production web, use the same origin
+      return window.location.origin;
+    }
+    // Fallback to relative URLs
     return '';
   }
   
   return getDevelopmentServerUrl();
 };
 
-// Enhanced error handling for mobile network issues
+// Enhanced error handling for mobile network issues and HTML responses
 const handleNetworkError = (error: any, context: string) => {
   const mobileError = handleMobileNetworkError(error, context);
   
@@ -52,9 +62,42 @@ const handleNetworkError = (error: any, context: string) => {
   return error.message || `Failed to generate ${context}`;
 };
 
+// Enhanced response parser that handles HTML error responses
+const parseApiResponse = async (response: Response, context: string) => {
+  let responseText = '';
+  try {
+    responseText = await response.text();
+    
+    // Check if response is empty
+    if (!responseText || responseText.trim() === '') {
+      throw new Error(`Empty response from AI service for ${context}`);
+    }
+    
+    // Check if response contains HTML error page (common cause of unexpected token '<')
+    if (responseText.trim().startsWith('<')) {
+      console.error(`❌ Received HTML response instead of JSON for ${context}:`, responseText.substring(0, 200));
+      throw new Error(`AI service returned HTML error page instead of JSON for ${context}`);
+    }
+    
+    // Check for other non-JSON responses
+    if (!responseText.trim().startsWith('{') && !responseText.trim().startsWith('[')) {
+      console.error(`❌ Received non-JSON response for ${context}:`, responseText.substring(0, 200));
+      throw new Error(`AI service returned non-JSON response for ${context}`);
+    }
+    
+    // Try to parse JSON
+    return JSON.parse(responseText);
+  } catch (parseError: any) {
+    console.error(`❌ JSON parsing error for ${context}:`, parseError);
+    console.error(`❌ Response that failed to parse:`, responseText?.substring(0, 200));
+    throw new Error(`Failed to parse AI response for ${context}: ${parseError.message}`);
+  }
+};
+
 export const getAICardInterpretation = async (data: AICardInterpretationRequest) => {
   try {
     const baseUrl = getApiBaseUrl();
+    console.log(`🎯 Card interpretation API request to: ${baseUrl}/ai`);
     
     // Create a timeout wrapper for the fetch request
     const timeoutPromise = new Promise((_, reject) => {
@@ -76,10 +119,12 @@ export const getAICardInterpretation = async (data: AICardInterpretationRequest)
     const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ API Error (${response.status}):`, errorText?.substring(0, 200));
       throw new Error(`HTTP ${response.status}: Failed to get AI interpretation`);
     }
 
-    const result = await response.json();
+    const result = await parseApiResponse(response, 'card interpretation');
     return { interpretation: result.interpretation, error: null };
   } catch (error: any) {
     console.error('Card interpretation error:', error);
@@ -119,10 +164,12 @@ export const getAIReflectionPrompts = async (data: AIReflectionPromptsRequest) =
     const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ API Error (${response.status}):`, errorText?.substring(0, 200));
       throw new Error(`HTTP ${response.status}: Failed to get AI reflection prompts`);
     }
 
-    const result = await response.json();
+    const result = await parseApiResponse(response, 'reflection prompts');
     return { questions: result.questions, error: null };
   } catch (error: any) {
     console.error('Reflection prompts error:', error);
@@ -162,10 +209,12 @@ export const getAIPersonalizedGuidance = async (data: AIPersonalizedGuidanceRequ
     const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`❌ API Error (${response.status}):`, errorText?.substring(0, 200));
       throw new Error(`HTTP ${response.status}: Failed to get AI guidance`);
     }
 
-    const result = await response.json();
+    const result = await parseApiResponse(response, 'personalized guidance');
     return { guidance: result.guidance, error: null };
   } catch (error: any) {
     console.error('Personalized guidance error:', error);
@@ -257,11 +306,11 @@ export const getAICompatibilityReport = async (data: CompatibilityReportRequest)
 
     if (!response.ok) {
       const errorBody = await response.text();
-      console.error('🔥 Compatibility API Error:', errorBody);
+      console.error('🔥 Compatibility API Error:', errorBody?.substring(0, 200));
       throw new Error(`HTTP ${response.status}: Failed to get AI compatibility report`);
     }
 
-    const result = await response.json();
+    const result = await parseApiResponse(response, 'compatibility report');
     console.log('✅ Successfully parsed compatibility report');
     return { report: result, error: null };
 

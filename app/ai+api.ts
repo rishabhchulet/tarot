@@ -162,13 +162,18 @@ export async function POST(request: Request) {
     // Parse request body with error handling
     let body;
     try {
-      body = await request.json();
+      const requestText = await request.text();
+      if (!requestText || requestText.trim() === '') {
+        throw new Error('Empty request body');
+      }
+      body = JSON.parse(requestText);
     } catch (parseError: any) {
       console.error('❌ Failed to parse request body:', parseError);
       return new Response(
         JSON.stringify({ 
-          error: 'Invalid request format',
-          code: 'INVALID_JSON'
+          error: 'Invalid request format - request body must be valid JSON',
+          code: 'INVALID_JSON',
+          details: parseError.message
         }),
         { 
           status: 400,

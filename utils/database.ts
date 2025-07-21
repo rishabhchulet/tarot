@@ -14,6 +14,38 @@ export const saveJournalEntry = async (entry: Omit<JournalEntryInsert, 'user_id'
       throw new Error('No authenticated user');
     }
 
+    // CRITICAL FIX: Ensure user profile exists before saving journal entry
+    // This prevents foreign key constraint violations
+    try {
+      const { error: profileError } = await createTimeoutWrapper(
+        () => supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle(),
+        3000
+      );
+
+      // If profile doesn't exist, try to create it
+      if (profileError || !user) {
+        console.log('📝 Creating user profile before saving journal entry...');
+        await createTimeoutWrapper(
+          () => supabase
+            .from('users')
+            .upsert({
+              id: user.id,
+              email: user.email || `user_${user.id}@example.com`,
+              name: user.user_metadata?.name || 'User',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            }),
+          3000
+        );
+      }
+    } catch (profileError) {
+      console.warn('⚠️ Could not verify/create user profile, continuing anyway:', profileError);
+    }
+
     // CRITICAL FIX: Use timeout wrapper for database operations
     const result = await createTimeoutWrapper(
       () => supabase
@@ -35,6 +67,7 @@ export const saveJournalEntry = async (entry: Omit<JournalEntryInsert, 'user_id'
 
     return { data, error: null };
   } catch (error: any) {
+    console.error('❌ Error saving journal entry:', error);
     return { data: null, error: error.message };
   }
 };

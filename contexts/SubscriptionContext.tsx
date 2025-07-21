@@ -290,8 +290,16 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           trial_days: 7
         });
 
+      console.log('🔍 Trial start response:', { trialResult, error });
+
       if (error) {
         console.error('❌ Error starting yearly trial:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
 
@@ -307,12 +315,15 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
           isTrialActive: true,
         });
 
-        console.log('✅ Yearly trial started successfully');
+        console.log('✅ Yearly trial started successfully:', trialResult);
       } else {
+        console.error('❌ Trial start failed with result:', trialResult);
         throw new Error(trialResult?.error || 'Failed to start trial');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to start yearly trial:', error);
+      console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+      
       // Still update local state so user can continue
       const trialEndDate = new Date();
       trialEndDate.setDate(trialEndDate.getDate() + 7);
